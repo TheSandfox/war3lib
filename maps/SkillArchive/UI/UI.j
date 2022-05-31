@@ -199,7 +199,11 @@ library UI
 			call BlzFrameSetVisible(.icon_container,.target > 0)
 			if .target > 0 then
 				/*아이콘바꾸기*/
-				call BlzFrameSetTexture(.icon_backdrop,"ReplaceableTextures\\CommandButtons\\"+.target.icon+".blp",0,true)
+				if .target.is_active then
+					call BlzFrameSetTexture(.icon_backdrop,"ReplaceableTextures\\CommandButtons\\"+.target.icon+".blp",0,true)
+				else
+					call BlzFrameSetTexture(.icon_backdrop,"ReplaceableTextures\\PassiveButtons\\PAS"+.target.icon+".blp",0,true)
+				endif
 				call BlzFrameSetTexture(.tooltip_icon,"ReplaceableTextures\\CommandButtons\\"+.target.icon+".blp",0,true)
 				/*툴팁 스킬이름*/
 				call BlzFrameSetText(.tooltip_name,TIER_STRING_COLOR[Ability.getTypeTier(.target.id)]+"Lv."+I2S(.target.level)+" "+.target.name+"|r")

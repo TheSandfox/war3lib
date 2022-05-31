@@ -842,7 +842,7 @@ scope Abilityu011 initializer init
 				return "적에게 피해를 입으면 매 "+STRING_COLOR_CONSTANT+R2SW(INTERVAL,1,1)+"초|r 마다 주변 적들에게 "+/*
 				*/ConstantString.statStringReal(STAT_TYPE_HPREGEN,( .owner.hpregen * DAMAGE_PER_HPREGEN ) * ( 1+DAMAGE_PER_LEVEL*(.level-1) ),1)+"의 "+DAMAGE_STRING_MAGICAL+/*
 				*/"를 입히며 "+STRING_COLOR_CONSTANT+STRING_COLOR_CONSTANT+R2SW(DURATION,1,1)+"초|r 동안 대상의 "+STAT_TYPE_COLOR[STAT_TYPE_HEAL_AMP]+STAT_TYPE_NAME[STAT_TYPE_HEAL_AMP]+"|r을 "+/*
-				*/STRING_COLOR_CONSTANT+I2S(R2I(Buffu011_main.REDUCE*100))+"%|r 감소시키는 역병구름을 분출합니다."
+				*/STRING_COLOR_CONSTANT+I2S(R2I(Buffu011_main.REDUCE*100))+"%|r 감소시키는 부패가스를 분출합니다."
 			endmethod
 
 			method execute takes nothing returns nothing
