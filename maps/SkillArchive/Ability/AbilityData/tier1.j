@@ -316,6 +316,7 @@ scope Ability0002 initializer init
 			private constant real BACKSWING = 0.25
 			private constant real STARTAT = 45.
 			private constant string EFFECT_PATH1 = "Abilities\\Weapons\\Mortar\\MortarMissile.mdl"
+			private constant string EFFECT_PATH2 = "Effects\\Aim.mdl"
 			private constant real DAMAGE_PER_ATTACK = 2.65
 			private constant real DAMAGE_PER_LEVEL = 0.05
 			private constant real VELO = 1875.
@@ -324,6 +325,8 @@ scope Ability0002 initializer init
 		public struct actor extends UnitActor
 	
 			boolean play = false
+			Effect aim = 0
+			Lightning lh = 0
 
 			method suspendFilterAdditional takes nothing returns boolean
 				return .target.isUnitType(UNIT_TYPE_DEAD)
@@ -346,6 +349,7 @@ scope Ability0002 initializer init
 				call SetUnitFacing(.caster.origin_unit,Math.anglePoints(.caster.x,.caster.y,.target.x,.target.y))
 				if .duration_max - .timeout < 0.25 and not .play then
 					call .caster.setAnim("attack")
+					call .caster.setAnimSpeed(2.)
 					set .play = true
 				endif
 			endmethod
@@ -354,12 +358,20 @@ scope Ability0002 initializer init
 				local thistype this = allocate(caster,target,0.,0.,level,DELAY,true)
 				set .progress_bar = ProgressBar.create(NAME,.caster.owner)
 				set .suspend_rclick = true
+				set .lh = Lightning.createOO("LSER",.caster,.target)
+				set .lh.oz1 = .caster.pivot_z
+				set .lh.oz2 = .target.pivot_z
+				call .lh.refreshPosition()
+				call .lh.setColor(1.,0.,0.)
+				set .aim = Effect.createAttatched(EFFECT_PATH2,.target.origin_unit,"overhead")
 				return this
 			endmethod
 
 			method onDestroy takes nothing returns nothing
-				call .caster.queueAnim("stand ready")
+				//call .caster.queueAnim("stand ready")
 				call .caster.setAnimSpeed(1.)
+				call aim.destroy()
+				call lh.destroy()
 			endmethod
 
 		endstruct
@@ -369,7 +381,7 @@ scope Ability0002 initializer init
 			method relativeTooltip takes nothing returns string
 				return "정신집중 후 대상에게 강력한 탄환을 발사하여 "+/*
 				*/ConstantString.statStringReal(STAT_TYPE_ATTACK,(.owner.attack * DAMAGE_PER_ATTACK) * (1+DAMAGE_PER_LEVEL*(.level-1) * .owner.attack_speed) ,1)+/*
-				*/"의 "+DAMAGE_STRING_PHYSICAL+"를 입힙니다."
+				*/"의 "+DAMAGE_STRING_PHYSICAL+"를 입힙니다.\n\n - 공격속도에 비례해 피해량이 증가합니다. (위 수치는 증가량이 반영된 수치입니다.)"
 			endmethod
 
 			method basicAttack takes Unit target returns nothing
@@ -377,7 +389,7 @@ scope Ability0002 initializer init
 			endmethod
 
 			method init takes nothing returns nothing
-				set .weapon_delay = 1.
+				set .weapon_delay = 0.5
 				set .weapon_range = 650.
 				set .cast_delay = DELAY
 				call plusStatValue(5)
@@ -1017,7 +1029,7 @@ scope Ability0008 initializer init
 			private constant real BACKSWING = 0.15
 			private constant real STARTAT = 32.5
 			private constant real COLRAD = 32.5
-			private constant real VELO = 1100.
+			private constant real VELO = 1400.
 			private constant real RANGE = 725.
 			private constant integer COUNT = 5
 			private constant real WIDTH = 30.
@@ -1089,20 +1101,19 @@ scope Ability0008 initializer init
 	
 		endstruct
 	
-		private struct ind extends LineIndicator
+		private struct ind extends SectorIndicator
 
 			method beforeRefresh takes nothing returns nothing
 				set .x = .abil.owner.x
 				set .y = .abil.owner.y
 				set .yaw = Math.anglePoints(.x,.y,Mouse.getVX(owner),Mouse.getVY(owner))
 				set .range = RANGE+COLRAD
-				set .width = COLRAD
 			endmethod
 
 			static method create takes Ability_prototype abil, player owner returns thistype
-				local thistype this = allocate(abil,owner)
-				call .ef.setColor(255,R2I(0.65*255),0)
-				call .circle.setColor(255,R2I(0.65*255),0)
+				local thistype this = allocate(abil,owner,"30")
+				/*call .ef.setColor(255,R2I(0.65*255),0)
+				call .circle.setColor(255,R2I(0.65*255),0)*/
 				return this
 			endmethod
 

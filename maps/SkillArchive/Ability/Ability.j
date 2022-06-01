@@ -158,6 +158,7 @@ library Ability requires AbilityPrototype
 		stub method iconClick takes nothing returns nothing
 			if getTypeTag(.id,0) == ABILITY_STRING_WEAPON then
 				call .owner.setWeaponAbility(this)
+				call UI.THIS[GetPlayerId(.owner.owner)].refreshAbilityIconsTarget()
 			endif
 		endmethod
 

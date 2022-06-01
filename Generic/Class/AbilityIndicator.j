@@ -122,4 +122,47 @@ library AbilityIndicator
 
 	endstruct
 
+	struct SectorIndicator extends AbilityIndicator
+
+		Effect ef = 0
+		real yaw = 0.
+		real range = 0.
+		real x = 0.
+		real y = 0.
+
+		stub method beforeRefresh takes nothing returns nothing
+
+		endmethod
+
+		method refresh takes nothing returns nothing
+			call beforeRefresh()
+			set .ef.yaw = .yaw
+			call .ef.setPosition(.x,.y,2.)
+			call .ef.setScale(.range/100.)
+		endmethod
+
+		method show takes boolean flag returns nothing
+			if flag then
+				call refresh()
+				if GetLocalPlayer() == .owner then
+					call .ef.setLocalAlpha(R2I(255*.alpha))
+				endif
+			else
+				call .ef.setLocalAlpha(0)
+			endif
+		endmethod
+
+		static method create takes Ability_prototype abil, player owner, string width returns thistype
+			local thistype this = allocate(abil,owner)
+			set .ef = Effect.create("Effects\\RSector"+width+".mdl",0.,0.,2.,0.)
+			call .ef.setLocalAlpha(0)
+			return this
+		endmethod
+
+		method onDestroy takes nothing returns nothing
+			call .ef.destroy()
+		endmethod
+
+	endstruct
+
 endlibrary

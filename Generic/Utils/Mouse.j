@@ -78,7 +78,7 @@ struct Mouse extends array
 			set bj_forLoopAIndex = bj_forLoopAIndex + 1
 		endloop
 		set RIGHT_CLICK_UNIT = Agent.H2U(S2I(SubString(source,bj_forLoopAIndex+1,l)))
-		call BJDebugMsg(GetPlayerName(RIGHT_CLICK_PLAYER)+", "+R2SW(RIGHT_CLICK_X,1,1)+", "+R2SW(RIGHT_CLICK_Y,1,1)+", "+GetUnitName(RIGHT_CLICK_UNIT))
+		//call BJDebugMsg(GetPlayerName(RIGHT_CLICK_PLAYER)+", "+R2SW(RIGHT_CLICK_X,1,1)+", "+R2SW(RIGHT_CLICK_Y,1,1)+", "+GetUnitName(RIGHT_CLICK_UNIT))
 		set RIGHT_CLICK_ENABLE = true
 		/*TODO CHANGE EVENT VAL*/
 		set udg_EVENT_VALUE = RIGHT_CLICK_EVENT

@@ -97,7 +97,12 @@ library Lightning requires TimerUtils, LocationEx
 			set t2 = nt
 			call refreshPosition()
 		endmethod
-	
+		method setColor takes real r, real g, real b returns nothing
+			set .r = r
+			set .g = g
+			set .b = b
+			call SetLightningColor(.l,.r,.g,.b,.alpha)
+		endmethod
 		private static method timeraction takes nothing returns nothing
 			local thistype this = GetTimerData(GetExpiredTimer())
 			call refreshPosition()

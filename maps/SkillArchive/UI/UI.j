@@ -218,7 +218,7 @@ library UI
 				/*어빌리티 캐스트타입*/
 				call BlzFrameSetText(.tooltip_casttype,Ability.getTypeTag(.target.id,0))
 				/*무기어빌리티면 모델프레임 표시*/
-				call BlzFrameSetVisible(.weapon_particle,.target==.target.owner.weapon_ability)
+				call BlzFrameSetVisible(.weapon_particle,.target == .target.owner.weapon_ability)
 				/*어빌리티 태그*/
 				loop
 					exitwhen Ability.getTypeTag(.target.id,i) == ""
