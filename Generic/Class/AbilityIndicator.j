@@ -11,6 +11,7 @@ library AbilityIndicator
 		Ability_prototype abil = 0
 		Effect circle = 0
 		player owner = null
+		real alpha = 1.
 
 		stub method setColor takes integer r, integer g, integer b returns nothing
 			call .circle.setColor(r,g,b)
@@ -25,7 +26,7 @@ library AbilityIndicator
 			if .abil.cast_range > 0. then
 				call .circle.setScale(.abil.cast_range/100.)
 				if GetLocalPlayer() == .owner then
-					call .circle.setLocalAlpha(192)
+					call .circle.setLocalAlpha(R2I(255*.alpha))
 				endif
 			endif
 			/*if GetLocalPlayer() == .owner then
@@ -42,7 +43,7 @@ library AbilityIndicator
 				if .abil.cast_range > 0. then
 					call .circle.setScale(.abil.cast_range/100.)
 					if GetLocalPlayer() == .owner then
-						call .circle.setLocalAlpha(192)
+						call .circle.setLocalAlpha(R2I(255*.alpha))
 					endif
 				endif
 				/*if GetLocalPlayer() == .owner then
@@ -101,7 +102,7 @@ library AbilityIndicator
 			if flag then
 				call refresh()
 				if GetLocalPlayer() == .owner then
-					call .ef.setLocalAlpha(255)
+					call .ef.setLocalAlpha(R2I(255*.alpha))
 				endif
 			else
 				call .ef.setLocalAlpha(0)

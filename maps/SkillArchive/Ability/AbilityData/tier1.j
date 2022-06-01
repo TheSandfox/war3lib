@@ -712,7 +712,7 @@ scope Ability0004 initializer init
 				call Ability.addTypeTag(ID,ABILITY_STRING_TARGET_UNIT)
 				call Ability.addTypeTag(ID,ABILITY_TAG_MAGIC)
 				call Ability.addTypeTag(ID,ABILITY_TAG_LIGHTNING)
-				call Ability.setTypeTooltip(ID,"연쇄공격\n ")
+				call Ability.setTypeTooltip(ID,"다수의 적 연쇄공격\n ")
 			endmethod
 	
 		endstruct
