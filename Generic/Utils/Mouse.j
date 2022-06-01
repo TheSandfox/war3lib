@@ -5,6 +5,9 @@ globals
 	trigger RIGHT_CLICK_RECEIVE = CreateTrigger()
 	player RIGHT_CLICK_PLAYER = null
 	unit RIGHT_CLICK_UNIT = null
+	real RIGHT_CLICK_X = 0.
+	real RIGHT_CLICK_Y = 0.
+	boolean RIGHT_CLICK_ENABLE = false
 endglobals
 
 struct Mouse extends array
@@ -12,6 +15,18 @@ struct Mouse extends array
 	static trigger array MOVE[32]
 	static real array X[32]
 	static real array Y[32]
+
+	static method customRightClick takes player p, real x, real y returns nothing
+		set RIGHT_CLICK_PLAYER = p
+		set RIGHT_CLICK_UNIT = null
+		set RIGHT_CLICK_X = x
+		set RIGHT_CLICK_Y = y
+		set RIGHT_CLICK_ENABLE = true
+		set udg_EVENT_VALUE = RIGHT_CLICK_EVENT
+		set RIGHT_CLICK_PLAYER = null
+		set RIGHT_CLICK_UNIT = null
+		set RIGHT_CLICK_ENABLE = false
+	endmethod
 
 	static method triggerRegisterGenericRightClick takes trigger t returns nothing
 		call TriggerRegisterVariableEvent(t,"udg_EVENT_VALUE",EQUAL,RIGHT_CLICK_EVENT)
@@ -48,25 +63,39 @@ struct Mouse extends array
 		set bj_forLoopAIndex = 0
 		/*GetPlayer*/
 		loop
-			exitwhen SubString(source,bj_forLoopAIndex,bj_forLoopAIndex+1) == "#"
+			exitwhen SubString(source,bj_forLoopAIndex,bj_forLoopAIndex+1) == "!"
 			set bj_forLoopAIndex = bj_forLoopAIndex + 1
 		endloop
 		set RIGHT_CLICK_PLAYER = Player(S2I(SubString(source,0,bj_forLoopAIndex)))
+		set RIGHT_CLICK_X = S2I(SubString(source,bj_forLoopAIndex+1,l))
+		loop
+			exitwhen SubString(source,bj_forLoopAIndex,bj_forLoopAIndex+1) == "@"
+			set bj_forLoopAIndex = bj_forLoopAIndex + 1
+		endloop
+		set RIGHT_CLICK_Y = S2I(SubString(source,bj_forLoopAIndex+1,l))
+		loop
+			exitwhen SubString(source,bj_forLoopAIndex,bj_forLoopAIndex+1) == "#"
+			set bj_forLoopAIndex = bj_forLoopAIndex + 1
+		endloop
 		set RIGHT_CLICK_UNIT = Agent.H2U(S2I(SubString(source,bj_forLoopAIndex+1,l)))
-		//call BJDebugMsg(GetPlayerName(RIGHT_CLICK_PLAYER)+", "+GetUnitName(RIGHT_CLICK_UNIT))
+		call BJDebugMsg(GetPlayerName(RIGHT_CLICK_PLAYER)+", "+R2SW(RIGHT_CLICK_X,1,1)+", "+R2SW(RIGHT_CLICK_Y,1,1)+", "+GetUnitName(RIGHT_CLICK_UNIT))
+		set RIGHT_CLICK_ENABLE = true
 		/*TODO CHANGE EVENT VAL*/
 		set udg_EVENT_VALUE = RIGHT_CLICK_EVENT
 		set RIGHT_CLICK_PLAYER = null
 		set RIGHT_CLICK_UNIT = null
+		set RIGHT_CLICK_ENABLE = false
 	endmethod
 
 	private static method sendRightClick takes nothing returns nothing
 		if BlzGetTriggerPlayerMouseButton() == MOUSE_BUTTON_TYPE_RIGHT then
 			if GetLocalPlayer() == GetTriggerPlayer() then
 				if BlzGetMouseFocusUnit() != null then
-					call BlzSendSyncData("GRM",I2S(GetPlayerId(GetTriggerPlayer()))+"#"+I2S(GetHandleId(BlzGetMouseFocusUnit())))
+					call BlzSendSyncData("GRM",I2S(GetPlayerId(GetTriggerPlayer()))+"!"+/*
+					*/I2S(R2I(BlzGetTriggerPlayerMouseX()))+"@"+I2S(R2I(BlzGetTriggerPlayerMouseY()))+"#"+I2S(GetHandleId(BlzGetMouseFocusUnit())))
 				else
-					call BlzSendSyncData("GRM",I2S(GetPlayerId(GetTriggerPlayer()))+"#0")
+					call BlzSendSyncData("GRM",I2S(GetPlayerId(GetTriggerPlayer()))+"!"+/*
+					*/I2S(R2I(BlzGetTriggerPlayerMouseX()))+"@"+I2S(R2I(BlzGetTriggerPlayerMouseY()))+"#0")
 				endif
 			endif
 		endif

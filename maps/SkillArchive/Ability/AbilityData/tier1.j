@@ -324,14 +324,9 @@ scope Ability0002 initializer init
 		public struct actor extends UnitActor
 	
 			boolean play = false
-			real mana = 0.
 
 			method suspendFilterAdditional takes nothing returns boolean
 				return .target.isUnitType(UNIT_TYPE_DEAD)
-			endmethod
-
-			method onSuspend takes nothing returns nothing
-				set .caster.mp = .caster.mp + R2I(mana)
 			endmethod
 
 			method onComplete takes nothing returns nothing
@@ -339,7 +334,7 @@ scope Ability0002 initializer init
 				local real ny = Math.pPY(.caster.y,STARTAT,.caster.yaw)
 				local Missile ms = Missile.create(.caster,EFFECT_PATH1,nx,ny,.caster.z+.caster.pivot_z,.caster.yaw)
 				set ms.damage_id = ID
-				set ms.damage = (.caster.attack * DAMAGE_PER_ATTACK) * (1+DAMAGE_PER_LEVEL*(.level-1))
+				set ms.damage = (.owner.attack * DAMAGE_PER_ATTACK) * (1+DAMAGE_PER_LEVEL*(.level-1) * .owner.attack_speed)
 				set ms.attack_type = ATTACK_TYPE_SPELL
 				set ms.radius_target = VELO*TIMER_TICK*0.5
 				set ms.velo = VELO
@@ -373,30 +368,23 @@ scope Ability0002 initializer init
 
 			method relativeTooltip takes nothing returns string
 				return "정신집중 후 대상에게 강력한 탄환을 발사하여 "+/*
-				*/ConstantString.statStringReal(STAT_TYPE_ATTACK,(.owner.attack * DAMAGE_PER_ATTACK) * (1+DAMAGE_PER_LEVEL*(.level-1)),1)+/*
+				*/ConstantString.statStringReal(STAT_TYPE_ATTACK,(.owner.attack * DAMAGE_PER_ATTACK) * (1+DAMAGE_PER_LEVEL*(.level-1) * .owner.attack_speed) ,1)+/*
 				*/"의 "+DAMAGE_STRING_PHYSICAL+"를 입힙니다."
 			endmethod
 
-			method execute takes nothing returns nothing
-				local actor ac = actor.create(.owner,Unit_prototype.get(.command_target),level)
-				set ac.mana = getCarculatedManacost()
+			method basicAttack takes Unit target returns nothing
+				local actor ac = actor.create(.owner,target,.level)
 			endmethod
 
 			method init takes nothing returns nothing
-				set .manacost = 15
-				set .is_active = true
-				set .cast_range = 600.
-				set .cooldown_max = 0.5
-				set .cooldown_min = 0.5
-				set .preserve_order = false
-				set .is_target = true
+				set .weapon_delay = 1.
+				set .weapon_range = 650.
 				set .cast_delay = DELAY
-				set .indicator = AbilityIndicator.create(this,.owner.owner)
 				call plusStatValue(5)
 			endmethod
 
 			static method onInit takes nothing returns nothing
-				call Ability.addTypeTag(ID,ABILITY_STRING_TARGET_UNIT)
+				call Ability.addTypeTag(ID,ABILITY_STRING_WEAPON)
 				call Ability.addTypeTag(ID,ABILITY_TAG_FIREARM)
 				call Ability.addTypeTag(ID,ABILITY_TAG_SHOOTING)
 				call Ability.setTypeTooltip(ID,"정신 집중 후\n단일 대상 공격")
@@ -506,7 +494,7 @@ scope Ability0003 initializer init
 				set .x = .abil.owner.x
 				set .y = .abil.owner.y
 				set .yaw = Math.anglePoints(.x,.y,Mouse.getVX(owner),Mouse.getVY(owner))
-				set .range = RANGE
+				set .range = RANGE+COLRAD
 				set .width = COLRAD
 			endmethod
 
@@ -1017,6 +1005,144 @@ scope Ability0007 initializer init
 	//! runtextmacro abilityDataEnd()
 endscope
 
+/*0008 다중사격*/
+scope Ability0008 initializer init
+	//! runtextmacro abilityDataHeader("0008","다중사격","BTNMultishot","1","STAT_TYPE_ATTACK","STAT_TYPE_ACCURACY")
+	
+		globals
+			private constant real DELAY = 0.2
+			private constant real DAMAGE_PER_ATTACK = 1.75
+			private constant real DAMAGE_PER_LEVEL = 0.05
+			private constant real DAMAGE_ADDITIONAL = 0.15
+			private constant real BACKSWING = 0.15
+			private constant real STARTAT = 32.5
+			private constant real COLRAD = 32.5
+			private constant real VELO = 1100.
+			private constant real RANGE = 725.
+			private constant integer COUNT = 5
+			private constant real WIDTH = 30.
+			private constant string EFFECT_PATH1 = "Abilities\\Weapons\\GuardTowerMissile\\GuardTowerMissile.mdl"
+		endglobals
+	
+		private struct arrow extends Missile
+
+			method executeTarget takes Unit target returns nothing
+				if IsUnitInGroup(target.origin_unit,.group_wave) then
+					/*약한데미지*/
+					set .damage = .damage * DAMAGE_ADDITIONAL
+					set .is_onhit = false
+				endif
+				call damageTarget(target)
+			endmethod
+
+			static method create takes Unit owner, real x, real y, real z, real yaw, integer level returns thistype
+				local thistype this = allocate(owner,EFFECT_PATH1,x,y,z,yaw)
+				set .velo = VELO
+				set .damage = ( .owner.attack * DAMAGE_PER_ATTACK ) * ( 1+DAMAGE_PER_LEVEL*(level-1) )
+				set .damage_id = ID
+				call setCollision(COLRAD)
+				call setDuration((RANGE-STARTAT)/VELO)
+				call damageFlagTemplateTargetMagic()
+				set .damage_type = DAMAGE_TYPE_PHYSICAL
+				set .weapon_type = WEAPON_TYPE_METAL_MEDIUM_BASH
+				return this
+			endmethod
+
+		endstruct
+
+		public struct actor extends UnitActor
+	
+			real angle = 0.
+
+			method onComplete takes nothing returns nothing
+				local integer i = 0
+				local arrow ms = 0
+				local real a = 0.
+				local MissileGroup mg = MissileGroup.create()
+				loop
+					exitwhen i >= COUNT
+					set a = .angle - (WIDTH/2) + (WIDTH*i)/(COUNT-1)
+					set ms = arrow.create(.caster,/*
+					*/Math.pPX(.caster.x,STARTAT,a),/*
+					*/Math.pPY(.caster.y,STARTAT,a),.caster.z+.caster.pivot_z,/*
+					*/a,.level)
+					call mg.add(ms)
+					set i = i + 1
+				endloop
+				call UnitActor.create(.caster,0,0.,0.,0,BACKSWING,true)
+			endmethod
+	
+			static method create takes Unit u, real x, real y, real delay, integer level returns thistype
+				local thistype this = allocate(u,0,x,y,level,delay,true)
+				set .angle = Math.anglePoints(.caster.x,.caster.y,.x,.y)
+				call .caster.setAnim("attack")
+				call .caster.setAnimSpeed(1.66)
+				call SetUnitFacing(.caster.origin_unit,Math.anglePoints(.caster.x,.caster.y,x,y))
+				set .progress_bar = ProgressBar.create(NAME,.caster.owner)
+				return this
+			endmethod
+
+			method onDestroy takes nothing returns nothing
+				call .caster.queueAnim("stand ready")
+				call .caster.setAnimSpeed(1.)
+			endmethod
+	
+		endstruct
+	
+		private struct ind extends LineIndicator
+
+			method beforeRefresh takes nothing returns nothing
+				set .x = .abil.owner.x
+				set .y = .abil.owner.y
+				set .yaw = Math.anglePoints(.x,.y,Mouse.getVX(owner),Mouse.getVY(owner))
+				set .range = RANGE+COLRAD
+				set .width = COLRAD
+			endmethod
+
+			static method create takes Ability_prototype abil, player owner returns thistype
+				local thistype this = allocate(abil,owner)
+				call .ef.setColor(255,R2I(0.65*255),0)
+				call .circle.setColor(255,R2I(0.65*255),0)
+				return this
+			endmethod
+
+		endstruct
+
+		public struct main extends Ability
+	
+			method relativeTooltip takes nothing returns string
+				return "전방으로 "+STRING_COLOR_CONSTANT+I2S(COUNT)+"개|r의 화살을 일제히 발사합니다. 각 화살은 "+/*
+				*/ConstantString.statStringReal(STAT_TYPE_ATTACK,( .owner.attack * DAMAGE_PER_ATTACK ) * ( 1+DAMAGE_PER_LEVEL*(.level-1) ),1)+/*
+				*/"의 "+DAMAGE_STRING_PHYSICAL+"를 입힙니다.\n\n - 이미 적중한 대상에게는 "+STRING_COLOR_CONSTANT+I2S(R2I(DAMAGE_ADDITIONAL*100))+"%|r의 피해를 입힙니다."
+			endmethod
+	
+			method execute takes nothing returns nothing
+				call actor.create(.owner,.command_x,.command_y,.cast_delay,level)
+			endmethod
+	
+			method init takes nothing returns nothing
+				set .is_active = true
+				set .preserve_order = false
+				set .cooldown_max = 3.5
+				set .cooldown_min = 0.5
+				set .cast_delay = DELAY
+				set .manacost = 15
+				set .indicator = ind.create(this,.owner.owner)
+				call plusStatValue(5)
+			endmethod
+	
+			static method onInit takes nothing returns nothing
+				call Ability.addTypeTag(ID,ABILITY_STRING_TARGET_LOCATION)
+				call Ability.addTypeTag(ID,ABILITY_TAG_ARCHERY)
+				call Ability.addTypeTag(ID,ABILITY_TAG_SHOOTING)
+				call Ability.setTypeTooltip(ID,"다수의 투사체 발사\n")
+			endmethod
+	
+		endstruct
+	
+	//! runtextmacro abilityDataEnd()
+endscope
+
 /*u000 뛰어들기*/
 scope Abilityu000 initializer init
 	//! runtextmacro abilityDataHeader("u000","뛰어들기","BTNGhoulFrenzy","1","STAT_TYPE_ATTACK","STAT_TYPE_ARMOR_PENET")
@@ -1229,6 +1355,7 @@ scope AddRandomAbility1 initializer init
 		call Ability.addRandomAbility('0005',1)
 		call Ability.addRandomAbility('0006',1)
 		call Ability.addRandomAbility('0007',1)
+		call Ability.addRandomAbility('0008',1)
 	endfunction
 
 endscope

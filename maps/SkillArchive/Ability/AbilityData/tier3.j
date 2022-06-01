@@ -141,7 +141,7 @@ scope Ability0020 initializer init
 				call Ability.addTypeTag(ID,ABILITY_STRING_TARGET_LOCATION)
 				call Ability.addTypeTag(ID,ABILITY_TAG_FIREARM)
 				call Ability.addTypeTag(ID,ABILITY_TAG_SHOOTING)
-				call Ability.setTypeTooltip(ID,"지정한 방향으로\n다수의 투사체 발사")
+				call Ability.setTypeTooltip(ID,"다수의 투사체 연사")
 			endmethod
 	
 		endstruct

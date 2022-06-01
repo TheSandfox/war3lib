@@ -56,8 +56,10 @@ library Mover
 
 		static method triggerAction takes nothing returns nothing
 			local thistype this = Trigger.getData(GetTriggeringTrigger())
-			if BlzGetTriggerPlayerMouseButton() == MOUSE_BUTTON_TYPE_RIGHT then
-				call move(BlzGetTriggerPlayerMouseX(),BlzGetTriggerPlayerMouseY()) 
+			if RIGHT_CLICK_ENABLE and RIGHT_CLICK_PLAYER == .owner.owner then
+				if User.getFocusUnit(.owner.owner) == .owner then
+					call move(RIGHT_CLICK_X,RIGHT_CLICK_Y) 
+				endif
 			elseif BlzGetTriggerPlayerKey() == OSKEY_S or BlzGetTriggerPlayerKey() == OSKEY_H then
 				call stop()
 			endif
@@ -76,7 +78,7 @@ library Mover
 			set .main_timer = Timer.new(this)
 			set .main_trigger = Trigger.new(this)
 			set .main_cond = TriggerAddCondition(.main_trigger,function thistype.triggerAction)
-			call TriggerRegisterPlayerEvent(.main_trigger,.owner.owner,EVENT_PLAYER_MOUSE_DOWN)
+			call Mouse.triggerRegisterGenericRightClick(.main_trigger)
 			call BlzTriggerRegisterPlayerKeyEvent(.main_trigger,.owner.owner,OSKEY_S,0,true)
 			call BlzTriggerRegisterPlayerKeyEvent(.main_trigger,.owner.owner,OSKEY_H,0,true)
 			call Timer.start(.main_timer,TIMER_TICK,true,function thistype.timerAction)

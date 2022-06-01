@@ -11,7 +11,7 @@ library AbilityIndicator
 		Ability_prototype abil = 0
 		Effect circle = 0
 		player owner = null
-		real alpha = 1.
+		real alpha = 0.75
 
 		stub method setColor takes integer r, integer g, integer b returns nothing
 			call .circle.setColor(r,g,b)

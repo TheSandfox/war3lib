@@ -95,12 +95,14 @@ library UnitActor
 				return
 			endif
 			if RIGHT_CLICK_PLAYER == .caster.owner and RIGHT_CLICK_UNIT == null then
-				if .suspend_rclick then
-					call onSuspend()
-					call destroy()
-					return
-				else
-					call rightClick()
+				if User.getFocusUnit(.caster.owner) == .caster then
+					if .suspend_rclick then
+						call onSuspend()
+						call destroy()
+						return
+					else
+						call rightClick()
+					endif
 				endif
 			endif
 		endmethod

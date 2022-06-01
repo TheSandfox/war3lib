@@ -15,6 +15,7 @@ library Ability requires AbilityPrototype
 		constant string ABILITY_TAG_LIGHTNING 	= "|cffffff00전격|r"
 		constant string ABILITY_TAG_FIREARM		= "|cffffff00병기|r"
 		constant string ABILITY_TAG_SHOOTING	= "|cffffff00사격|r"
+		constant string ABILITY_TAG_ARCHERY		= "|cffffff00궁술|r"
 		constant string ABILITY_TAG_FIRE		= "|cffffff00화염|r"
 		constant string ABILITY_TAG_DIVINE		= "|cffffff00신성|r"
 		constant string ABILITY_TAG_PRODUCT		= "|cffffff00생산|r"
