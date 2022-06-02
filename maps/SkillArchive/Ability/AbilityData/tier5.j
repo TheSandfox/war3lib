@@ -244,10 +244,206 @@ scope Ability0040 initializer init
 	//! runtextmacro abilityDataEnd()
 endscope
 
+/*0041 종막: 이스보셋*/
+scope Ability0041 initializer init
+	//! runtextmacro abilityDataHeader("0041","종막: 이스보셋","BTNBlackArrows","5","STAT_TYPE_ATTACK","STAT_TYPE_MAXMP")
+
+	globals
+		private constant real CAST = 0.8
+		private constant real BACKSWING = 0.2
+		private constant real INTERVAL = 0.125
+		private constant integer COUNT = 4
+		private constant integer COUNT_WAVE = 20
+		private constant real DAMAGE_PER_ATTACK = 0.55
+		private constant real DAMAGE_PER_LEVEL = 0.25
+		private constant real RANGE = 1250.
+		private constant real VELO = 2000.
+		private constant real COLRAD = 50.
+		private constant real WIDTH = 30.
+		private constant real STARTAT = 35.
+		private constant string EFFECT_PATH1 = "Effects\\Isubosete_origin.mdl"
+		private constant string EFFECT_PATH2 = "Effects\\Isubosete_burst.mdl"
+		private constant string EFFECT_PATH3 = "Effects\\Isubosete_bullet.mdl"
+		private constant string EFFECT_PATH4 = "Abilities\\Weapons\\Rifle\\RifleImpact.mdl"
+	endglobals
+
+	private struct ind extends SectorIndicator
+
+		method beforeRefresh takes nothing returns nothing
+			set .x = .abil.owner.x
+			set .y = .abil.owner.y
+			set .yaw = Math.anglePoints(.x,.y,Mouse.getVX(owner),Mouse.getVY(owner))
+			set .range = RANGE+COLRAD
+		endmethod
+
+		static method create takes Ability_prototype abil, player owner returns thistype
+			local thistype this = allocate(abil,owner,"30")
+			call .ef.setColor(200,0,222)
+			call .circle.setColor(200,0,222)
+			return this
+		endmethod
+
+	endstruct
+
+	private struct bullet extends Missile
+
+		method executeWave takes Unit target returns nothing
+			call damageTarget(target)
+			call Effect.create(EFFECT_PATH4,target.x,target.y,target.z+target.pivot_z,0.).setDuration(1.5)
+		endmethod
+
+		static method create takes Unit owner, real x, real y, real z, real yaw, integer level returns thistype
+			local thistype this = allocate(owner,EFFECT_PATH3,x,y,z,yaw)
+			set .velo = VELO
+			set .damage = ( .owner.attack * DAMAGE_PER_ATTACK ) * ( 1+DAMAGE_PER_LEVEL*(level-1) )
+			set .damage_id = ID
+			call setWave(COLRAD)
+			call setDuration((RANGE-STARTAT)/VELO)
+			call damageFlagTemplateTargetMagic()
+			call setScale(1.33)
+			set .damage_type = DAMAGE_TYPE_PHYSICAL
+			set .weapon_type = WEAPON_TYPE_METAL_MEDIUM_BASH
+			return this
+		endmethod
+
+	endstruct
+
+	private struct fire extends UnitActor
+
+		Effect ef = 0
+		Effect burst = 0
+		real angle = 0.
+		real timeout2 = 0.
+		integer count = COUNT_WAVE
+
+		private method shot takes nothing returns nothing
+			local integer i = 0
+			local bullet ms = 0
+			local MissileGroup mg = MissileGroup.create()
+			local real a = 0.
+			loop
+				exitwhen i >= COUNT
+				set a = .angle - ((WIDTH*0.8)/2) + ((WIDTH*0.8)*i)/(COUNT-1) + GetRandomReal(-3,3)
+				set ms = bullet.create(.caster,/*
+				*/Math.pPX(.caster.x,STARTAT,a),/*
+				*/Math.pPY(.caster.y,STARTAT,a),.caster.z+.caster.pivot_z,/*
+				*/a,.level)
+				call mg.add(ms)
+				set i = i + 1
+			endloop
+			set .count = .count - 1
+		endmethod
+
+		method onComplete takes nothing returns nothing
+			if .count > 0 then
+				call shot()
+			endif
+		endmethod
+
+		method periodicAction takes nothing returns nothing
+			set .timeout2 = .timeout2 + TIMER_TICK
+			if .timeout2 >= INTERVAL then
+				/*TODO FIRE*/
+				if .count > 0 then
+					call shot()
+					call .caster.setAnimSpeed(4.)
+					call .caster.setAnim("attack")
+				endif
+				/**/
+				set .timeout2 = .timeout2 - INTERVAL
+			endif
+		endmethod
+
+		static method create takes Unit caster, integer level, real angle, Effect ef returns thistype
+			local thistype this = allocate(caster,0,0.,0.,level,INTERVAL*COUNT_WAVE,true)
+			set .angle = angle
+			set .ef = ef
+			set .burst = Effect.create(EFFECT_PATH2,Math.pPX(.caster.x,100,.angle),Math.pPY(.caster.y,100,.angle),57.5,.angle)
+			call .burst.setPitch(-90)
+			call .caster.setAnimSpeed(4.)
+			call .caster.setAnim("attack")
+			set .progress_bar = ProgressBar.create(NAME,.caster.owner)
+			set .progress_bar.reverse = true
+			set .suspend_rclick = true
+			return this
+		endmethod
+
+		method onDestroy takes nothing returns nothing
+			call .caster.setAnimSpeed(1.)
+			call .ef.kill()
+			set .burst.want_remove = true
+			call .burst.destroy()
+			call UnitActor.create(.caster,0,0.,0.,0,BACKSWING,true)
+		endmethod
+
+	endstruct
+
+	private struct prepare extends UnitActor
+
+		Effect ef = 0
+		real a = 0.
+
+		method onComplete takes nothing returns nothing
+			call fire.create(.caster,.level,.a,.ef)
+			set .ef = 0
+		endmethod
+
+		static method create takes Unit caster, real x, real y, integer level returns thistype
+			local thistype this = allocate(caster,0,x,y,level,CAST,true)
+			set .a = Math.anglePoints(.caster.x,.caster.y,.x,.y)
+			set .ef = Effect.create(EFFECT_PATH1,.caster.x,.caster.y,0.,.a)
+			set .progress_bar = ProgressBar.create(NAME,.caster.owner)
+			call SetUnitFacing(.caster.origin_unit,.a)
+			return this
+		endmethod
+
+		method onDestroy takes nothing returns nothing
+			if .ef > 0 then
+				call .ef.destroy()
+			endif
+			set .ef = 0
+		endmethod
+
+	endstruct
+
+	public struct main extends Ability
+
+		method relativeTooltip takes nothing returns string
+			return "매 "+STRING_COLOR_CONSTANT+R2SW(INTERVAL,1,1)+"초|r마다 지정 범위 내의 적들에게 "+/*
+			*/ConstantString.statStringReal(STAT_TYPE_ATTACK,( .owner.attack * DAMAGE_PER_ATTACK ) * ( 1+DAMAGE_PER_LEVEL*(.level-1) ),1)+/*
+			*/"의 "+DAMAGE_STRING_PHYSICAL+"를 입힙니다.\n총 "+STRING_COLOR_CONSTANT+I2S(COUNT_WAVE)+"회|r 공격합니다."
+		endmethod
+
+		method execute takes nothing returns nothing
+			local prepare a = prepare.create(.owner,.command_x,.command_y,.level)
+		endmethod
+
+		method init takes nothing returns nothing
+			set .is_active = true
+			set .cooldown_max = 0//4.
+			set .cooldown_min = 0//4.
+			set .manacost = 0//200
+			set .indicator = ind.create(this,.owner.owner)
+			call plusStatValue(5)
+		endmethod
+
+		static method onInit takes nothing returns nothing
+			call Ability.addTypeTag(ID,ABILITY_STRING_TARGET_LOCATION)
+			call Ability.addTypeTag(ID,ABILITY_TAG_SHOOTING)
+			call Ability.addTypeTag(ID,ABILITY_TAG_DARK)
+			call Ability.setTypeTooltip(ID,"무차별 난사\n ")
+		endmethod
+
+	endstruct
+	
+	//! runtextmacro abilityDataEnd()
+endscope
+
 scope AddRandomAbility5 initializer init
 
 	private function init takes nothing returns nothing
 		call Ability.addRandomAbility('0040',5)
+		call Ability.addRandomAbility('0041',5)
 	endfunction
 
 endscope

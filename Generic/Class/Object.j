@@ -262,15 +262,23 @@ library Object
 		method waveAction takes nothing returns nothing
 			local integer i = 0
 			local unit u = null
+			local group g = Group.new()
+			call Group.fillUnitsInRange(g,.x,.y,.radius_wave)
 			loop
-				set u = BlzGroupUnitAt(UnitPrototype_GROUP,i)
+				set u = BlzGroupUnitAt(g,i)
 				exitwhen u == null
-				if waveFilter(Unit_prototype.get(u)) and not IsUnitInGroup(u,.group_wave) then
-					call executeWave(Unit_prototype.get(u))
-					call GroupAddUnit(.group_wave,u)
+				if not IsUnitType(u,UNIT_TYPE_DEAD) then
+					if Unit_prototype.get(u) > 0 then
+						if waveFilter(Unit_prototype.get(u)) and not IsUnitInGroup(u,.group_wave) then
+							call executeWave(Unit_prototype.get(u))
+							call GroupAddUnit(.group_wave,u)
+						endif
+					endif
 				endif
 				set i = i + 1
 			endloop
+			call Group.release(g)
+			set g = null
 			set u = null
 		endmethod
 
@@ -318,13 +326,17 @@ library Object
 			local unit u = null
 			local Unit_prototype uu = 0
 			local boolean b = false
+			local group g = Group.new()
 			call Group.clear(.group_collision)
+			call Group.fillUnitsInRange(g,.x,.y,.radius_target)
 			loop
-				set u = BlzGroupUnitAt(UnitPrototype_GROUP,i)
+				set u = BlzGroupUnitAt(g,i)
 				exitwhen u == null
 				set uu = Unit_prototype.get(u)
-				if collisionFilter(uu) and Math.distancePoints(.x,.y,uu.x+uu.pivot_x,uu.y+uu.pivot_y) <= .radius_target + BlzGetUnitCollisionSize(u) then
-					call GroupAddUnit(.group_collision,u)
+				if uu > 0 then
+					if collisionFilter(uu) and Math.distancePoints(.x,.y,uu.x+uu.pivot_x,uu.y+uu.pivot_y) <= .radius_target + BlzGetUnitCollisionSize(u) then
+						call GroupAddUnit(.group_collision,u)
+					endif
 				endif
 				set i = i + 1
 			endloop
@@ -336,6 +348,8 @@ library Object
 				call GroupAddUnit(.group_wave,u)
 				set b = true
 			endif
+			call Group.release(g)
+			set g = null
 			set u = null
 			return b
 		endmethod

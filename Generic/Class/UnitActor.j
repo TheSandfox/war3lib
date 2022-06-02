@@ -114,7 +114,7 @@ library UnitActor
 			set .suspend_trigger = Trigger.new(this)
 			set .suspend_condition = TriggerAddCondition(.suspend_trigger,function thistype.suspendAction)
 			call BlzTriggerRegisterPlayerKeyEvent(.suspend_trigger,.caster.owner,OSKEY_S,0,true)
-			call Mouse.triggerRegisterGenericRightClick(.suspend_trigger)
+			call Event.triggerRegisterGenericRightClick(.suspend_trigger)
 			set .channeling = channeling
 			if .channeling then
 				call .caster.plusStatus(STATUS_CAST)

@@ -237,7 +237,7 @@ library Undead requires Unit
 			set .ai_timer = Timer.new(this)
 			set .main_trigger = Trigger.new(this)
 			set .main_cond = TriggerAddCondition(.main_trigger,function thistype.cond)
-			call Damage.triggerRegisterDamageEvent(.main_trigger,DAMAGE_EVENT_BEFORE_HPREDUCE)
+			call Event.triggerRegisterDamageEvent(.main_trigger,DAMAGE_EVENT_BEFORE_HPREDUCE)
 			set .class = "Undead"
 			loop
 				exitwhen getAbility(i) <= 0

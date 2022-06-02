@@ -9,6 +9,8 @@ library AbilityPrototype requires LocationEx
 		string ERROR_MESSAGE = ""
 		private constant real COMMAND_TIMER_TICK = 0.05
 		trigger ABILITY_SYNC_TARGET_TRIGGER = CreateTrigger()
+		trigger ABILITY_UI_REFRESH = CreateTrigger()
+		player ABILITY_UI_REFRESH_PLAYER = null
 	endglobals
 
 	struct Ability_prototype
@@ -62,6 +64,7 @@ library AbilityPrototype requires LocationEx
 
 		real weapon_range = 150.
 		real weapon_delay = 1.5
+		boolean weapon_is_ranged = true
 
 		trigger command_trigger = null
 		triggercondition command_condition = null
@@ -97,6 +100,13 @@ library AbilityPrototype requires LocationEx
 
 		stub method useCount takes nothing returns nothing
 			set .count = .count - 1
+		endmethod
+
+		method setIcon takes string newval returns nothing
+			set .icon = newval
+			set ABILITY_UI_REFRESH_PLAYER = .owner.owner
+			call TriggerEvaluate(ABILITY_UI_REFRESH)
+			set ABILITY_UI_REFRESH_PLAYER = null
 		endmethod
 
 		method getCarculatedCastDelayByAttackSpeed takes nothing returns real
@@ -180,6 +190,10 @@ library AbilityPrototype requires LocationEx
 				set .cooldown_remaining = v
 				call Timer.start(.cooldown_timer,TIMER_TICK,true,function thistype.cooldownTimer)
 			endif
+		endmethod
+
+		stub method getCount takes nothing returns integer
+			return .count
 		endmethod
 
 		stub method onUnlink takes nothing returns nothing
@@ -323,7 +337,7 @@ library AbilityPrototype requires LocationEx
 			if .owner.mp < getCarculatedManacost() then
 				set ERROR_MESSAGE = "마나가 부족합니다."
 				return false
-			elseif .count <= 0 and getCarculatedMaxCooldown() > 0. then
+			elseif getCount() <= 0 and getCarculatedMaxCooldown() > 0. then
 				set ERROR_MESSAGE = "아직 사용할 수 없습니다."
 				return false
 			else

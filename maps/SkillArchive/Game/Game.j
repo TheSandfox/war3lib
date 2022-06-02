@@ -10,7 +10,7 @@
 library Game requires Unit, UI
 
 	globals
-		private constant boolean TEST = true
+		constant boolean TEST = true
 
 		player PLAYER_UNDEAD = Player(20)
 		player PLAYER_MONSTER = Player(23)
@@ -22,6 +22,19 @@ library Game requires Unit, UI
 	endglobals
 
 	struct Game
+
+		/*TEST ONLY*/
+		private static method spawnDummy takes nothing returns nothing
+			local integer i = 0
+			local Unit u = 0
+			loop
+				exitwhen i >= 10
+				set u = Unit.create(PLAYER_UNDEAD,'HR00',5350,5350,0)
+				call u.plusStatus(STATUS_CAST)
+				//call u.plusStatValue(STAT_TYPE_HPREGEN,100.)
+				set i = i + 1
+			endloop
+		endmethod
 
 		static method playerLeave takes nothing returns nothing
 			if SkillShop.THIS[GetPlayerId(GetTriggerPlayer())] > 0 then
@@ -137,7 +150,7 @@ library Game requires Unit, UI
 				/*프레임관련*/
 				call UI.init()
 				/*플레이어별 초기화*/
-				call initForPlayer(Player(0),'U004','C000')
+				call initForPlayer(Player(0),'U000','C000')
 				//call initForPlayer(Player(1),'HR09','C000')
 				/*생명의 나무*/
 				call TreeOfLife.init()
@@ -146,14 +159,11 @@ library Game requires Unit, UI
 				/*웨이브 가동*/
 				//call Round.init()
 				/*임시*/
-				loop
-					exitwhen i >= 5
-					set u = Unit.create(PLAYER_UNDEAD,'HR00',250+200*i,0,0)
-					call u.plusStatus(STATUS_CAST)
-					//call u.plusStatValue(STAT_TYPE_HPREGEN,100.)
-					set i = i + 1
-				endloop
-				call SkillShop.addLevel()
+				call spawnDummy()
+				call SkillShop.THIS[0].setLevel(10)
+				set t = CreateTrigger()
+				call BlzTriggerRegisterPlayerKeyEvent(t,Player(0),OSKEY_P,0,true)
+				call TriggerAddCondition(t,function thistype.spawnDummy)
 				/**/
 			else
 				/*캐릭터셀렉트*/

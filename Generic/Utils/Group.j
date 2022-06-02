@@ -29,22 +29,12 @@ library Group requires Math
 			call GroupClear(g)
 		endmethod
 
-		/*static method fillUnitsInRange takes group g, real nx, real ny, real radius returns nothing
+		static method fillUnitsInRange takes group g, real nx, real ny, real radius returns nothing
 			local integer i = 0
 			local unit u = null
 			call GroupClear(g)
 			call GroupEnumUnitsInRange(g,nx,ny,radius*2,null)
-			loop
-				set u = BlzGroupUnitAt(g,i)
-				exitwhen u == null
-				if IsUnitInGroup(u,UnitPrototype_GROUP) then
-					set i = i + 1
-				else
-					call GroupRemoveUnit(g,u)
-				endif
-			endloop
-			set u = null
-		endmethod*/
+		endmethod
 
 		static method copy takes group source returns group
 			set RETURNGROUP = CreateGroup()

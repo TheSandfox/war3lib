@@ -19,28 +19,39 @@ library SkillShop requires UI
 		triggercondition btn_cond = null
 		framehandle container = null
 		framehandle icon = null
+		framehandle tier_border = null
 		framehandle name = null
 		framehandle tag = null
 		framehandle btn = null
 		framehandle bonus_stat1 = null
 		framehandle bonus_stat2 = null
+		framehandle info_weapon_backdrop = null
 
 		method setTarget takes integer id returns nothing
 			local integer i = 0
 			local string s = ""
 			set .id = id
+			/*어빌리티 버튼*/
 			call BlzFrameSetEnable(.btn,id > 0)
 			call BlzFrameSetVisible(BlzGetFrameByName("SkillShopBuyButtonIcon",this),id > 0)
+			/*능력치보너스*/
 			call BlzFrameSetVisible(.bonus_stat1,id > 0)
 			call BlzFrameSetVisible(.bonus_stat2,id > 0)
 			if id <= 0 then		/*빈칸*/
 				call BlzFrameSetTexture(.icon,"ReplaceableTextures\\CommandButtons\\BTNBlackIcon.blp",0,true)
+				call BlzFrameSetVisible(.tier_border,false)
+				call BlzFrameSetVisible(.info_weapon_backdrop,false)
 				call BlzFrameSetText(.name,"")
 				call BlzFrameSetText(.tag,"")
 				call BlzFrameSetPoint(BlzGetFrameByName("SkillShopBuyButtonText",this),FRAMEPOINT_CENTER,.btn,FRAMEPOINT_CENTER,0.,0.)
 				call BlzFrameSetText(BlzGetFrameByName("SkillShopBuyButtonText",this),"|c99999999판매됨|r")
 			else	/*그 외*/
+				/*어빌리티 아이콘*/
 				call BlzFrameSetTexture(.icon,"ReplaceableTextures\\CommandButtons\\"+Ability.getTypeIconPath(id)+".blp",0,true)
+				call BlzFrameSetTexture(.tier_border,"Textures\\ability_border_tier"+I2S(Ability.getTypeTier(id))+".blp",0,true)
+				call BlzFrameSetVisible(.tier_border,true)
+				/*무기변형이면*/
+				call BlzFrameSetVisible(.info_weapon_backdrop,Ability.getTypeTag(id,0) == ABILITY_STRING_WEAPON)
 				/*어빌리티 이름*/
 				call BlzFrameSetText(.name,TIER_STRING_COLOR[Ability.getTypeTier(id)]+Ability.getTypeName(id)+"|r")
 				/*어빌리티태그*/
@@ -92,7 +103,9 @@ library SkillShop requires UI
 						call User.addGold(p,-1*Ability.getTypeCost(.id))
 						/*빈 슬롯으로 만든 후 리프레시*/
 						call setTarget(0)
-						call UI.THIS[GetPlayerId(p)].refreshAbilityIconsTarget()
+						set ABILITY_UI_REFRESH_PLAYER = GetTriggerPlayer()
+						call TriggerEvaluate(ABILITY_UI_REFRESH)
+						set ABILITY_UI_REFRESH_PLAYER = null
 						call SlotChanger.THIS[GetPlayerId(p)].stateDefault()
 					/*자리가 없으면*/
 					else
@@ -124,6 +137,14 @@ library SkillShop requires UI
 			set .icon = BlzCreateFrameByType("BACKDROP","",.container,"",0)
 			call BlzFrameSetPoint(.icon,FRAMEPOINT_TOP,.container,FRAMEPOINT_TOP,0.,-0.01)
 			call BlzFrameSetSize(.icon,Math.px2Size(96),Math.px2Size(96))
+			set .tier_border = BlzCreateFrameByType("BACKDROP","",.container,"",0)
+			call BlzFrameSetAllPoints(.tier_border,.icon)
+			call BlzFrameSetTexture(.tier_border,"Textures\\ability_border_tier1.blp",0,true)
+			call BlzFrameSetVisible(.tier_border,false)
+			set .info_weapon_backdrop = BlzCreateFrameByType("BACKDROP","",.container,"",0)
+			call BlzFrameSetPoint(.info_weapon_backdrop,FRAMEPOINT_BOTTOMLEFT,.icon,FRAMEPOINT_BOTTOMRIGHT,0.,0.)
+			call BlzFrameSetSizePixel(.info_weapon_backdrop,32,32)
+			call BlzFrameSetTexture(.info_weapon_backdrop,"ui\\widgets\\tooltips\\human\\tooltipweaponicon.blp",0,true)
 			set .name = BlzCreateFrame("MyTextLarge",.container,0,0)
 			call BlzFrameSetPoint(.name,FRAMEPOINT_TOP,.icon,FRAMEPOINT_BOTTOM,0.,-0.005)
 			call BlzFrameSetTextAlignment(.name,TEXT_JUSTIFY_TOP,TEXT_JUSTIFY_CENTER)
@@ -160,11 +181,13 @@ library SkillShop requires UI
 		method onDestroy takes nothing returns nothing
 			//! runtextmacro destroyFrame(".container")
 			//! runtextmacro destroyFrame(".icon")
+			//! runtextmacro destroyFrame(".tier_border")
 			//! runtextmacro destroyFrame(".name")
 			//! runtextmacro destroyFrame(".tag")
 			//! runtextmacro destroyFrame(".btn")
 			//! runtextmacro destroyFrame(".bonus_stat1")
 			//! runtextmacro destroyFrame(".bonus_stat2")
+			//! runtextmacro destroyFrame(".info_weapon_backdrop")
 			call TriggerRemoveCondition(.btn_trigger,.btn_cond)
 			call Trigger.remove(.btn_trigger)
 			set .btn_trigger = null

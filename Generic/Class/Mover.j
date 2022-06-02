@@ -78,7 +78,7 @@ library Mover
 			set .main_timer = Timer.new(this)
 			set .main_trigger = Trigger.new(this)
 			set .main_cond = TriggerAddCondition(.main_trigger,function thistype.triggerAction)
-			call Mouse.triggerRegisterGenericRightClick(.main_trigger)
+			call Event.triggerRegisterGenericRightClick(.main_trigger)
 			call BlzTriggerRegisterPlayerKeyEvent(.main_trigger,.owner.owner,OSKEY_S,0,true)
 			call BlzTriggerRegisterPlayerKeyEvent(.main_trigger,.owner.owner,OSKEY_H,0,true)
 			call Timer.start(.main_timer,TIMER_TICK,true,function thistype.timerAction)

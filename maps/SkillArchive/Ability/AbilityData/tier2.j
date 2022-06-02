@@ -670,13 +670,21 @@ scope Buffu010 initializer init
 
 		static method cond takes nothing returns nothing
 			local thistype this = Trigger.getData(GetTriggeringTrigger())
-			if DAMAGE_ATTACKER != .target then
-				return
-			endif
-			if ATTACK_TYPE == ATTACK_TYPE_BASIC then
-				set DAMAGE_AMOUNT = DAMAGE_AMOUNT + getAdditionalDamage()
-
-				call reduceHP(.target.maxhp * HP_COST)
+			if Event.getValue() == DAMAGE_EVENT_MODIFY_STAT then
+				if DAMAGE_ATTACKER != .target then
+					return
+				endif
+				if ATTACK_TYPE == ATTACK_TYPE_BASIC then
+					set DAMAGE_AMOUNT = DAMAGE_AMOUNT + getAdditionalDamage()
+					call reduceHP(.target.maxhp * HP_COST)
+				endif
+			elseif Event.getValue() == WEAPON_CHANGE_EVENT then
+				if WEAPON_CHANGE_UNIT != .target then
+					return
+				endif
+				if WEAPON_CHANGE_OLD != WEAPON_CHANGE_NEW then
+					call destroy()
+				endif
 			endif
 		endmethod
 
@@ -689,7 +697,8 @@ scope Buffu010 initializer init
 			call .target.plusStatValue(STAT_TYPE_ATTACK_SPEED,ATTACK_SPEED_BONUS)
 			set .main_trigger = Trigger.new(this)
 			set .main_cond = TriggerAddCondition(.main_trigger,function thistype.cond)
-			call Damage.triggerRegisterDamageEvent(.main_trigger,DAMAGE_EVENT_MODIFY_STAT)
+			call Event.triggerRegisterDamageEvent(.main_trigger,DAMAGE_EVENT_MODIFY_STAT)
+			call Event.triggerRegisterWeaponChangeEvent(.main_trigger)
 		endmethod
 
 		method onDestroy takes nothing returns nothing
@@ -712,12 +721,22 @@ scope Abilityu010 initializer init
 	
 		public struct main extends Ability
 	
+			method useFilterAdditional takes nothing returns boolean
+				if .owner.weapon_ability.weapon_is_ranged then
+					set ERROR_MESSAGE = "원거리 무기로 사용할 수 없는 능력입니다."
+					return false
+				else
+					return true
+				endif
+			endmethod
+
 			method relativeTooltip takes nothing returns string
 				return STRING_COLOR_CONSTANT+R2SW(DURATION,1,1)+"초|r 동안 "+STAT_TYPE_COLOR[STAT_TYPE_ATTACK_SPEED]+STAT_TYPE_NAME[STAT_TYPE_ATTACK_SPEED]+"|r가 "+/*
 				*/STRING_COLOR_CONSTANT+I2S(R2I(Buffu010_main.ATTACK_SPEED_BONUS*100))+"%|r 증가하며 "+ATTACK_STRING_BASIC+"의 피해량이 "+/*
 				*/ConstantString.statStringReal(STAT_TYPE_MAXHP,( .owner.maxhp * Buffu010_main.HP_COST ) * ( 1+Buffu010_main.DAMAGE_PER_LEVEL*(.level-1) ),1)+" 증가하는 대신 "+/*
 				*/ATTACK_STRING_BASIC+" 적중 시 "+ConstantString.statStringReal(STAT_TYPE_MAXHP,.owner.maxhp * Buffu010_main.HP_COST,1)+"의 체력을 잃습니다.\n\n"+/*
-				*/" - 상기된 체력감소 효과로 보유한 체력이 "+STRING_COLOR_CONSTANT+I2S(R2I(Buffu010_main.HP_THRESHOLD*100))+"%|r 밑으로 내려가지 않습니다."
+				*/" - 상기된 체력감소 효과로 보유한 체력이 "+STRING_COLOR_CONSTANT+I2S(R2I(Buffu010_main.HP_THRESHOLD*100))+"%|r 밑으로 내려가지 않습니다.\n"+/*
+				*/" - 원거리 무기 사용 중에 사용할 수 없습니다.\n - 무기교체 시 강화효과가 해제됩니다."
 			endmethod
 
 			method execute takes nothing returns nothing
@@ -871,7 +890,7 @@ scope Abilityu011 initializer init
 				/**/
 				set .main_trigger = Trigger.new(this)
 				set .main_cond = TriggerAddCondition(.main_trigger,function thistype.damageAction)
-				call Damage.triggerRegisterDamageEvent(.main_trigger,DAMAGE_EVENT_BEFORE_HPREDUCE)
+				call Event.triggerRegisterDamageEvent(.main_trigger,DAMAGE_EVENT_BEFORE_HPREDUCE)
 			endmethod
 
 			method onDestroy takes nothing returns nothing

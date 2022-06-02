@@ -25,6 +25,8 @@ library Lightning requires TimerUtils, LocationEx
 		real g = 1
 		real b = 1
 		real alpha = 1
+
+		player visible_player = null
 	
 		method getX takes nothing returns real
 			return x1
@@ -101,7 +103,11 @@ library Lightning requires TimerUtils, LocationEx
 			set .r = r
 			set .g = g
 			set .b = b
-			call SetLightningColor(.l,.r,.g,.b,.alpha)
+			if .visible_player == null or .visible_player == GetLocalPlayer() then
+				call SetLightningColor(.l,.r,.g,.b,.alpha)
+			else
+				call SetLightningColor(.l,0,0,0,0)
+			endif
 		endmethod
 		private static method timeraction takes nothing returns nothing
 			local thistype this = GetTimerData(GetExpiredTimer())
@@ -111,7 +117,7 @@ library Lightning requires TimerUtils, LocationEx
 			else
 				set alpha = 0
 			endif
-			call SetLightningColor(l,r,g,b,alpha)
+			call setColor(r,g,b)
 			if .duration > 0. then
 				set .duration = .duration - TIMER_TICK
 				if .duration <= 0. then
@@ -175,10 +181,11 @@ library Lightning requires TimerUtils, LocationEx
 		endmethod
 	
 		method onDestroy takes nothing returns nothing
-			call ReleaseTimer(t)
-			call DestroyLightning(l)
-			set t = null
-			set l = null
+			call ReleaseTimer(.t)
+			call DestroyLightning(.l)
+			set .t = null
+			set .l = null
+			set .visible_player = null
 		endmethod
 	
 	endstruct

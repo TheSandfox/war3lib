@@ -165,25 +165,30 @@ library UI
 
 		method refresh takes nothing returns nothing
 			if .target > 0 then
-				call BlzFrameSetVisible(.cooldown_text,.target.cooldown_remaining>0. and .target.count == 0)
-				call BlzFrameSetVisible(.cooldown_text_backdrop,.target.cooldown_remaining>0. and .target.count == 0)
-				call BlzFrameSetVisible(.cooldown_backdrop,.target.cooldown_remaining>0. and .target.count == 0 and .target.getCarculatedMaxCooldown() > 0.)
+				/*쿨타임 백드롭*/
+				call BlzFrameSetVisible(.cooldown_text,.target.cooldown_remaining>0. and .target.getCount() == 0)
+				call BlzFrameSetVisible(.cooldown_text_backdrop,.target.cooldown_remaining>0. and .target.getCount() == 0)
+				call BlzFrameSetVisible(.cooldown_backdrop,.target.cooldown_remaining>0. and .target.getCount() == 0 and .target.getCarculatedMaxCooldown() > 0.)
 				call BlzFrameSetText(.cooldown_text,R2SW(.target.cooldown_remaining,1,1))
 				if .target.getCarculatedMaxCooldown() > 0. then
 					call BlzFrameSetPoint(.cooldown_backdrop,FRAMEPOINT_TOPRIGHT,.icon_backdrop,FRAMEPOINT_BOTTOMRIGHT,/*
 						*/0.,Math.px2Size(ABILITY_ICON_SIZE)*(.target.cooldown_remaining/.target.getCarculatedMaxCooldown()))
 				endif
+				/*마나부족백드롭*/
 				call BlzFrameSetVisible(.nem_backdrop,.target.owner.mp < .target.getCarculatedManacost())
+				/*엑스트라밸류*/
 				call BlzFrameSetVisible(.extra_backdrop,.target.count_max > 1)
 				call BlzFrameSetVisible(.extra_text,.target.count_max > 1)
 				call BlzFrameSetText(.extra_text,I2S(.target.count))
+				/*게이지*/
 				call BlzFrameSetVisible(.gauge_backdrop,.target.gauge>0.)
 				call BlzFrameSetPoint(.gauge_fill,FRAMEPOINT_BOTTOMRIGHT,.gauge_backdrop,FRAMEPOINT_BOTTOMLEFT,Math.px2Size(ABILITY_ICON_SIZE)*.target.gauge,0)
 				/*툴팁텍스트*/
 				call BlzFrameSetText(.tooltip_text,.target.relativeTooltip()+"\n\n|cff00ffff능력치 보너스 : |r")
 				/*마나코스트 & 쿨다운*/
 				call BlzFrameSetText(.tooltip_manacost_text,"|cff0099ff"+I2S(R2I(.target.getCarculatedManacost()))+"|r")
-				call BlzFrameSetText(.tooltip_cooldown_text,"|cffffff99"+R2SW(.target.getCarculatedMaxCooldown(),2,2)+"|r")
+				call BlzFrameSetText(.tooltip_cooldown_text,"|cffffff99"+R2SW(.target.getCarculatedMaxCooldown(),2,2)+"|r\n"+/*
+					*/"|cff999999("+R2SW(.target.cooldown_min,2,2)+")|r")
 				/*스탯보너스*/
 				call BlzFrameSetText(.tooltip_stat_bonus_text1,STAT_TYPE_NAME[Ability.getTypeBonusStatIndex(.target.id,0)] + " +"+ /*
 				*/ConstantString.statStringReal(Ability.getTypeBonusStatIndex(.target.id,0),.target.stat_bonus1,1))
@@ -378,7 +383,7 @@ library UI
 			set .tooltip_cooldown_text = BlzCreateFrame("MyText",.tooltip_container,0,0)
 			call BlzFrameSetPoint(.tooltip_cooldown_text,FRAMEPOINT_TOPRIGHT,.tooltip_manacost_text,FRAMEPOINT_BOTTOMRIGHT,0.,-0.005)
 			call BlzFrameSetSize(.tooltip_cooldown_text,Math.px2Size(TOOLTIP_SUB_WIDTH),Math.px2Size(TOOLTIP_SUB_HEIGHT))
-			call BlzFrameSetTextAlignment(.tooltip_cooldown_text,TEXT_JUSTIFY_CENTER,TEXT_JUSTIFY_RIGHT)
+			call BlzFrameSetTextAlignment(.tooltip_cooldown_text,TEXT_JUSTIFY_TOP,TEXT_JUSTIFY_RIGHT)
 			set .tooltip_cooldown_backdrop = BlzCreateFrameByType("BACKDROP","",.tooltip_container,"",0)
 			call BlzFrameSetPoint(.tooltip_cooldown_backdrop,FRAMEPOINT_TOPRIGHT,.tooltip_cooldown_text,FRAMEPOINT_TOPLEFT,0.,0.)
 			call BlzFrameSetSize(.tooltip_cooldown_backdrop,Math.px2Size(TOOLTIP_SUB_HEIGHT),Math.px2Size(TOOLTIP_SUB_HEIGHT))
@@ -989,6 +994,13 @@ library UI
 			set t = null
 		endmethod
 
+		private static method refreshCond takes nothing returns nothing
+			local thistype this = THIS[GetPlayerId(ABILITY_UI_REFRESH_PLAYER)]
+			if this > 0 then
+				call refreshAbilityIconsTarget()
+			endif
+		endmethod
+
 		private static method onInit takes nothing returns nothing
 			set INDEX_ABILITY_ICON = 0
 			set INDEX_STAT_ICON = INDEX_ABILITY_ICON + 10
@@ -1000,6 +1012,7 @@ library UI
 			set INDEX_SLOT_CHANGER_INDEX = INDEX_SLOT_CHANGER_ICON + 10
 			set INDEX_SLOT_CHANGER_HOTKEY = INDEX_SLOT_CHANGER_INDEX + 10
 			call TriggerAddCondition(ERROR_MESSAGE_TRIGGER,function thistype.abilityErrorCondition)
+			call TriggerAddCondition(ABILITY_UI_REFRESH,function thistype.refreshCond)
 		endmethod
 
 	endstruct

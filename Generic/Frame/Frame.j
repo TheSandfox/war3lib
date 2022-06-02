@@ -37,7 +37,7 @@ function BlzFrameSetSizePixel takes framehandle frame, real x, real y returns no
 endfunction
 
 function BlzFrameSetAbsPointPixel takes framehandle frame, framepointtype point, real x, real y returns nothing
-	call BlzFrameSetAbsPoint(frame,point,x,y)
+	call BlzFrameSetAbsPoint(frame,point,x/1800.,y/1800.)
 endfunction
 
 endlibrary

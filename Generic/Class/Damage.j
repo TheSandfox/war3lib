@@ -40,10 +40,6 @@ library Damage
 
 	struct Damage extends array
 
-		static method triggerRegisterDamageEvent takes trigger t, real de returns nothing
-			call TriggerRegisterVariableEvent(t,"udg_EVENT_VALUE",EQUAL,de)
-		endmethod
-
 		static method setFlag takes integer damage, integer attack, boolean target, boolean aoe, integer interval, integer vector, boolean onhit, boolean ranged returns nothing
 			set DAMAGE_TYPE 	= damage
 			set ATTACK_TYPE 	= attack
@@ -168,8 +164,9 @@ library Damage
 			elseif DAMAGE_TYPE == DAMAGE_TYPE_MAGICAL then
 				call InstantText.setColor(0,153,255)
 			endif
-			set InstantText.SIZE = 10.
-			call InstantText.createForBothPlayer(target.x,target.y,target.z+75,I2S(R2I(DAMAGE_AMOUNT)),attacker.owner,target.owner)
+			/*데미지텍스트*/
+			/*set InstantText.SIZE = 10.
+			call InstantText.createForBothPlayer(target.x,target.y,target.z+75,I2S(R2I(DAMAGE_AMOUNT)),attacker.owner,target.owner)*/
 			/*데미지 관련 트리거*/
 			set udg_EVENT_VALUE = DAMAGE_EVENT_AFTER_HPREDUCE
 			/**/

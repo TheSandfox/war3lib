@@ -79,6 +79,11 @@ library UnitPrototype
 		trigger UNREGISTER_GROUP = CreateTrigger()
 		unit UNREGISTER_GROUP_UNIT = null
 
+		trigger WEAPON_CHANGE_TRIGGER = CreateTrigger()
+		integer WEAPON_CHANGE_UNIT = 0
+		integer WEAPON_CHANGE_OLD = 0
+		integer WEAPON_CHANGE_NEW = 0
+
 		public group GROUP = null
 
 	endglobals
@@ -449,6 +454,9 @@ library UnitPrototype
 		endmethod
 
 		method setWeaponAbility takes Ability_prototype wa returns nothing
+			set WEAPON_CHANGE_OLD = .weapon_ability
+			set WEAPON_CHANGE_NEW = wa
+			set WEAPON_CHANGE_UNIT = this
 			if wa > 0 then
 				call setStatValue(STAT_TYPE_ATTACK_RANGE,STAT_INDEX_BASE,wa.weapon_range)
 				call refreshStatValue(STAT_TYPE_ATTACK_RANGE)
@@ -459,6 +467,15 @@ library UnitPrototype
 			endif
 			call refreshAttackSpeedRequest(getCarculatedStatValue(STAT_TYPE_ATTACK_SPEED))
 			set .weapon_ability = wa
+			set ABILITY_UI_REFRESH_PLAYER = .owner
+			call TriggerEvaluate(ABILITY_UI_REFRESH)
+			set ABILITY_UI_REFRESH_PLAYER = null
+			call TriggerEvaluate(WEAPON_CHANGE_TRIGGER)
+			call Event.reset()
+			call Event.activate(WEAPON_CHANGE_EVENT)
+			set WEAPON_CHANGE_OLD = 0
+			set WEAPON_CHANGE_NEW = 0
+			set WEAPON_CHANGE_UNIT = 0
 		endmethod
 
 		method getAbility takes integer index returns Ability_prototype

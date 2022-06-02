@@ -28,10 +28,6 @@ struct Mouse extends array
 		set RIGHT_CLICK_ENABLE = false
 	endmethod
 
-	static method triggerRegisterGenericRightClick takes trigger t returns nothing
-		call TriggerRegisterVariableEvent(t,"udg_EVENT_VALUE",EQUAL,RIGHT_CLICK_EVENT)
-	endmethod
-
 	static method getX takes player p returns real 
 		return X[GetPlayerId(p)]
 	endmethod
