@@ -202,10 +202,205 @@ scope Ability0030 initializer init
 	//! runtextmacro abilityDataEnd()
 endscope
 
+/*0031 유성 낙하*/
+scope Ability0031 initializer init
+	//! runtextmacro abilityDataHeader("0031","유성 낙하","BTNFireRocks","4","STAT_TYPE_MAGICPOWER","STAT_TYPE_MAXMP")
+
+	globals
+		private constant real CAST = 0.25
+		private constant real DELAY = 0.5
+		private constant real DAMAGE_PER_MAGICPOWER = 3.2
+		private constant real DAMAGE_PER_LEVEL = 0.2
+		private constant real DAMAGE_ADDITIONAL = 0.25
+		private constant real EXPRAD = 200.
+		private constant real RANGE = 800.
+		private constant real RANGE_SECOND = 1500.
+		private constant real VELO = 1500.
+		private constant real BALL_DIST = 1000.
+		private constant real BALL_HEIGHT = 600.
+		private constant real EFFECT_INTERVAL = 0.12
+		private constant string EFFECT_PATH1 = "units\\human\\phoenix\\phoenix.mdl"
+		private constant string EFFECT_PATH2 = "Abilities\\Spells\\Other\\Doom\\DoomDeath.mdl"
+		private constant string EFFECT_PATH3 = "Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireDamage.mdl"
+	endglobals
+
+	private struct ball extends Missile
+
+		integer level = 0
+		integer stage = 0
+		Circle c = 0
+		real to = 0.
+
+		method periodicAction takes nothing returns nothing
+			if .c > 0 then
+				set .c.x = .x
+				set .c.y = .y
+			endif
+			if .stage == 1 then
+				set .to = .to + TIMER_TICK
+				if .to >= EFFECT_INTERVAL then
+					call Effect.create(EFFECT_PATH2,.x,.y,125.,.yaw).setPitch(-90).setDuration(1.0).setAnimSpeed(2.)
+					set .to = .to - EFFECT_INTERVAL
+				endif
+			endif
+		endmethod
+
+		method afterWave takes nothing returns nothing
+			local real d = SquareRoot(GetRandomReal(0,(EXPRAD/2)*(EXPRAD/2)))
+			local real a = GetRandomReal(0,360)
+			call Effect.create(EFFECT_PATH3,Math.pPX(.x,d,a),Math.pPY(.y,d,a),0.,.yaw).setDuration(1.5).setScale(2.).setPitch(-30.)
+		endmethod
+
+		method executeWave takes Unit target returns nothing
+			call damageTarget(target)
+			call Effect.create(EFFECT_PATH2,target.x,target.y,target.z+55.,.yaw).setScale(0.5).setDuration(1.5).setPitch(-90)
+		endmethod
+
+		method afterExplosion takes nothing returns nothing
+			local Effect ef = Effect.create(EFFECT_PATH2,.x,.y,125.,.yaw)
+			call ef.setDuration(1.0)
+			call ef.setPitch(-90)
+			call resetTargetLocation()
+			set .movement.curve = 0
+			set .movement.refresh_facing = false
+			set .velo = VELO
+			set .pitch = 20.
+			call setDuration(RANGE_SECOND/VELO)
+			call setWave(EXPRAD)
+			call setColor(255,255,153)
+			set .c = Circle.create(.x,.y,1.,EXPRAD)
+			call .c.setColor(255,R2I(0.65*255),0)
+			call .c.fadeIn(CAST)
+		endmethod
+
+		method executeExplosion takes Unit target returns nothing
+
+		endmethod
+
+		method killFilter takes nothing returns boolean
+			if .stage == 0 then
+				set .stage = 1
+				set .want_kill = false
+				return false
+			endif
+			return true
+		endmethod
+
+		static method create takes Unit caster, real x, real y, real angle, integer level returns thistype
+			local real tx = Math.pPX(x,BALL_DIST,angle+180)
+			local real ty = Math.pPY(y,BALL_DIST,angle+180)
+			local thistype this = allocate(caster,EFFECT_PATH1,tx,ty,BALL_HEIGHT,angle)
+			call setYaw(90.)
+			set .movement.curve = Bezier2.create(tx,ty,BALL_HEIGHT,x,y,0.)
+			set .movement.curve.overtime = DELAY
+			call .movement.curve.setX(INDEX_POINT_MIDDLE,tx)
+			call .movement.curve.setY(INDEX_POINT_MIDDLE,ty)
+			call .movement.curve.setZ(INDEX_POINT_MIDDLE,0.)
+			set .movement.refresh_facing = true
+			set .offset_z = 125.
+			call setScale(2.)
+			set .level = level
+			call setTargetLocation(x,y,0.)
+			call setExplosion(EXPRAD)
+			call damageFlagTemplateMagicalExplosion()
+			set .damage_id = ID
+			set .damage = (.owner.magic_power * DAMAGE_PER_MAGICPOWER ) * ( 1+DAMAGE_PER_LEVEL*(.level-1) )
+			return this
+		endmethod
+
+		method onDestroy takes nothing returns nothing
+			if .c > 0 then
+				call .c.setFadeOutPoint(0.,1.25)
+			endif
+			set .c = 0
+		endmethod
+
+	endstruct
+
+	private struct actor extends UnitActor
+
+		real angle = 0.
+
+		method onComplete takes nothing returns nothing
+			call ball.create(caster,x,y,angle,level)
+		endmethod
+
+		static method create takes Unit caster, real x, real y, real angle, integer level returns thistype
+			local thistype this = allocate(caster,0,x,y,level,CAST,true)
+			call .caster.setAnim("attack")
+			call .caster.setAnim("spell")
+			call .caster.queueAnim("stand ready")
+			call .caster.setAnimSpeed(1.66)
+			set .angle = angle
+			return this
+		endmethod
+
+		method onDestroy takes nothing returns nothing
+			call .caster.setAnimSpeed(1.)
+		endmethod
+
+	endstruct
+
+	private struct ind extends LineIndicator
+
+		method beforeRefresh takes nothing returns nothing
+			set .yaw = Math.anglePoints(.abil.command_x_temp,.abil.command_y_temp,Mouse.getVX(owner),Mouse.getVY(owner))
+			set .x = Math.pPX(.abil.command_x_temp,-EXPRAD,.yaw)
+			set .y = Math.pPY(.abil.command_y_temp,-EXPRAD,.yaw)
+			set .range = RANGE_SECOND+EXPRAD*2
+			set .width = EXPRAD
+		endmethod
+
+		static method create takes Ability_prototype abil, player owner returns thistype
+			local thistype this = allocate(abil,owner)
+			call .ef.setColor(255,R2I(0.65*255),0)
+			call .circle.setColor(255,R2I(0.65*255),0)
+			return this
+		endmethod
+
+	endstruct
+
+	public struct main extends Ability
+
+		method relativeTooltip takes nothing returns string
+			return "지정 범위 내의 적들에게 "+ConstantString.statStringReal(STAT_TYPE_MAGICPOWER,( .owner.magic_power * DAMAGE_PER_MAGICPOWER ),1)+/*
+			*/"의 "+DAMAGE_STRING_MAGICAL+"를 입힙니다."
+		endmethod
+
+		method execute takes nothing returns nothing
+			local actor a = actor.create(.owner,.command_x,.command_y,Math.anglePoints(.command_x,.command_y,.command_x2,.command_y2),level)
+		endmethod
+
+		method init takes nothing returns nothing
+			set .drag_to_use = true
+			set .is_active = true
+			set .cast_range = RANGE
+			set .preserve_order = false
+			set .cooldown_max = 0//9.
+			set .cooldown_min = 0//3.
+			set .manacost = 0//55
+			set .indicator = ind.create(this,.owner.owner)
+			call plusStatValue(5)
+		endmethod
+
+		static method onInit takes nothing returns nothing
+			call Ability.addTypeTag(ID,ABILITY_STRING_DRAG_TO_USE)
+			call Ability.addTypeTag(ID,ABILITY_TAG_FIRE)
+			call Ability.addTypeTag(ID,ABILITY_TAG_MAGIC)
+			call Ability.setTypeTooltip(ID,"직선범위 적 공격\n ")
+		endmethod
+
+	endstruct
+	
+	//! runtextmacro abilityDataEnd()
+endscope
+
+
 scope AddRandomAbility4 initializer init
 
 	private function init takes nothing returns nothing
 		call Ability.addRandomAbility('0030',4)
+		call Ability.addRandomAbility('0031',4)
 	endfunction
 
 endscope

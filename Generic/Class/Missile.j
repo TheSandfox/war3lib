@@ -37,6 +37,10 @@ library Missile requires Effect
 			return .movement.flag_target
 		endmethod
 
+		method operator flag_target_location takes nothing returns boolean
+			return .movement.flag_target_location
+		endmethod
+
 		method operator flag_curve takes nothing returns boolean
 			return .movement.flag_curve
 		endmethod
@@ -110,6 +114,10 @@ library Missile requires Effect
 
 		method setTargetLocation takes real x, real y, real z returns nothing
 			call .movement.setTargetLocation(x,y,z)
+		endmethod
+
+		method resetTargetLocation takes nothing returns nothing
+			call .movement.resetTargetLocation()
 		endmethod
 
 		method operator target takes nothing returns Unit_prototype
@@ -186,12 +194,23 @@ library Missile requires Effect
 					call onBound()
 				endif
 			endif
-			if .flag_collision and not .want_kill then
+			if .want_kill then
+				return
+			endif
+			if .flag_target_location then
+				if Math.distancePoints3D(.x,.y,.z,.target_x,.target_y,.target_z) <= (.velo * TIMER_TICK)/2. then
+					set .want_kill = true
+				endif
+			endif
+			if .flag_collision then
 				if collisionAction() then
 					set .want_kill = true
 				endif
 			endif
-			if .flag_wave and not .want_kill then
+			if .want_kill then
+				return
+			endif
+			if .flag_wave  then
 				set .wave_timeout = .wave_timeout + TIMER_TICK
 				if .wave_timeout >= .wave_interval or .wave_interval <= 0. then
 					call beforeWave()

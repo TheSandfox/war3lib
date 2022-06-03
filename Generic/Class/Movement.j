@@ -55,6 +55,11 @@ library Movement requires Actor
 		endmethod
 
 		method operator curve= takes Curve cv returns nothing
+			if cv <= 0 then
+				if .curve_true > 0 then
+					call .curve_true.destroy()
+				endif
+			endif
 			set .curve_true = cv
 			set .flag_curve = cv > 0
 		endmethod
@@ -64,6 +69,10 @@ library Movement requires Actor
 			set .target_x = x
 			set .target_y = y
 			set .target_z = z
+		endmethod
+
+		method resetTargetLocation takes nothing returns nothing
+			set .flag_target_location = false
 		endmethod
 
 		method carculateNextPosition takes nothing returns nothing

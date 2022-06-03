@@ -200,6 +200,10 @@ library Object
 			call damageTarget(target)
 		endmethod*/
 
+		stub method explosionFillUnits takes group g returns nothing
+			call Group.fillUnitsInRange(g,.x,.y,.radius_explosion)
+		endmethod
+
 		method explosionFilter takes Unit_prototype target returns boolean
 			if not affectFilter(target) then
 				return false
@@ -215,15 +219,23 @@ library Object
 		method explosionAction takes nothing returns nothing
 			local integer i = 0
 			local unit u = null
+			local group g = Group.new()
+			call explosionFillUnits(g)
 			loop
-				set u = BlzGroupUnitAt(UnitPrototype_GROUP,i)
+				set u = BlzGroupUnitAt(g,i)
 				exitwhen u == null
-				if explosionFilter(Unit_prototype.get(u)) then
-					call executeExplosion(Unit_prototype.get(u))
-					call GroupAddUnit(.group_wave,u)
+				if not IsUnitType(u,UNIT_TYPE_DEAD) then
+					if Unit_prototype.get(u) > 0 then
+						if explosionFilter(Unit_prototype.get(u)) then
+							call executeExplosion(Unit_prototype.get(u))
+							call GroupAddUnit(.group_wave,u)
+						endif
+					endif
 				endif
 				set i = i + 1
 			endloop
+			call Group.release(g)
+			set g = null
 			set u = null
 		endmethod
 

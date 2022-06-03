@@ -188,7 +188,7 @@ library UI
 				/*마나코스트 & 쿨다운*/
 				call BlzFrameSetText(.tooltip_manacost_text,"|cff0099ff"+I2S(R2I(.target.getCarculatedManacost()))+"|r")
 				call BlzFrameSetText(.tooltip_cooldown_text,"|cffffff99"+R2SW(.target.getCarculatedMaxCooldown(),2,2)+"|r\n"+/*
-					*/"|cff999999("+R2SW(.target.cooldown_min,2,2)+")|r")
+					*/"|cff999999/"+R2SW(.target.cooldown_min,2,2)+"|r")
 				/*스탯보너스*/
 				call BlzFrameSetText(.tooltip_stat_bonus_text1,STAT_TYPE_NAME[Ability.getTypeBonusStatIndex(.target.id,0)] + " +"+ /*
 				*/ConstantString.statStringReal(Ability.getTypeBonusStatIndex(.target.id,0),.target.stat_bonus1,1))
@@ -382,7 +382,7 @@ library UI
 			call BlzFrameSetTexture(.tooltip_manacost_backdrop,"ui\\widgets\\tooltips\\human\\tooltipmanaicon.blp",0,true)
 			set .tooltip_cooldown_text = BlzCreateFrame("MyText",.tooltip_container,0,0)
 			call BlzFrameSetPoint(.tooltip_cooldown_text,FRAMEPOINT_TOPRIGHT,.tooltip_manacost_text,FRAMEPOINT_BOTTOMRIGHT,0.,-0.005)
-			call BlzFrameSetSize(.tooltip_cooldown_text,Math.px2Size(TOOLTIP_SUB_WIDTH),Math.px2Size(TOOLTIP_SUB_HEIGHT))
+			//call BlzFrameSetSize(.tooltip_cooldown_text,Math.px2Size(TOOLTIP_SUB_WIDTH),Math.px2Size(TOOLTIP_SUB_HEIGHT))
 			call BlzFrameSetTextAlignment(.tooltip_cooldown_text,TEXT_JUSTIFY_TOP,TEXT_JUSTIFY_RIGHT)
 			set .tooltip_cooldown_backdrop = BlzCreateFrameByType("BACKDROP","",.tooltip_container,"",0)
 			call BlzFrameSetPoint(.tooltip_cooldown_backdrop,FRAMEPOINT_TOPRIGHT,.tooltip_cooldown_text,FRAMEPOINT_TOPLEFT,0.,0.)

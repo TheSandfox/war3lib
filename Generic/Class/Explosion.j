@@ -129,6 +129,10 @@ library Explosion
 		real x2 = 0.
 		real y2 = 0.
 
+		method explosionFillUnits takes group g returns nothing
+			call Group.fillUnitsInRange(g,.x,.y,Math.distancePoints(.x,.y,.x2,.y2))
+		endmethod
+ 
 		method rangeFilter takes Unit_prototype target returns boolean
 			return target.inLine(.x,.y,.x2,.y2,.radius_explosion) 
 		endmethod

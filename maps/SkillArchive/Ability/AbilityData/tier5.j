@@ -211,9 +211,10 @@ scope Ability0040 initializer init
 	public struct main extends Ability
 
 		method relativeTooltip takes nothing returns string
-			return "매 "+STRING_COLOR_CONSTANT+R2SW(INTERVAL,1,1)+"초|r마다 지정 범위 내의 적들에게 "+/*
-			*/ConstantString.statStringReal(STAT_TYPE_MAGICPOWER,( .owner.magic_power * DAMAGE_PER_MAGICPOWER ) * ( 1+DAMAGE_PER_LEVEL*(.level-1) ),1)+/*
-			*/"의 "+DAMAGE_STRING_MAGICAL+"를 입힙니다. 해당 공격은 대상의 저항력을 "+STRING_COLOR_CONSTANT+R2SW(IGNORE_GUARD*100,1,1)+"%|r 무시하며 총 "+STRING_COLOR_CONSTANT+I2S(COUNT)+"회|r 공격합니다.\n\n|cff999999다른 행동 중에 사용할 수 있습니다.|r"
+			return STRING_COLOR_CONSTANT+R2SW(INTERVAL*COUNT,1,1)+"초|r에 걸쳐 범위 내의 적들에게 "+/*
+			*/ConstantString.statStringReal(STAT_TYPE_MAGICPOWER,( .owner.magic_power * DAMAGE_PER_MAGICPOWER ) * ( 1+DAMAGE_PER_LEVEL*(.level-1) ),1)+" ~ "+/*
+			*/ConstantString.statStringReal(STAT_TYPE_MAGICPOWER,( .owner.magic_power * DAMAGE_PER_MAGICPOWER ) * ( 1+DAMAGE_PER_LEVEL*(.level-1) ) * COUNT,1)+/*
+			*/"의 "+DAMAGE_STRING_MAGICAL+"를 입힙니다. 해당 공격은 대상의 저항력을 "+STRING_COLOR_CONSTANT+R2SW(IGNORE_GUARD*100,1,1)+"%|r 무시합니다.\n\n|cff999999다른 행동 중에 사용할 수 있습니다.|r"
 		endmethod
 
 		method execute takes nothing returns nothing
@@ -225,9 +226,9 @@ scope Ability0040 initializer init
 			set .cast_range = RANGE
 			set .preserve_order = true
 			set .useable_cast = true
-			set .cooldown_max = 25.
+			set .cooldown_max = 10.
 			set .cooldown_min = 5.
-			set .manacost = 100
+			set .manacost = 85
 			set .indicator = ind.create(this,.owner.owner)
 			call plusStatValue(5)
 		endmethod
@@ -246,7 +247,7 @@ endscope
 
 /*0041 종막: 이스보셋*/
 scope Ability0041 initializer init
-	//! runtextmacro abilityDataHeader("0041","종막: 이스보셋","BTNBlackArrows","5","STAT_TYPE_ATTACK","STAT_TYPE_MAXMP")
+	//! runtextmacro abilityDataHeader("0041","종막: 이스보셋","BTNIsubosete","5","STAT_TYPE_ATTACK","STAT_TYPE_MAXMP")
 
 	globals
 		private constant real CAST = 0.8
@@ -254,7 +255,7 @@ scope Ability0041 initializer init
 		private constant real INTERVAL = 0.125
 		private constant integer COUNT = 4
 		private constant integer COUNT_WAVE = 20
-		private constant real DAMAGE_PER_ATTACK = 0.55
+		private constant real DAMAGE_PER_ATTACK = 0.45
 		private constant real DAMAGE_PER_LEVEL = 0.25
 		private constant real RANGE = 1250.
 		private constant real VELO = 2000.
@@ -341,6 +342,8 @@ scope Ability0041 initializer init
 		endmethod
 
 		method periodicAction takes nothing returns nothing
+			call .ef.setPosition(.caster.x,.caster.y,0.)
+			call .burst.setPosition(Math.pPX(.caster.x,100,.angle),Math.pPY(.caster.y,100,.angle),57.5)
 			set .timeout2 = .timeout2 + TIMER_TICK
 			if .timeout2 >= INTERVAL then
 				/*TODO FIRE*/
@@ -409,9 +412,10 @@ scope Ability0041 initializer init
 	public struct main extends Ability
 
 		method relativeTooltip takes nothing returns string
-			return "매 "+STRING_COLOR_CONSTANT+R2SW(INTERVAL,1,1)+"초|r마다 지정 범위 내의 적들에게 "+/*
-			*/ConstantString.statStringReal(STAT_TYPE_ATTACK,( .owner.attack * DAMAGE_PER_ATTACK ) * ( 1+DAMAGE_PER_LEVEL*(.level-1) ),1)+/*
-			*/"의 "+DAMAGE_STRING_PHYSICAL+"를 입힙니다.\n총 "+STRING_COLOR_CONSTANT+I2S(COUNT_WAVE)+"회|r 공격합니다."
+			return STRING_COLOR_CONSTANT+R2SW(COUNT_WAVE*INTERVAL,1,1)+"초|r간 정신집중하여 전방의 적들에게 "+/*
+			*/ConstantString.statStringReal(STAT_TYPE_ATTACK,( .owner.attack * DAMAGE_PER_ATTACK ) * ( 1+DAMAGE_PER_LEVEL*(.level-1) ),1)+" ~ "+/*
+			*/ConstantString.statStringReal(STAT_TYPE_ATTACK,( .owner.attack * DAMAGE_PER_ATTACK ) * ( 1+DAMAGE_PER_LEVEL*(.level-1) ) * COUNT_WAVE,1)+/*
+			*/"의 "+DAMAGE_STRING_PHYSICAL+"를 입힙니다."
 		endmethod
 
 		method execute takes nothing returns nothing
@@ -422,7 +426,7 @@ scope Ability0041 initializer init
 			set .is_active = true
 			set .cooldown_max = 0//4.
 			set .cooldown_min = 0//4.
-			set .manacost = 0//200
+			set .manacost = 125
 			set .indicator = ind.create(this,.owner.owner)
 			call plusStatValue(5)
 		endmethod

@@ -29,7 +29,7 @@ library Game requires Unit, UI
 			local Unit u = 0
 			loop
 				exitwhen i >= 10
-				set u = Unit.create(PLAYER_UNDEAD,'HR00',5350,5350,0)
+				set u = Unit.create(PLAYER_UNDEAD,'HR00',1024,0,0)
 				call u.plusStatus(STATUS_CAST)
 				//call u.plusStatValue(STAT_TYPE_HPREGEN,100.)
 				set i = i + 1
@@ -162,7 +162,7 @@ library Game requires Unit, UI
 				call spawnDummy()
 				call SkillShop.THIS[0].setLevel(10)
 				set t = CreateTrigger()
-				call BlzTriggerRegisterPlayerKeyEvent(t,Player(0),OSKEY_P,0,true)
+				call BlzTriggerRegisterPlayerKeyEvent(t,Player(0),OSKEY_O,0,true)
 				call TriggerAddCondition(t,function thistype.spawnDummy)
 				/**/
 			else
