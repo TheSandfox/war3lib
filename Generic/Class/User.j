@@ -124,7 +124,11 @@ struct User extends array
 						if BlzGetTriggerPlayerMetaKey() == 1 then
 							call a.iconClick()
 						else
-							call a.press()
+							if a.is_active then
+								call a.press()
+							else
+								call a.iconClick()
+							endif
 							call a.onKeyboard()
 						endif
 					elseif a.smart > 0 then

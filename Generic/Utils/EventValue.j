@@ -8,9 +8,19 @@ library Event
 		constant real DAMAGE_EVENT_BEFORE_HPREDUCE = 4.0
 		constant real RIGHT_CLICK_EVENT = 5.0
 		constant real WEAPON_CHANGE_EVENT = 6.0
+		constant real ABILITY_FOLLOW_EVENT = 7.0
+		constant real ABILITY_CAST_EVENT = 8.0
 	endglobals
 
 	struct Event
+
+		static method triggerRegisterAbilityFollow takes trigger t returns nothing
+			call TriggerRegisterVariableEvent(t,"udg_EVENT_VALUE",EQUAL,ABILITY_FOLLOW_EVENT)
+		endmethod
+
+		static method triggerRegisterAbilityCast takes trigger t returns nothing
+			call TriggerRegisterVariableEvent(t,"udg_EVENT_VALUE",EQUAL,ABILITY_CAST_EVENT)
+		endmethod
 
 		static method triggerRegisterGenericRightClick takes trigger t returns nothing
 			call TriggerRegisterVariableEvent(t,"udg_EVENT_VALUE",EQUAL,RIGHT_CLICK_EVENT)

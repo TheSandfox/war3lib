@@ -38,10 +38,10 @@ library Effect requires TimerUtils
 	
 		private timer decay_timer = null
 		private real scale_true
-		private integer r_true
-		private integer g_true
-		private integer b_true
-		private integer a_true
+		private real r_true
+		private real g_true
+		private real b_true
+		private real a_true
 		
 		boolean want_remove
 		boolean permanant
@@ -148,19 +148,19 @@ library Effect requires TimerUtils
 			return scale_true
 		endmethod
 	
-		method getR takes nothing returns integer
+		method getR takes nothing returns real
 			return r_true
 		endmethod
 	
-		method getG takes nothing returns integer
+		method getG takes nothing returns real
 			return g_true
 		endmethod
 	
-		method getB takes nothing returns integer
+		method getB takes nothing returns real
 			return b_true
 		endmethod
 	
-		method getAlpha takes nothing returns integer
+		method getAlpha takes nothing returns real
 			return a_true
 		endmethod
 	
@@ -180,7 +180,7 @@ library Effect requires TimerUtils
 		endmethod
 	
 		private method colorRefresh takes nothing returns nothing
-			local integer array color
+			local real array color
 			local integer i = 0
 			set color[0] = r_true
 			set color[1] = g_true
@@ -194,34 +194,34 @@ library Effect requires TimerUtils
 				set i = i+1
 				exitwhen i == 3
 			endloop
-			call BlzSetSpecialEffectColor(.origin_effect,color[0],color[1],color[2])
+			call BlzSetSpecialEffectColor(.origin_effect,R2I(color[0]),R2I(color[1]),R2I(color[2]))
 		endmethod
 	
-		method setR takes integer nv returns thistype
+		method setR takes real nv returns thistype
 			set r_true = nv
 			call colorRefresh()
 			return this
 		endmethod
 	
-		method setG takes integer nv returns thistype
+		method setG takes real nv returns thistype
 			set g_true = nv
 			call colorRefresh()
 			return this
 		endmethod
 	
-		method setB takes integer nv returns thistype
+		method setB takes real nv returns thistype
 			set b_true = nv
 			call colorRefresh()
 			return this
 		endmethod
 	
-		method setAlpha takes integer nv returns thistype
+		method setAlpha takes real nv returns thistype
 			set a_true = nv
-			call BlzSetSpecialEffectAlpha(.origin_effect,nv)
+			call BlzSetSpecialEffectAlpha(.origin_effect,R2I(nv))
 			return this
 		endmethod
 	
-		method setColor takes integer r, integer g, integer b returns thistype
+		method setColor takes real r, real g, real b returns thistype
 			set r_true = r
 			set g_true = g
 			set b_true = b

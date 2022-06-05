@@ -1,6 +1,6 @@
 /*0020 기관총 난사*/
 scope Ability0020 initializer init
-	//! runtextmacro abilityDataHeader("0020","기관총 난사","BTNFlakCannons","3","STAT_TYPE_ATTACK","STAT_TYPE_ACCURACY")
+	//! runtextmacro abilityDataHeader("0020","기관총 난사","BTNFlakCannons","3","STAT_TYPE_ATTACK","STAT_TYPE_ACCURACY","false")
 	
 		globals
 			private constant real INTERVAL = 0.125
@@ -191,7 +191,7 @@ endscope
 
 /*0021 감속*/
 scope Ability0021 initializer init
-	//! runtextmacro abilityDataHeader("0021","감속","BTNSlow","3","STAT_TYPE_MAGICPOWER","STAT_TYPE_MPREGEN")
+	//! runtextmacro abilityDataHeader("0021","감속","BTNSlow","3","STAT_TYPE_MAGICPOWER","STAT_TYPE_MPREGEN","false")
 
 	globals
 		private constant real CAST = 0.25
@@ -355,11 +355,162 @@ scope Ability0021 initializer init
 	//! runtextmacro abilityDataEnd()
 endscope
 
+/*0022 생명력 흡수*/
+scope Ability0022 initializer init
+	//! runtextmacro abilityDataHeader("0022","생명력 흡수","BTNLifeDrain","3","STAT_TYPE_MAGICPOWER","STAT_TYPE_HPREGEN","true")
+
+	globals
+		private constant real INTERVAL = 0.25
+		private constant real DAMAGE_PER_MAGICPOWER = 0.15
+		private constant real DAMAGE_PER_HPREGEN = 0.10/0.2
+		private constant real DAMAGE_PER_LEVEL = 0.15
+		private constant real HEAL = 0.4			/* DAMAGE x HEAL */
+		private constant real HEAL_SECOND = 0.5		/* HEAL x HEAL_SECOND */
+		private constant real RANGE_MAX = 800.
+		private constant integer VALUE_MAX = 10
+		private constant string EFFECT_PATH1 = "Abilities\\Spells\\Other\\Drain\\DrainTarget.mdl"
+		private constant string EFFECT_PATH2 = "Abilities\\Spells\\Other\\Drain\\DrainCaster.mdl"
+	endglobals
+
+	public struct actor extends UnitActor
+
+		Lightning l = 0
+		Effect ef1 = 0
+		Effect ef2 = 0
+
+		implement DamageFlag
+
+		method suspendFilterAdditional takes nothing returns boolean
+			return Math.distancePoints(.caster.x,.caster.y,.target.x,.target.y) > RANGE_MAX
+		endmethod
+
+		method killFilter takes nothing returns boolean
+			set .duration = .duration + INTERVAL
+			set .timeout = 0.
+			return false
+		endmethod
+
+		method onComplete takes nothing returns nothing
+			local Ability a = .caster.getAbilityById(ID)
+			call .caster.setAnimSpeed(0.)
+			if a > 0 then
+				if a.value < VALUE_MAX then
+					call .caster.restoreHP(.damage*HEAL)
+				else
+					call .caster.restoreHP(.damage*HEAL*HEAL_SECOND)
+				endif
+				call damageTarget(.target)
+				call a.addValue(1)
+			endif
+		endmethod
+
+		static method create takes Unit caster, Unit target, integer level returns thistype
+			local thistype this = allocate(caster,target,0,0,level,INTERVAL,true)
+			set .l = Lightning.createOO("DRAL",.caster,.target)
+			set .l.oz1 = .caster.pivot_z
+			set .l.oz2 = .target.pivot_z
+			call .l.refreshPosition()
+			set .ef1 = Effect.createAttatched(EFFECT_PATH1,.caster.origin_unit,"chest")
+			set .ef2 = Effect.createAttatched(EFFECT_PATH2,.target.origin_unit,"chest")
+			set .suspend_rclick = true
+			set .suspend_ability = true
+			call SetUnitFacing(.caster.origin_unit,Math.anglePoints(.caster.x,.caster.y,.target.x,.target.y))
+			call .caster.setAnim("attack")
+			call .caster.setAnimSpeed(1.)
+			set .damage = ( .owner.magic_power * DAMAGE_PER_MAGICPOWER ) * ( 1+DAMAGE_PER_LEVEL*(.level-1) )
+			call damageFlagTemplateTargetMagic()
+			set .interval_type = INTERVAL_TYPE_PERIODIC
+			set .vector_type = VECTOR_TYPE_INNER
+			set .damage_id = ID
+			set .is_onhit = false
+			set .attack_type = ATTACK_TYPE_BASIC
+			return this
+		endmethod
+
+		method onDestroy takes nothing returns nothing
+			call .l.destroy()
+			call .ef1.kill()
+			call .ef2.kill()
+			call .caster.queueAnim("stand ready")
+			call .caster.setAnimSpeed(1.)
+		endmethod
+
+	endstruct
+
+	public struct main extends Ability
+
+		trigger main_trigger = null
+		triggercondition main_cond = null
+
+		method relativeTooltip takes nothing returns string
+			return "매 초 마다 "+/*
+			*/ConstantString.statStringReal(STAT_TYPE_MAGICPOWER,( .owner.magic_power * DAMAGE_PER_MAGICPOWER ) * ( 1+DAMAGE_PER_LEVEL*(.level-1) ) * (1/INTERVAL),1)+/*
+			*/"의 "+DAMAGE_STRING_MAGICAL+"를 입히고 "+/*
+			*/ConstantString.statStringReal(STAT_TYPE_MAGICPOWER,( .owner.magic_power * DAMAGE_PER_MAGICPOWER ) * ( 1+DAMAGE_PER_LEVEL*(.level-1) ) * (1/INTERVAL) * HEAL,1)+/*
+			*/" 만큼 체력을 회복한 뒤 충전을 1(최대 "+I2S(VALUE_MAX)+") 획득합니다. 충전이 1 이상일 때 적에게 "+ATTACK_STRING_SPELL+"으로 피해를 입히면 충전을 모두 소모하여 충전 1 당 "+/*
+			*/ConstantString.statStringReal(STAT_TYPE_HPREGEN,( .owner.hpregen * DAMAGE_PER_HPREGEN ) * ( 1+DAMAGE_PER_LEVEL*(.level-1) ),1)+" 만큼 피해량을 증가시킵니다.\n\n"+/*
+			*/" - 충전이 최대치일 때 회복량이 절반으로 감소합니다."
+		endmethod
+
+		method addValue takes integer v returns nothing
+			set .value = .value + v
+			if .value >= VALUE_MAX then
+				set .value = VALUE_MAX
+			elseif .value <= 0 then
+				set .value = 0
+			endif
+			set .gauge = I2R(.value) / I2R(VALUE_MAX)
+		endmethod
+
+		static method cond takes nothing returns nothing
+			local thistype this = Trigger.getData(GetTriggeringTrigger())
+			if DAMAGE_ATTACKER != .owner then
+				return
+			endif
+			if ATTACK_TYPE != ATTACK_TYPE_SPELL then
+				return
+			endif
+			if .value > 0 then
+				set DAMAGE_AMOUNT = DAMAGE_AMOUNT + ( .owner.hpregen * DAMAGE_PER_HPREGEN ) * ( 1+DAMAGE_PER_LEVEL*(.level-1) ) * .value
+				set .value = 0
+				set .gauge = 0.
+			endif
+		endmethod
+
+		method basicAttack takes Unit target returns nothing
+			local actor a = actor.create(.owner,target,level)
+		endmethod
+
+		method deactivate takes nothing returns nothing
+			//! runtextmacro destroyTriggerAndCondition(".main_trigger",".main_cond")
+		endmethod
+
+		method init takes nothing returns nothing
+			set .main_trigger = Trigger.new(this)
+			set .main_cond = TriggerAddCondition(.main_trigger,function thistype.cond)
+			call Event.triggerRegisterDamageEvent(.main_trigger,DAMAGE_EVENT_MODIFY_STAT)
+			set .weapon_range = 500.
+			set .weapon_delay = 0.25
+			call plusStatValue(5)
+		endmethod
+
+		static method onInit takes nothing returns nothing
+			call Ability.addTypeTag(ID,ABILITY_STRING_WEAPON)
+			call Ability.addTypeTag(ID,ABILITY_TAG_MAGIC)
+			call Ability.setTypeTooltip(ID,"정신집중하여 생명력 흡수\n")
+		endmethod
+
+	endstruct
+	
+	//! runtextmacro abilityDataEnd()
+endscope
+
 scope AddRandomAbility3 initializer init
 
 	private function init takes nothing returns nothing
 		call Ability.addRandomAbility('0020',3)
 		call Ability.addRandomAbility('0021',3)
+		call Ability.addRandomAbility('0022',3)
 	endfunction
 
 endscope

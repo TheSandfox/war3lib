@@ -884,7 +884,7 @@ library UnitPrototype
 			call UnitAddAbility(.origin_unit,'Axx1')
 			call UnitAddAbility(.origin_unit,'Axx2')
 			call SetUnitAbilityLevel(.origin_unit,'Axx0',20)
-			call BlzUnitHideAbility(.origin_unit,'Apat',true)
+			call BlzUnitDisableAbility(.origin_unit,'Apat',true,true)
 			call BlzSetUnitWeaponRealFieldBJ(.origin_unit,UNIT_WEAPON_RF_ATTACK_DAMAGE_POINT,0,0.01)
     		call BlzSetUnitWeaponRealFieldBJ(.origin_unit,UNIT_WEAPON_RF_ATTACK_BACKSWING_POINT,0,0.01)
 			call BlzSetUnitWeaponIntegerFieldBJ(.origin_unit,UNIT_WEAPON_IF_ATTACK_WEAPON_SOUND,0,0)

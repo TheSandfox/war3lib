@@ -129,6 +129,7 @@ library UI
 
 		framehandle icon_container		= null
 		framehandle icon_backdrop 		= null
+		framehandle icon_border			= null
 		framehandle nem_backdrop		= null
 		framehandle cooldown_backdrop 	= null
 		framehandle cooldown_text 		= null
@@ -151,6 +152,7 @@ library UI
 		framehandle tooltip_stat_bonus_text2 = null
 		framehandle tooltip_header		= null
 		framehandle tooltip_icon		= null
+		framehandle tooltip_icon_border = null
 		framehandle tooltip_name		= null
 		framehandle tooltip_tag			= null
 		framehandle tooltip_casttype			= null
@@ -204,12 +206,15 @@ library UI
 			call BlzFrameSetVisible(.icon_container,.target > 0)
 			if .target > 0 then
 				/*아이콘바꾸기*/
+				call BlzFrameSetTexture(.icon_backdrop,"ReplaceableTextures\\CommandButtons\\"+.target.icon+".blp",0,true)
 				if .target.is_active then
-					call BlzFrameSetTexture(.icon_backdrop,"ReplaceableTextures\\CommandButtons\\"+.target.icon+".blp",0,true)
+					call BlzFrameSetVisible(.icon_border,false)
 				else
-					call BlzFrameSetTexture(.icon_backdrop,"ReplaceableTextures\\PassiveButtons\\PAS"+.target.icon+".blp",0,true)
+					call BlzFrameSetVisible(.icon_border,true)
+					call BlzFrameSetTexture(.icon_border,"ReplaceableTextures\\CommandButtons\\bm_pasbtn.blp",0,true)
 				endif
 				call BlzFrameSetTexture(.tooltip_icon,"ReplaceableTextures\\CommandButtons\\"+.target.icon+".blp",0,true)
+				call BlzFrameSetTexture(.tooltip_icon_border,"Textures\\ability_border_tier"+I2S(Ability.getTypeTier(.target.id))+".blp",0,true)
 				/*툴팁 스킬이름*/
 				call BlzFrameSetText(.tooltip_name,TIER_STRING_COLOR[Ability.getTypeTier(.target.id)]+"Lv."+I2S(.target.level)+" "+.target.name+"|r")
 				/*단축키색깔(스마트여부)*/
@@ -291,6 +296,10 @@ library UI
 			set .icon_backdrop = BlzCreateFrameByType("BACKDROP","",.icon_container,"",0)
 			call BlzFrameSetAllPoints(.icon_backdrop,pivot)
 			call BlzFrameSetTexture(.icon_backdrop,"ReplaceableTextures\\CommandButtons\\BTNBlackIcon.blp",0,true)
+			set .icon_border = BlzCreateFrameByType("BACKDROP","",.icon_container,"",0)
+			call BlzFrameSetAllPoints(.icon_border,.icon_backdrop)
+			call BlzFrameSetTexture(.icon_backdrop,"ReplaceableTextures\\CommandButtons\\bm_btn.blp",0,true)
+			call BlzFrameSetVisible(.icon_border,false)
 			set .nem_backdrop = BlzCreateFrameByType("BACKDROP","",.icon_container,"",0)
 			call BlzFrameSetAllPoints(.nem_backdrop,pivot)
 			call BlzFrameSetTexture(.nem_backdrop,"ReplaceableTextures\\teamcolor\\teamcolor14.blp",0,true)
@@ -363,6 +372,9 @@ library UI
 			set .tooltip_icon = BlzCreateFrameByType("BACKDROP","",.tooltip_container,"",0)
 			call BlzFrameSetPoint(.tooltip_icon,FRAMEPOINT_TOPLEFT,.tooltip_header,FRAMEPOINT_TOPLEFT,0.,0.)
 			call BlzFrameSetSize(.tooltip_icon,Math.px2Size(TOOLTIP_ICON_SIZE),Math.px2Size(TOOLTIP_ICON_SIZE))
+			set .tooltip_icon_border = BlzCreateFrameByType("BACKDROP","",.tooltip_container,"",0)
+			call BlzFrameSetAllPoints(.tooltip_icon_border,.tooltip_icon)
+			call BlzFrameSetTexture(.tooltip_icon_border,"Textures\\ability_border_tier1.blp",0,true)
 			set .tooltip_name = BlzCreateFrame("MyTextLarge",.tooltip_container,0,0)
 			call BlzFrameSetPoint(.tooltip_name,FRAMEPOINT_LEFT,.tooltip_icon,FRAMEPOINT_RIGHT,0.01,0.)
 			call BlzFrameSetTextAlignment(.tooltip_name,TEXT_JUSTIFY_CENTER,TEXT_JUSTIFY_LEFT)
@@ -382,7 +394,7 @@ library UI
 			call BlzFrameSetTexture(.tooltip_manacost_backdrop,"ui\\widgets\\tooltips\\human\\tooltipmanaicon.blp",0,true)
 			set .tooltip_cooldown_text = BlzCreateFrame("MyText",.tooltip_container,0,0)
 			call BlzFrameSetPoint(.tooltip_cooldown_text,FRAMEPOINT_TOPRIGHT,.tooltip_manacost_text,FRAMEPOINT_BOTTOMRIGHT,0.,-0.005)
-			//call BlzFrameSetSize(.tooltip_cooldown_text,Math.px2Size(TOOLTIP_SUB_WIDTH),Math.px2Size(TOOLTIP_SUB_HEIGHT))
+			call BlzFrameSetSize(.tooltip_cooldown_text,Math.px2Size(TOOLTIP_SUB_WIDTH),Math.px2Size(TOOLTIP_SUB_HEIGHT)*2)
 			call BlzFrameSetTextAlignment(.tooltip_cooldown_text,TEXT_JUSTIFY_TOP,TEXT_JUSTIFY_RIGHT)
 			set .tooltip_cooldown_backdrop = BlzCreateFrameByType("BACKDROP","",.tooltip_container,"",0)
 			call BlzFrameSetPoint(.tooltip_cooldown_backdrop,FRAMEPOINT_TOPRIGHT,.tooltip_cooldown_text,FRAMEPOINT_TOPLEFT,0.,0.)
@@ -419,6 +431,7 @@ library UI
 		method onDestroy takes nothing returns nothing
 			//! runtextmacro destroyFrame(".icon_container")
 			//! runtextmacro destroyFrame(".icon_backdrop")
+			//! runtextmacro destroyFrame(".icon_border")
 			//! runtextmacro destroyFrame(".nem_backdrop")
 			//! runtextmacro destroyFrame(".cooldown_backdrop")
 			//! runtextmacro destroyFrame(".cooldown_text_backdrop")
@@ -436,6 +449,7 @@ library UI
 			//! runtextmacro destroyFrame(".tooltip_header")
 			//! runtextmacro destroyFrame(".tooltip_text")
 			//! runtextmacro destroyFrame(".tooltip_icon")
+			//! runtextmacro destroyFrame(".tooltip_icon_border")
 			//! runtextmacro destroyFrame(".tooltip_name")
 			//! runtextmacro destroyFrame(".tooltip_tag")
 			//! runtextmacro destroyFrame(".tooltip_casttype")

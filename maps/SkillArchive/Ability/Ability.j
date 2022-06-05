@@ -42,11 +42,20 @@ library Ability requires AbilityPrototype
 		private static constant integer INDEX_COST = 11
 		private static constant integer INDEX_BONUS_STAT = 12	/*SIZE : 2*/
 		private static constant integer INDEX_TOOLTIP = 14
-		private static constant integer INDEX_LAST = 15
+		private static constant integer INDEX_IS_WEAPON = 15
+		private static constant integer INDEX_LAST = 16
 
 		real stat_bonus1 = 0.
 		real stat_bonus2 = 0.
 		boolean signiture = false
+
+		static method getTypeIsWeapon takes integer id returns boolean
+			return LoadBoolean(HASH,id,INDEX_IS_WEAPON)
+		endmethod
+
+		static method setTypeIsWeapon takes integer id, boolean b returns nothing
+			call SaveBoolean(HASH,id,INDEX_IS_WEAPON,b)
+		endmethod
 
 		static method getTypeTier takes integer id returns integer
 			return LoadInteger(HASH,id,INDEX_TIER)
@@ -156,7 +165,7 @@ library Ability requires AbilityPrototype
 		endmethod
 
 		stub method iconClick takes nothing returns nothing
-			if getTypeTag(.id,0) == ABILITY_STRING_WEAPON then
+			if getTypeIsWeapon(.id) then
 				call .owner.setWeaponAbility(this)
 				call UI.THIS[GetPlayerId(.owner.owner)].refreshAbilityIconsTarget()
 			endif
@@ -194,7 +203,7 @@ library Ability requires AbilityPrototype
 
 endlibrary
 
-//! textmacro abilityDataHeader takes id, name, icon, tier, stat1, stat2
+//! textmacro abilityDataHeader takes id, name, icon, tier, stat1, stat2, isweapon
 
 	globals
 		private constant integer ID = '$id$'
@@ -204,6 +213,7 @@ endlibrary
 		private constant integer COST = $tier$
 		private constant integer STAT_INDEX1 = $stat1$
 		private constant integer STAT_INDEX2 = $stat2$
+		private constant boolean IS_WEAPON = $isweapon$
 	endglobals
 		
 //! endtextmacro
@@ -228,6 +238,7 @@ endlibrary
 		call Ability.setTypeCost(ID,COST)
 		call Ability.setTypeBonusStatIndex(ID,0,STAT_INDEX1)
 		call Ability.setTypeBonusStatIndex(ID,1,STAT_INDEX2)
+		call Ability.setTypeIsWeapon(ID,IS_WEAPON)
 	endfunction
 //! endtextmacro 
 

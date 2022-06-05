@@ -71,6 +71,10 @@ library Missile requires Effect
 			set .radius_wave = rad
 		endmethod
 
+		method resetWave takes nothing returns nothing
+			set .radius_wave = 0.
+		endmethod
+
 		method operator radius_explosion takes nothing returns real
 			return .radius_explosion_true
 		endmethod

@@ -9,7 +9,7 @@ endlibrary
 
 /*C000 칭호_새내기*/
 scope AbilityC000 initializer init
-	//! runtextmacro abilityDataHeader("C000","새내기","BTNMurgalSlave","0","STAT_TYPE_ATTACK","STAT_TYPE_ATTACK")
+	//! runtextmacro abilityDataHeader("C000","새내기","BTNMurgalSlave","0","STAT_TYPE_ATTACK","STAT_TYPE_ATTACK","false")
 		
 		public struct main extends Chingho
 
@@ -50,7 +50,7 @@ endscope
 
 /*C001 칭호_동인천 역가드*/
 scope AbilityC001 initializer init
-	//! runtextmacro abilityDataHeader("C001","동인천 역가드","BTNSacrifice","0","STAT_TYPE_ATTACK","STAT_TYPE_ATTACK")
+	//! runtextmacro abilityDataHeader("C001","동인천 역가드","BTNSacrifice","0","STAT_TYPE_ATTACK","STAT_TYPE_ATTACK","false")
 		
 		public struct main extends Chingho
 
@@ -73,7 +73,7 @@ endscope
 
 /*C002 칭호_가짜광기*/
 scope AbilityC002 initializer init
-	//! runtextmacro abilityDataHeader("C002","가짜광기","BTNBerserkForTrolls","0","STAT_TYPE_ATTACK","STAT_TYPE_ATTACK")
+	//! runtextmacro abilityDataHeader("C002","가짜광기","BTNBerserkForTrolls","0","STAT_TYPE_ATTACK","STAT_TYPE_ATTACK","false")
 		
 		public struct main extends Chingho
 
@@ -96,7 +96,7 @@ endscope
 
 /*C003 칭호_꿈나무*/
 scope AbilityC003 initializer init
-	//! runtextmacro abilityDataHeader("C003","꿈나무","BTNAcorn","0","STAT_TYPE_ATTACK","STAT_TYPE_ATTACK")
+	//! runtextmacro abilityDataHeader("C003","꿈나무","BTNAcorn","0","STAT_TYPE_ATTACK","STAT_TYPE_ATTACK","false")
 		
 		public struct main extends Chingho
 
@@ -119,7 +119,7 @@ endscope
 
 /*C004 칭호_아이돌*/
 scope AbilityC004 initializer init
-	//! runtextmacro abilityDataHeader("C004","아이돌","BTNSorceress","0","STAT_TYPE_ATTACK","STAT_TYPE_ATTACK")
+	//! runtextmacro abilityDataHeader("C004","아이돌","BTNSorceress","0","STAT_TYPE_ATTACK","STAT_TYPE_ATTACK","false")
 		
 		public struct main extends Chingho
 
@@ -142,7 +142,7 @@ endscope
 
 /*C005 칭호_정의의 사도*/
 scope AbilityC005 initializer init
-	//! runtextmacro abilityDataHeader("C005","정의의 사도","BTNRacoon","0","STAT_TYPE_ATTACK","STAT_TYPE_ATTACK")
+	//! runtextmacro abilityDataHeader("C005","정의의 사도","BTNRacoon","0","STAT_TYPE_ATTACK","STAT_TYPE_ATTACK","false")
 		
 		public struct main extends Chingho
 
@@ -165,7 +165,7 @@ endscope
 
 /*C006 칭호_치유계*/
 scope AbilityC006 initializer init
-	//! runtextmacro abilityDataHeader("C006","치유계","BTNFountainOfLife","0","STAT_TYPE_ATTACK","STAT_TYPE_ATTACK")
+	//! runtextmacro abilityDataHeader("C006","치유계","BTNFountainOfLife","0","STAT_TYPE_ATTACK","STAT_TYPE_ATTACK","false")
 		
 		public struct main extends Chingho
 
@@ -188,7 +188,7 @@ endscope
 
 /*C007 칭호_패셔니스타*/
 scope AbilityC007 initializer init
-	//! runtextmacro abilityDataHeader("C007","패셔니스타","BTNRobeOfTheMagi","0","STAT_TYPE_ATTACK","STAT_TYPE_ATTACK")
+	//! runtextmacro abilityDataHeader("C007","패셔니스타","BTNRobeOfTheMagi","0","STAT_TYPE_ATTACK","STAT_TYPE_ATTACK","false")
 		
 		public struct main extends Chingho
 
@@ -211,7 +211,7 @@ endscope
 
 /*C008 칭호_밤의 일족*/
 scope AbilityC008 initializer init
-	//! runtextmacro abilityDataHeader("C008","밤의 일족","BTNElunesBlessing","0","STAT_TYPE_ATTACK","STAT_TYPE_ATTACK")
+	//! runtextmacro abilityDataHeader("C008","밤의 일족","BTNElunesBlessing","0","STAT_TYPE_ATTACK","STAT_TYPE_ATTACK","false")
 		
 		public struct main extends Chingho
 

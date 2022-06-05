@@ -51,7 +51,7 @@ library SkillShop requires UI
 				call BlzFrameSetTexture(.tier_border,"Textures\\ability_border_tier"+I2S(Ability.getTypeTier(id))+".blp",0,true)
 				call BlzFrameSetVisible(.tier_border,true)
 				/*무기변형이면*/
-				call BlzFrameSetVisible(.info_weapon_backdrop,Ability.getTypeTag(id,0) == ABILITY_STRING_WEAPON)
+				call BlzFrameSetVisible(.info_weapon_backdrop,Ability.getTypeIsWeapon(id))
 				/*어빌리티 이름*/
 				call BlzFrameSetText(.name,TIER_STRING_COLOR[Ability.getTypeTier(id)]+Ability.getTypeName(id)+"|r")
 				/*어빌리티태그*/
@@ -94,7 +94,7 @@ library SkillShop requires UI
 					/*자리가 있으면*/
 					if ti > -1 then
 						/*장착중인 무기가 없으면 배운 능력으로*/
-						if Ability.getTypeTag(i.id,0) == ABILITY_STRING_WEAPON then
+						if Ability.getTypeIsWeapon(i.id) then
 							if i.level == 1 and i.owner.weapon_ability == 0 then
 								call i.owner.setWeaponAbility(i)
 							endif

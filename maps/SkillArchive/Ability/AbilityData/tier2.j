@@ -3,7 +3,7 @@
 
 /*0013 소용돌이*/
 scope Ability0013 initializer init
-	//! runtextmacro abilityDataHeader("0013","소용돌이","BTNWhirlwind","2","STAT_TYPE_ATTACK","STAT_TYPE_ARMOR_PENET")
+	//! runtextmacro abilityDataHeader("0013","소용돌이","BTNWhirlwind","2","STAT_TYPE_ATTACK","STAT_TYPE_ARMOR_PENET","false")
 	
 		globals
 			private constant real INTERVAL = 0.25
@@ -143,7 +143,7 @@ endscope
 
 /*0014 카드 투척*/
 scope Ability0014 initializer init
-	//! runtextmacro abilityDataHeader("0014","카드 투척","BTNPickACard","2","STAT_TYPE_ACCURACY","STAT_TYPE_ATTACK")
+	//! runtextmacro abilityDataHeader("0014","카드 투척","BTNPickACard","2","STAT_TYPE_ACCURACY","STAT_TYPE_ATTACK","true")
 	
 		globals
 			private constant real BACKSWING = 0.25
@@ -267,7 +267,7 @@ endscope
 
 /*0015 암흑비전파동*/
 scope Ability0015 initializer init
-	//! runtextmacro abilityDataHeader("0015","암흑비전파동","BTNArchonQ","2","STAT_TYPE_MAGICPOWER","STAT_TYPE_MAGIC_PENET")
+	//! runtextmacro abilityDataHeader("0015","암흑비전파동","BTNArchonQ","2","STAT_TYPE_MAGICPOWER","STAT_TYPE_MAGIC_PENET","false")
 	
 		globals
 			private constant real DELAY = 0.5
@@ -510,7 +510,7 @@ endscope
 
 /*0016 수리검 투척*/
 scope Ability0016 initializer init
-	//! runtextmacro abilityDataHeader("0016","수리검 투척","BTNShuriken","2","STAT_TYPE_ATTACK","STAT_TYPE_ACCURACY")
+	//! runtextmacro abilityDataHeader("0016","수리검 투척","BTNShuriken","2","STAT_TYPE_ATTACK","STAT_TYPE_ACCURACY","false")
 	
 		globals
 			private constant real DELAY = 0.25
@@ -713,7 +713,7 @@ endscope
 
 /*u010 광란*/
 scope Abilityu010 initializer init
-	//! runtextmacro abilityDataHeader("u010","광란","BTNUnholyFrenzy","2","STAT_TYPE_ATTACK","STAT_TYPE_MAXHP")
+	//! runtextmacro abilityDataHeader("u010","광란","BTNUnholyFrenzy","2","STAT_TYPE_ATTACK","STAT_TYPE_MAXHP","false")
 	
 		globals
 			private constant real DURATION = 3.
@@ -735,7 +735,7 @@ scope Abilityu010 initializer init
 				*/STRING_COLOR_CONSTANT+I2S(R2I(Buffu010_main.ATTACK_SPEED_BONUS*100))+"%|r 증가하며 "+ATTACK_STRING_BASIC+"의 피해량이 "+/*
 				*/ConstantString.statStringReal(STAT_TYPE_MAXHP,( .owner.maxhp * Buffu010_main.HP_COST ) * ( 1+Buffu010_main.DAMAGE_PER_LEVEL*(.level-1) ),1)+" 증가하는 대신 "+/*
 				*/ATTACK_STRING_BASIC+" 적중 시 "+ConstantString.statStringReal(STAT_TYPE_MAXHP,.owner.maxhp * Buffu010_main.HP_COST,1)+"의 체력을 잃습니다.\n\n"+/*
-				*/" - 상기된 체력감소 효과로 보유한 체력이 "+STRING_COLOR_CONSTANT+I2S(R2I(Buffu010_main.HP_THRESHOLD*100))+"%|r 밑으로 내려가지 않습니다.\n"+/*
+				*/" - 체력감소 효과로 보유한 체력이 "+STRING_COLOR_CONSTANT+I2S(R2I(Buffu010_main.HP_THRESHOLD*100))+"%|r 밑으로 내려가지 않습니다.\n"+/*
 				*/" - 원거리 무기 사용 중에 사용할 수 없습니다.\n - 무기교체 시 강화효과가 해제됩니다."
 			endmethod
 
@@ -794,7 +794,7 @@ endscope
 
 /*u011 부패가스*/
 scope Abilityu011 initializer init
-	//! runtextmacro abilityDataHeader("u011","부패가스","BTNPlagueCloud","2","STAT_TYPE_HPREGEN","STAT_TYPE_RESISTANCE")
+	//! runtextmacro abilityDataHeader("u011","부패가스","BTNPlagueCloud","2","STAT_TYPE_HPREGEN","STAT_TYPE_RESISTANCE","false")
 	
 		globals
 			private constant real DURATION = 1.5
@@ -893,7 +893,7 @@ scope Abilityu011 initializer init
 				call Event.triggerRegisterDamageEvent(.main_trigger,DAMAGE_EVENT_BEFORE_HPREDUCE)
 			endmethod
 
-			method onDestroy takes nothing returns nothing
+			method deactivate takes nothing returns nothing
 				if .ex > 0 then
 					call .ex.destroy()
 					set .ex = 0

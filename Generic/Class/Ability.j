@@ -394,6 +394,21 @@ library AbilityPrototype requires LocationEx
 			endif
 		endmethod
 
+		private method activateFollowTrigger takes nothing returns nothing
+			set ABILITY_CASTER = .owner
+			set ABILITY_TARGET = Unit_prototype.get(.command_target)
+			set ABILITY_POSITION_X = .command_x
+			set ABILITY_POSITION_Y = .command_y
+			set ABILITY_ABILITY = this
+			call Event.reset()
+			call Event.activate(ABILITY_FOLLOW_EVENT)
+			set ABILITY_CASTER = 0
+			set ABILITY_TARGET = 0
+			set ABILITY_POSITION_X = 0
+			set ABILITY_POSITION_Y = 0
+			set ABILITY_ABILITY = 0
+		endmethod
+
 		method useRequest takes real x, real y, unit target, boolean onpress returns boolean
 			set ERROR_MESSAGE = ""
 			set ERROR_MESSAGE_PLAYER = null
@@ -421,6 +436,18 @@ library AbilityPrototype requires LocationEx
 							call useCount()
 							call cancleFollow()
 							call cancleReservation()
+							set ABILITY_CASTER = .owner
+							set ABILITY_TARGET = Unit_prototype.get(.command_target)
+							set ABILITY_POSITION_X = .command_x
+							set ABILITY_POSITION_Y = .command_y
+							set ABILITY_ABILITY = this
+							call Event.reset()
+							call Event.activate(ABILITY_CAST_EVENT)
+							set ABILITY_CASTER = 0
+							set ABILITY_TARGET = 0
+							set ABILITY_POSITION_X = 0
+							set ABILITY_POSITION_Y = 0
+							set ABILITY_ABILITY = 0
 							if not .preserve_order then
 								call .owner.issueImmediateOrder("stop")
 							endif
@@ -428,12 +455,14 @@ library AbilityPrototype requires LocationEx
 						/*거리에 안들어오면 대상 추적타이머 작동*/
 						else
 							call follow()
+							call activateFollowTrigger()
 							return false
 						endif
 					/*다른 행동 중이면 예약타이머 작동*/
 					else
 						if .reserve_order then
 							call reserve()
+							call activateFollowTrigger()
 						endif
 						return false
 					endif

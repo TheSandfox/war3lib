@@ -1,6 +1,6 @@
 /*0010 물약제조*//*0011 폭발, 0012 맹독*/
 scope Ability0010 initializer init
-	//! runtextmacro abilityDataHeader("0010","물약 제조","BTNVialEmpty","2","STAT_TYPE_HPREGEN","STAT_TYPE_MPREGEN")
+	//! runtextmacro abilityDataHeader("0010","물약 제조","BTNVialEmpty","2","STAT_TYPE_HPREGEN","STAT_TYPE_MPREGEN","false")
 	
 		globals
 			private constant integer ID2 = '0011'

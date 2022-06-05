@@ -1,6 +1,6 @@
 /*0030 미사일 컨테이너*/
 scope Ability0030 initializer init
-	//! runtextmacro abilityDataHeader("0030","미사일 컨테이너","BTNClusterRockets","4","STAT_TYPE_ATTACK","STAT_TYPE_SPELL_BOOST")
+	//! runtextmacro abilityDataHeader("0030","미사일 컨테이너","BTNClusterRockets","4","STAT_TYPE_ATTACK","STAT_TYPE_SPELL_BOOST","false")
 	
 		globals
 			private constant real DELAY = 0.2
@@ -202,23 +202,22 @@ scope Ability0030 initializer init
 	//! runtextmacro abilityDataEnd()
 endscope
 
-/*0031 유성 낙하*/
+/*0031 불사조*/
 scope Ability0031 initializer init
-	//! runtextmacro abilityDataHeader("0031","유성 낙하","BTNFireRocks","4","STAT_TYPE_MAGICPOWER","STAT_TYPE_MAXMP")
+	//! runtextmacro abilityDataHeader("0031","불사조","BTNstorm_ui_icon_kaelthas_phoenix","4","STAT_TYPE_MAGICPOWER","STAT_TYPE_MAXMP","false")
 
 	globals
 		private constant real CAST = 0.25
 		private constant real DELAY = 0.5
-		private constant real DAMAGE_PER_MAGICPOWER = 3.2
+		private constant real DAMAGE_PER_MAGICPOWER = 3.25
 		private constant real DAMAGE_PER_LEVEL = 0.2
 		private constant real DAMAGE_ADDITIONAL = 0.25
 		private constant real EXPRAD = 200.
 		private constant real RANGE = 800.
 		private constant real RANGE_SECOND = 1500.
 		private constant real VELO = 1500.
-		private constant real BALL_DIST = 1000.
-		private constant real BALL_HEIGHT = 600.
-		private constant real EFFECT_INTERVAL = 0.12
+		private constant real BALL_DIST = 600.
+		private constant real BALL_HEIGHT = 1000.
 		private constant string EFFECT_PATH1 = "units\\human\\phoenix\\phoenix.mdl"
 		private constant string EFFECT_PATH2 = "Abilities\\Spells\\Other\\Doom\\DoomDeath.mdl"
 		private constant string EFFECT_PATH3 = "Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireDamage.mdl"
@@ -229,19 +228,33 @@ scope Ability0031 initializer init
 		integer level = 0
 		integer stage = 0
 		Circle c = 0
-		real to = 0.
+		real to2 = 0.
 
 		method periodicAction takes nothing returns nothing
-			if .c > 0 then
-				set .c.x = .x
-				set .c.y = .y
-			endif
 			if .stage == 1 then
-				set .to = .to + TIMER_TICK
-				if .to >= EFFECT_INTERVAL then
-					call Effect.create(EFFECT_PATH2,.x,.y,125.,.yaw).setPitch(-90).setDuration(1.0).setAnimSpeed(2.)
-					set .to = .to - EFFECT_INTERVAL
+				if .c > 0 then
+					set .c.x = .x
+					set .c.y = .y
 				endif
+				set .to2 = .to2 + TIMER_TICK
+				if .to2 >= (RANGE_SECOND/VELO) then
+					set .stage = 2
+					set .radius_wave = 0.
+					set .movement.curve = Bezier2.create(.x,.y,0.,Math.pPX(.x,BALL_HEIGHT,.yaw),Math.pPY(.y,BALL_HEIGHT,.yaw),BALL_DIST)
+					call .movement.curve.setX(INDEX_POINT_MIDDLE,Math.pPX(.x,BALL_HEIGHT,.yaw))
+					call .movement.curve.setY(INDEX_POINT_MIDDLE,Math.pPY(.y,BALL_HEIGHT,.yaw))
+					call .movement.curve.setZ(INDEX_POINT_MIDDLE,0.)
+					set .movement.curve.overtime = DELAY+CAST
+					set .movement.refresh_facing = true
+					set .want_remove = true
+					call Effect.create(EFFECT_PATH2,.x,.y,125.,.yaw).setPitch(-105).setDuration(1.0)
+					if .c > 0 then
+						call .c.setFadeOutPoint(0.,1.25)
+					endif
+					set .c = 0
+				endif
+			elseif .stage == 2 then
+				call setAlpha(R2I(getAlpha()-255*TIMER_TICK/DELAY))
 			endif
 		endmethod
 
@@ -258,14 +271,14 @@ scope Ability0031 initializer init
 
 		method afterExplosion takes nothing returns nothing
 			local Effect ef = Effect.create(EFFECT_PATH2,.x,.y,125.,.yaw)
+			call GroupClear(.group_wave)
 			call ef.setDuration(1.0)
 			call ef.setPitch(-90)
 			call resetTargetLocation()
 			set .movement.curve = 0
 			set .movement.refresh_facing = false
 			set .velo = VELO
-			set .pitch = 20.
-			call setDuration(RANGE_SECOND/VELO)
+			call setDuration((RANGE_SECOND/VELO)+DELAY+CAST)
 			call setWave(EXPRAD)
 			call setColor(255,255,153)
 			set .c = Circle.create(.x,.y,1.,EXPRAD)
@@ -290,6 +303,7 @@ scope Ability0031 initializer init
 			local real tx = Math.pPX(x,BALL_DIST,angle+180)
 			local real ty = Math.pPY(y,BALL_DIST,angle+180)
 			local thistype this = allocate(caster,EFFECT_PATH1,tx,ty,BALL_HEIGHT,angle)
+			set .offset_pitch = 20.
 			call setYaw(90.)
 			set .movement.curve = Bezier2.create(tx,ty,BALL_HEIGHT,x,y,0.)
 			set .movement.curve.overtime = DELAY
@@ -376,9 +390,9 @@ scope Ability0031 initializer init
 			set .is_active = true
 			set .cast_range = RANGE
 			set .preserve_order = false
-			set .cooldown_max = 0//9.
-			set .cooldown_min = 0//3.
-			set .manacost = 0//55
+			set .cooldown_max = 9.
+			set .cooldown_min = 3.
+			set .manacost = 55
 			set .indicator = ind.create(this,.owner.owner)
 			call plusStatValue(5)
 		endmethod

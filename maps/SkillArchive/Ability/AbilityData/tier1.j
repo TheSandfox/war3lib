@@ -1,6 +1,6 @@
 /*0000 후려치기*/
 scope Ability0000 initializer init
-	//! runtextmacro abilityDataHeader("0000","후려치기","BTNSteelMelee","1","STAT_TYPE_ATTACK","STAT_TYPE_ARMOR_PENET")
+	//! runtextmacro abilityDataHeader("0000","후려치기","BTNSteelMelee","1","STAT_TYPE_ATTACK","STAT_TYPE_ARMOR_PENET","false")
 	
 		globals
 			private constant real CHARGE_DURATION = 0.25
@@ -142,7 +142,7 @@ endscope
 	
 /*0001 쌍극의 번개*/
 scope Ability0001 initializer init
-	//! runtextmacro abilityDataHeader("0001","쌍극의 번개","btn-ability-protoss-doubleshieldrecharge","1","STAT_TYPE_MAGICPOWER","STAT_TYPE_MAGIC_PENET")
+	//! runtextmacro abilityDataHeader("0001","쌍극의 번개","btn-ability-protoss-doubleshieldrecharge","1","STAT_TYPE_MAGICPOWER","STAT_TYPE_MAGIC_PENET","false")
 	
 		globals
 			private constant real DELAY = 0.65
@@ -309,7 +309,7 @@ endscope
 
 /*0002 고정사격*/
 scope Ability0002 initializer init
-	//! runtextmacro abilityDataHeader("0002","고정사격","BTNDwarvenLongRifle","1","STAT_TYPE_ACCURACY","STAT_TYPE_ARMOR_PENET")
+	//! runtextmacro abilityDataHeader("0002","고정사격","BTNDwarvenLongRifle","1","STAT_TYPE_ACCURACY","STAT_TYPE_ARMOR_PENET","true")
 	
 		globals
 			private constant real DELAY = 2.
@@ -409,7 +409,7 @@ endscope
 
 /*0003 화염구*/
 scope Ability0003 initializer init
-	//! runtextmacro abilityDataHeader("0003","화염구","BTNFireBolt","1","STAT_TYPE_MAGICPOWER","STAT_TYPE_SPELL_BOOST")
+	//! runtextmacro abilityDataHeader("0003","화염구","BTNFireBolt","1","STAT_TYPE_MAGICPOWER","STAT_TYPE_SPELL_BOOST","false")
 	
 		globals
 			private constant real DELAY = 0.2
@@ -556,7 +556,7 @@ endscope
 
 /*0004 연쇄번개*/
 scope Ability0004 initializer init
-	//! runtextmacro abilityDataHeader("0004","연쇄번개","btn-ability-swarm-kerrigan-chainreaction","1","STAT_TYPE_MAGICPOWER","STAT_TYPE_ACCURACY")
+	//! runtextmacro abilityDataHeader("0004","연쇄번개","btn-ability-swarm-kerrigan-chainreaction","1","STAT_TYPE_MAGICPOWER","STAT_TYPE_ACCURACY","false")
 	
 		globals
 			private constant real DELAY = 0.2
@@ -722,7 +722,7 @@ endscope
 
 /*0005 신성의 빛*/
 scope Ability0005 initializer init
-	//! runtextmacro abilityDataHeader("0005","신성의 빛","BTNHolyBolt","1","STAT_TYPE_MAGICPOWER","STAT_TYPE_MAXHP")
+	//! runtextmacro abilityDataHeader("0005","신성의 빛","BTNHolyBolt","1","STAT_TYPE_MAGICPOWER","STAT_TYPE_MAXHP","false")
 	
 		globals
 			private constant real DELAY = 0.2
@@ -813,7 +813,7 @@ endscope
 
 /*0006 점멸*/
 scope Ability0006 initializer init
-	//! runtextmacro abilityDataHeader("0006","점멸","BTNBlink","1","STAT_TYPE_EVASION","STAT_TYPE_ACCURACY")
+	//! runtextmacro abilityDataHeader("0006","점멸","BTNBlink","1","STAT_TYPE_EVASION","STAT_TYPE_ACCURACY","false")
 	
 		globals
 			private constant real RANGE_MAX = 600.
@@ -881,7 +881,7 @@ endscope
 
 /*0007 순보*/
 scope Ability0007 initializer init
-	//! runtextmacro abilityDataHeader("0007","순보","BTNSavageStrike","1","STAT_TYPE_ATTACK","STAT_TYPE_ACCURACY")
+	//! runtextmacro abilityDataHeader("0007","순보","BTNSavageStrike","1","STAT_TYPE_ATTACK","STAT_TYPE_ACCURACY","false")
 	
 		globals
 			private constant real RANGE_MAX = 500.
@@ -1019,7 +1019,7 @@ endscope
 
 /*0008 다중사격*/
 scope Ability0008 initializer init
-	//! runtextmacro abilityDataHeader("0008","다중사격","BTNMultishot","1","STAT_TYPE_ATTACK","STAT_TYPE_ACCURACY")
+	//! runtextmacro abilityDataHeader("0008","다중사격","BTNMultishot","1","STAT_TYPE_ATTACK","STAT_TYPE_ACCURACY","false")
 	
 		globals
 			private constant real DELAY = 0.2
@@ -1156,7 +1156,7 @@ endscope
 
 /*u000 뛰어들기*/
 scope Abilityu000 initializer init
-	//! runtextmacro abilityDataHeader("u000","뛰어들기","BTNGhoulFrenzy","1","STAT_TYPE_ATTACK","STAT_TYPE_ARMOR_PENET")
+	//! runtextmacro abilityDataHeader("u000","뛰어들기","BTNGhoulFrenzy","1","STAT_TYPE_ATTACK","STAT_TYPE_ARMOR_PENET","false")
 	
 		globals
 			private constant real DAMAGE_PER_ATTACK = 2.
@@ -1274,7 +1274,7 @@ endscope
 
 /*u001 끈적거미*/
 scope Abilityu001 initializer init
-	//! runtextmacro abilityDataHeader("u001","끈적거미","BTNMonsterSpiderCarapace_01","1","STAT_TYPE_ACCURACY","STAT_TYPE_ATTACK")
+	//! runtextmacro abilityDataHeader("u001","끈적거미","BTNMonsterSpiderCarapace_01","1","STAT_TYPE_ACCURACY","STAT_TYPE_ATTACK","true")
 	
 		globals
 			private constant real BACKSWING = 0.25

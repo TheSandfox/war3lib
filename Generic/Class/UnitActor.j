@@ -14,6 +14,7 @@ library UnitActor
 		boolean suspend_silence = true	/*침묵에 방해받는가*/
 		boolean suspend_dead	= true	/*죽으면 끊기는가*/
 		boolean suspend_rclick  = false /*우클릭에 취소되는가*/
+		boolean suspend_ability = false
 		boolean suspend_stop	= false /*스탑에 취소되는가*/
 
 		boolean channeling = true		/*정신집중인가*/
@@ -25,6 +26,7 @@ library UnitActor
 			set .suspend_silence 	= false
 			set .suspend_dead 		= false
 			set .suspend_rclick 	= false
+			set .suspend_ability	= true
 			set .suspend_stop 		= false
 		endmethod
 
@@ -104,6 +106,16 @@ library UnitActor
 						call rightClick()
 					endif
 				endif
+				return
+			endif
+			if Event.getValue() == ABILITY_FOLLOW_EVENT then
+				if ABILITY_CASTER == .caster and .suspend_ability then
+					if not Ability_prototype(ABILITY_ABILITY).useable_cast then
+						call onSuspend()
+						call destroy()
+					endif
+				endif
+				return
 			endif
 		endmethod
 
@@ -115,6 +127,7 @@ library UnitActor
 			set .suspend_condition = TriggerAddCondition(.suspend_trigger,function thistype.suspendAction)
 			call BlzTriggerRegisterPlayerKeyEvent(.suspend_trigger,.caster.owner,OSKEY_S,0,true)
 			call Event.triggerRegisterGenericRightClick(.suspend_trigger)
+			call Event.triggerRegisterAbilityFollow(.suspend_trigger)
 			set .channeling = channeling
 			if .channeling then
 				call .caster.plusStatus(STATUS_CAST)
