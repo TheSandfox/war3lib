@@ -884,6 +884,7 @@ library UnitPrototype
 			call UnitAddAbility(.origin_unit,'Axx0')
 			call UnitAddAbility(.origin_unit,'Axx1')
 			call UnitAddAbility(.origin_unit,'Axx2')
+			call UnitAddAbility(.origin_unit,'Axx4')
 			call SetUnitAbilityLevel(.origin_unit,'Axx0',20)
 			call BlzUnitDisableAbility(.origin_unit,'Apat',true,true)
 			call BlzSetUnitWeaponRealFieldBJ(.origin_unit,UNIT_WEAPON_RF_ATTACK_DAMAGE_POINT,0,0.01)

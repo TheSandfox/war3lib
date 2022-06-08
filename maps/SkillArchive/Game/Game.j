@@ -136,6 +136,8 @@ library Game requires Unit, UI
 			call Guardians.init()
 			/*웨이브 가동*/
 			call Round.init()
+			/*상호작용물*/
+			call Interactive.init()
 			/*탈주트리거*/
 			call TriggerAddCondition(LEAVE_TRIGGER,function thistype.playerLeave)
 		endmethod
@@ -154,10 +156,12 @@ library Game requires Unit, UI
 				//call initForPlayer(Player(1),'HR09','C000')
 				/*생명의 나무*/
 				call TreeOfLife.init()
-				/*수호자 초기화*/
-				//call Guardians.init()
+				/*/*수호자 초기화*/
+				call Guardians.init()
 				/*웨이브 가동*/
-				//call Round.init()
+				call Round.init()*/
+				/*상호작용물*/
+				call Interactive.init()
 				/*임시*/
 				call spawnDummy()
 				call SkillShop.THIS[0].setLevel(10)

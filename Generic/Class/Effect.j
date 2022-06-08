@@ -178,6 +178,11 @@ library Effect requires TimerUtils
 			call BlzSetSpecialEffectMatrixScale(.origin_effect,nx,ny,nz)
 			return this
 		endmethod
+
+		method resetMatrixScale takes nothing returns thistype
+			call BlzResetSpecialEffectMatrix(.origin_effect)
+			return this
+		endmethod
 	
 		private method colorRefresh takes nothing returns nothing
 			local real array color
@@ -323,7 +328,7 @@ library Effect requires TimerUtils
 			call setYaw(ya)
 			call setPitch(0)
 			call setRoll(0)
-			call setAnim(ANIM_TYPE_BIRTH)
+			//call setAnim(ANIM_TYPE_BIRTH)
 			return this
 		endmethod
 	
