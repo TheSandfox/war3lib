@@ -190,7 +190,7 @@ library Movement requires Actor
 		endmethod
 
 		method onDestroy takes nothing returns nothing
-			if .curve != 0 then
+			if .curve > 0 then
 				call .curve.destroy()
 				set .curve = 0
 			endif

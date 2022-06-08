@@ -37,14 +37,14 @@ library Effect requires TimerUtils
 	struct Effect extends Agent
 	
 		private timer decay_timer = null
-		private real scale_true
-		private real r_true
-		private real g_true
-		private real b_true
-		private real a_true
+		private real scale_true = 1.
+		private real r_true = 255
+		private real g_true = 255
+		private real b_true = 255
+		private real a_true = 255
 		
-		boolean want_remove
-		boolean permanant
+		boolean want_remove = false
+		boolean permanant = false
 		boolean refresh_position = true
 		boolean refresh_orientation = true
 
@@ -320,28 +320,16 @@ library Effect requires TimerUtils
 			set .x = x
 			set .y = y
 			set .z = z
-			call setScale(1.)
 			call setYaw(ya)
 			call setPitch(0)
 			call setRoll(0)
-			call setR(255)
-			call setG(255)
-			call setB(255)
-			call setAlpha(255)
-			set want_remove = false
-			set permanant = false
+			call setAnim(ANIM_TYPE_BIRTH)
 			return this
 		endmethod
 	
 		static method createAttatched takes string path, widget target, string attatch returns thistype
 			local thistype this = allocate(AddSpecialEffectTarget(path, target, attatch))
-			call setR(255)
-			call setG(255)
-			call setB(255)
-			call setAlpha(255)
 			set .decay_timer = null
-			set want_remove = false
-			set permanant = false
 			return this
 		endmethod
 	

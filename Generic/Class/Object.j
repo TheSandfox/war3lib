@@ -143,7 +143,7 @@ library Object
 		endmethod
 
 		method onDestroy takes nothing returns nothing
-			if .movement != 0 then
+			if .movement > 0 then
 				call .movement.destroy()
 			endif
 		endmethod

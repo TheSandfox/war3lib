@@ -142,12 +142,16 @@ library SlotChanger requires UI
 			endif
 		endmethod
 
+		method switch takes nothing returns nothing
+			call visibleForPlayer(not .visible_flag)
+		endmethod
+
 		static method act takes nothing returns nothing
 			local thistype this = Trigger.getData(GetTriggeringTrigger())
 			local integer i = 0
 			/*G키 입력*/
 			if BlzGetTriggerPlayerKey() == OSKEY_G then
-				call visibleForPlayer(not .visible_flag)
+				call switch()
 				return
 			endif
 			if BlzGetTriggerFrame() != null then

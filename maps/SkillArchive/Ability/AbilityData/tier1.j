@@ -307,9 +307,9 @@ scope Ability0001 initializer init
 	//! runtextmacro abilityDataEnd()
 endscope
 
-/*0002 고정사격*/
+/*0002 구식 저격총*/
 scope Ability0002 initializer init
-	//! runtextmacro abilityDataHeader("0002","고정사격","BTNDwarvenLongRifle","1","STAT_TYPE_ACCURACY","STAT_TYPE_ARMOR_PENET","true")
+	//! runtextmacro abilityDataHeader("0002","구식 저격총","BTNDwarvenLongRifle","1","STAT_TYPE_ACCURACY","STAT_TYPE_ARMOR_PENET","true")
 	
 		globals
 			private constant real DELAY = 2.
@@ -317,7 +317,7 @@ scope Ability0002 initializer init
 			private constant real STARTAT = 45.
 			private constant string EFFECT_PATH1 = "Abilities\\Weapons\\Mortar\\MortarMissile.mdl"
 			private constant string EFFECT_PATH2 = "Effects\\Aim.mdl"
-			private constant real DAMAGE_PER_ATTACK = 2.65
+			private constant real DAMAGE_PER_ATTACK = 2.25
 			private constant real DAMAGE_PER_LEVEL = 0.05
 			private constant real VELO = 1875.
 		endglobals
@@ -356,7 +356,7 @@ scope Ability0002 initializer init
 	
 			static method create takes Unit caster, Unit target, integer level returns thistype
 				local thistype this = allocate(caster,target,0.,0.,level,DELAY,true)
-				set .progress_bar = ProgressBar.create(NAME,.caster.owner)
+				set .progress_bar = ProgressBar.create("저격",.caster.owner)
 				set .suspend_rclick = true
 				set .lh = Lightning.createOO("LSER",.caster,.target)
 				set .lh.oz1 = .caster.pivot_z
@@ -379,7 +379,7 @@ scope Ability0002 initializer init
 		public struct main extends Ability
 
 			method relativeTooltip takes nothing returns string
-				return "정신집중 후 대상에게 강력한 탄환을 발사하여 "+/*
+				return STRING_COLOR_CONSTANT+R2SW(DELAY,1,1)+"초|r 동안 정신집중 한 뒤 대상에게 강력한 탄환을 발사하여 "+/*
 				*/ConstantString.statStringReal(STAT_TYPE_ATTACK,(.owner.attack * DAMAGE_PER_ATTACK) * (1+DAMAGE_PER_LEVEL*(.level-1) * .owner.attack_speed) ,1)+/*
 				*/"의 "+DAMAGE_STRING_PHYSICAL+"를 입힙니다.\n\n - 공격속도에 비례해 피해량이 증가합니다. (위 수치는 증가량이 반영된 수치입니다.)"
 			endmethod
@@ -1154,6 +1154,72 @@ scope Ability0008 initializer init
 	//! runtextmacro abilityDataEnd()
 endscope
 
+/*0009 강철 망치*/
+scope Ability0009 initializer init
+	//! runtextmacro abilityDataHeader("0009","강철 망치","BTNHammer","1","STAT_TYPE_ATTACK","STAT_TYPE_MAXHP","true")
+	
+		globals
+			private constant real DELAY = 0.25
+			private constant real DAMAGE_PER_ATTACK = 1.25
+			private constant real DAMAGE_PER_MAXHP = 0.33 / 20.
+			private constant real DAMAGE_PER_LEVEL = 0.05
+		endglobals
+	
+		public struct actor extends MeleeAttack
+
+			implement DamageFlag
+
+			method onComplete takes nothing returns nothing
+				call Effect.createAttatched(EF_ROCK,.target.origin_unit,"chest").kill()
+				set .damage = ((.owner.attack * DAMAGE_PER_ATTACK)+(.owner.maxhp * DAMAGE_PER_MAXHP) ) * (1+DAMAGE_PER_LEVEL*(.level-1))
+				call damageTarget(.target)
+				call Backswing.create(.caster)
+			endmethod
+	
+			static method create takes Unit caster, Unit target, integer level returns thistype
+				local thistype this = allocate(caster,target)
+				set .level = level
+				set .damage_id = ID
+				set .duration = DELAY
+				set .weapon_type = WEAPON_TYPE_METAL_HEAVY_BASH
+				call .caster.setAnimSpeed(1.)
+				call damageFlagTemplateMeleeAttack()
+				return this
+			endmethod
+
+		endstruct
+	
+		public struct main extends Ability
+
+			method relativeTooltip takes nothing returns string
+				return "대상에게 "+/*
+				*/ConstantString.statStringReal(STAT_TYPE_ATTACK,(.owner.attack * DAMAGE_PER_ATTACK) * (1+DAMAGE_PER_LEVEL*(.level-1)),1)+"+"+/*
+				*/ConstantString.statStringReal(STAT_TYPE_MAXHP,(.owner.maxhp * DAMAGE_PER_MAXHP) * (1+DAMAGE_PER_LEVEL*(.level-1)),1)+/*
+				*/"의 "+DAMAGE_STRING_PHYSICAL+"를 입힙니다."
+			endmethod
+
+			method basicAttack takes Unit target returns nothing
+				local actor ac = actor.create(.owner,target,level)
+			endmethod
+
+			method init takes nothing returns nothing
+				set .weapon_is_ranged = false
+				set .weapon_delay = 2.
+				set .weapon_range = 125.
+				call plusStatValue(5)
+			endmethod
+
+			static method onInit takes nothing returns nothing
+				call Ability.addTypeTag(ID,ABILITY_STRING_WEAPON)
+				call Ability.addTypeTag(ID,ABILITY_TAG_IRON)
+				call Ability.setTypeTooltip(ID,"느리고 강한 공격")
+			endmethod
+	
+		endstruct
+	
+	//! runtextmacro abilityDataEnd()
+endscope
+
 /*u000 뛰어들기*/
 scope Abilityu000 initializer init
 	//! runtextmacro abilityDataHeader("u000","뛰어들기","BTNGhoulFrenzy","1","STAT_TYPE_ATTACK","STAT_TYPE_ARMOR_PENET","false")
@@ -1367,6 +1433,7 @@ scope AddRandomAbility1 initializer init
 		call Ability.addRandomAbility('0006',1)
 		call Ability.addRandomAbility('0007',1)
 		call Ability.addRandomAbility('0008',1)
+		call Ability.addRandomAbility('0009',1)
 	endfunction
 
 endscope

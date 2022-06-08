@@ -154,6 +154,7 @@ library UnitActor
 			local thistype this = allocate(caster,0,0,0,0,BACKSWING_DEFAULT/caster.attack_speed,true)
 			set .suspend_rclick = true
 			set .suspend_stop = true
+			set .suspend_ability = true
 			return this
 		endmethod
 

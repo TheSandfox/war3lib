@@ -463,6 +463,7 @@ library UnitPrototype
 				set .attack_delay = wa.weapon_delay
 			else
 				call setStatValue(STAT_TYPE_ATTACK_RANGE,STAT_INDEX_BASE,100.)
+				call refreshStatValue(STAT_TYPE_ATTACK_RANGE)
 				set .attack_delay = 1.5
 			endif
 			call refreshAttackSpeedRequest(getCarculatedStatValue(STAT_TYPE_ATTACK_SPEED))

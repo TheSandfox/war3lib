@@ -101,6 +101,10 @@ library Buff
 
 		boolean want_kill = false
 
+		method operator owner takes nothing returns Unit_prototype
+			return .caster
+		endmethod
+
 		static method add takes Unit_prototype caster, Unit_prototype target, integer id, real duration returns thistype
 			set BUFF_LAST_CREATED = 0
 			set BUFF_CREATE_CASTER = caster

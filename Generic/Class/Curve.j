@@ -86,6 +86,15 @@ library Curve requires Object
 			endif
 		endmethod
 
+		method setProjectedControlPoint takes integer index, real dist, real radius, real ta returns nothing
+			local real angle = ta - 90
+			local real yaw = bj_RADTODEG * Atan2(getY(INDEX_POINT_LAST)-getY(INDEX_POINT_ORIGIN), getX(INDEX_POINT_LAST)-getX(INDEX_POINT_ORIGIN))
+			local real pitch = bj_RADTODEG * Atan2(getZ(INDEX_POINT_LAST)-getZ(INDEX_POINT_ORIGIN), SquareRoot((getX(INDEX_POINT_LAST)-getX(INDEX_POINT_ORIGIN)) * (getX(INDEX_POINT_LAST)-getX(INDEX_POINT_ORIGIN)) + (getY(INDEX_POINT_LAST)-getY(INDEX_POINT_ORIGIN)) * (getY(INDEX_POINT_LAST)-getY(INDEX_POINT_ORIGIN))))
+			call setX(INDEX_POINT_MIDDLE+index,getX(INDEX_POINT_ORIGIN) + dist * Cos(Deg2Rad(yaw)) * Cos(Deg2Rad(pitch)) + radius * Cos(Deg2Rad(angle)) * Cos(Deg2Rad(pitch+90))*Cos(Deg2Rad(yaw)) - radius * Sin(Deg2Rad(angle)) * Sin(Deg2Rad(yaw)))
+			call setY(INDEX_POINT_MIDDLE+index,getY(INDEX_POINT_ORIGIN) + dist * Sin(Deg2Rad(yaw)) * Cos(Deg2Rad(pitch)) + radius * Cos(Deg2Rad(angle)) * Cos(Deg2Rad(pitch+90))*Sin(Deg2Rad(yaw)) + radius * Sin(Deg2Rad(angle)) * Cos(Deg2Rad(yaw)))
+			call setZ(INDEX_POINT_MIDDLE+index,getZ(INDEX_POINT_ORIGIN) + dist * Sin(Deg2Rad(pitch)) + radius * Cos(Deg2Rad(pitch)) * Cos(Deg2Rad(-angle)))
+		endmethod
+
 		static method create takes real x, real y, real z returns thistype
 			local thistype this = allocate()
 			call setX(0,x)
@@ -108,15 +117,6 @@ library Curve requires Object
 	endstruct
 
 	struct Bezier extends Curve
-
-		method setProjectedControlPoint takes integer index, real dist, real radius, real ta returns nothing
-			local real angle = ta - 90
-			local real yaw = bj_RADTODEG * Atan2(getY(INDEX_POINT_LAST)-getY(INDEX_POINT_ORIGIN), getX(INDEX_POINT_LAST)-getX(INDEX_POINT_ORIGIN))
-			local real pitch = bj_RADTODEG * Atan2(getZ(INDEX_POINT_LAST)-getZ(INDEX_POINT_ORIGIN), SquareRoot((getX(INDEX_POINT_LAST)-getX(INDEX_POINT_ORIGIN)) * (getX(INDEX_POINT_LAST)-getX(INDEX_POINT_ORIGIN)) + (getY(INDEX_POINT_LAST)-getY(INDEX_POINT_ORIGIN)) * (getY(INDEX_POINT_LAST)-getY(INDEX_POINT_ORIGIN))))
-			call setX(INDEX_POINT_MIDDLE+index,getX(INDEX_POINT_ORIGIN) + dist * Cos(Deg2Rad(yaw)) * Cos(Deg2Rad(pitch)) + radius * Cos(Deg2Rad(angle)) * Cos(Deg2Rad(pitch+90))*Cos(Deg2Rad(yaw)) - radius * Sin(Deg2Rad(angle)) * Sin(Deg2Rad(yaw)))
-			call setY(INDEX_POINT_MIDDLE+index,getY(INDEX_POINT_ORIGIN) + dist * Sin(Deg2Rad(yaw)) * Cos(Deg2Rad(pitch)) + radius * Cos(Deg2Rad(angle)) * Cos(Deg2Rad(pitch+90))*Sin(Deg2Rad(yaw)) + radius * Sin(Deg2Rad(angle)) * Cos(Deg2Rad(yaw)))
-			call setZ(INDEX_POINT_MIDDLE+index,getZ(INDEX_POINT_ORIGIN) + dist * Sin(Deg2Rad(pitch)) + radius * Cos(Deg2Rad(pitch)) * Cos(Deg2Rad(-angle)))
-		endmethod
 
 		static method create takes real x1, real y1, real z1, real x2, real y2, real z2 returns thistype
 			local thistype this = allocate(x1,y1,z1)

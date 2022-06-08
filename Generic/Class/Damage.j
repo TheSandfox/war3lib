@@ -165,8 +165,8 @@ library Damage
 				call InstantText.setColor(0,153,255)
 			endif
 			/*데미지텍스트*/
-			/*set InstantText.SIZE = 10.
-			call InstantText.createForBothPlayer(target.x,target.y,target.z+75,I2S(R2I(DAMAGE_AMOUNT)),attacker.owner,target.owner)*/
+			set InstantText.SIZE = 10.
+			call InstantText.createForBothPlayer(target.x,target.y,target.z+75,I2S(R2I(DAMAGE_AMOUNT)),attacker.owner,target.owner)
 			/*데미지 관련 트리거*/
 			set udg_EVENT_VALUE = DAMAGE_EVENT_AFTER_HPREDUCE
 			/**/

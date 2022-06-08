@@ -22,6 +22,7 @@ endscope
 scope UnitG000 initializer init
 //! runtextmacro unitDataHeader("G000","BTNArmorGolem")
 	call UnitData.setInitialAbility(0,'0000')
+	call UnitData.setInitialAbility(1,'0009')
 //! runtextmacro unitDataEnd()
 endscope
 

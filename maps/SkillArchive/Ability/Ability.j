@@ -7,7 +7,7 @@ library Ability requires AbilityPrototype
 		constant string ABILITY_STRING_IMMEDIATE = "|cff00ffff즉시 시전|r"
 		constant string ABILITY_STRING_PASSIVE = "|cff00ffff지속효과|r"
 		constant string ABILITY_STRING_DRAG_TO_USE = "|cff00ffff끌어서 사용|r"
-		constant string ABILITY_STRING_WEAPON = "|cffcc0000무기변형|r"
+		constant string ABILITY_STRING_WEAPON = "|cffcc0000무기|r"
 		constant string ABILITY_TAG_IRON		= "|cffffff00강철|r"
 		constant string ABILITY_TAG_ASSASSINATE	= "|cffffff00암살|r"
 		constant string ABILITY_TAG_BRAWL 		= "|cffffff00체술|r"

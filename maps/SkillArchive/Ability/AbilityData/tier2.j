@@ -141,9 +141,9 @@ scope Ability0013 initializer init
 	//! runtextmacro abilityDataEnd()
 endscope
 
-/*0014 카드 투척*/
+/*0014 마법 카드패*/
 scope Ability0014 initializer init
-	//! runtextmacro abilityDataHeader("0014","카드 투척","BTNPickACard","2","STAT_TYPE_ACCURACY","STAT_TYPE_ATTACK","true")
+	//! runtextmacro abilityDataHeader("0014","마법 카드패","BTNPickACard","2","STAT_TYPE_ACCURACY","STAT_TYPE_ATTACK","true")
 	
 		globals
 			private constant real BACKSWING = 0.25
@@ -152,7 +152,7 @@ scope Ability0014 initializer init
 			private constant string EFFECT_PATH2 = "Effects\\MagicCardBlue.mdl"
 			private constant string EFFECT_PATH3 = "Effects\\MagicCardGold.mdl"
 			private constant string EFFECT_PATH4 = "Effects\\MagicCardPurple.mdl"
-			private constant real DAMAGE_PER_ATTACK = 0.55
+			private constant real DAMAGE_PER_ATTACK = 0.6
 			private constant real DAMAGE_PER_LEVEL = 0.1
 			private constant integer NEED_TO = 4
 			private constant real VELO = 1250
@@ -216,6 +216,7 @@ scope Ability0014 initializer init
 						call additional.create(.caster,.target,.level)
 						set a.value = 0
 					endif
+					set a.gauge = I2R(a.value)/I2R(NEED_TO-1)
 				endif
 				call Backswing.create(.caster)
 			endmethod
@@ -637,6 +638,148 @@ scope Ability0016 initializer init
 	//! runtextmacro abilityDataEnd()
 endscope
 
+/*0017 불붙은 시미터(버프)*/
+scope Buff0017 initializer init
+	//! runtextmacro buffHeader("불붙은 시미터","0017","1","BTNGangplank_Passive")
+
+	public struct main extends Buff
+
+		static constant real DAMAGE_PER_HPREGEN = 0.1 * 5.
+		static constant real DAMAGE_PER_LEVEL = 0.10
+		static constant real INTERVAL = 0.5
+		static constant string EFFECT_PATH1 = "Abilities\\Spells\\Other\\BreathOfFire\\BreathOfFireDamage.mdl"
+
+		implement DamageFlag
+
+		method intervalAction takes nothing returns nothing
+			set .damage = (.owner.hpregen * DAMAGE_PER_HPREGEN) * (1+DAMAGE_PER_LEVEL*(.level-1)) + (.target.hpregen*INTERVAL)
+			call damageTarget(.target)
+		endmethod
+
+		method update takes nothing returns nothing
+			
+		endmethod
+
+		method init takes nothing returns nothing
+			call addEffect(Effect.createAttatched(EFFECT_PATH1,.target.origin_unit,"chest"))
+			set .interval = INTERVAL
+			set .damage_id = ID
+			call damageFlagTemplateDOT()
+		endmethod
+
+	endstruct
+
+	//! runtextmacro buffEnd()
+endscope
+
+/*0017 불붙은 시미터*/
+scope Ability0017 initializer init
+	//! runtextmacro abilityDataHeader("0017","불붙은 시미터","BTNGangplank_Passive","2","STAT_TYPE_ATTACK","STAT_TYPE_HPREGEN","true")
+	
+		globals
+			private constant string EFFECT_PATH1 = "Abilities\\Weapons\\PhoenixMissile\\Phoenix_Missile_mini.mdl"
+			private constant string EFFECT_PATH2 = "Abilities\\Weapons\\RedDragonBreath\\RedDragonMissile.mdl"
+			private constant string EFFECT_PATH3 = "Effects\\WindSlash.mdl"
+			private constant real DAMAGE_PER_ATTACK = 1.2
+			private constant real DAMAGE_PER_LEVEL = 0.1
+			private constant integer NEED_TO = 3
+			private constant real DURATION = 5.
+		endglobals
+	
+		public struct actor extends MeleeAttack
+
+			Effect ef1 = 0
+			Effect ef2 = 0
+
+			implement DamageFlag
+
+			method onComplete takes nothing returns nothing
+				local Ability a = .caster.getAbilityById(ID)
+				local Effect ef = 0
+				local Buff b = 0
+				set .damage = (.owner.attack * DAMAGE_PER_ATTACK) * (1+DAMAGE_PER_LEVEL*(.level-1))
+				call damageTarget(.target)
+				call Effect.create(EFFECT_PATH1,.target.x,.target.y,.target.z+.target.pivot_z,270.).setScale(1.25).kill()
+				set ef = Effect.create(EFFECT_PATH3,target.x+GetRandomReal(-25,25),target.y,target.z+target.pivot_z+GetRandomReal(-25,25),270.)
+				call ef.setColor(255,153,66)
+				call ef.setRoll(GetRandomReal(0.,360.))
+				call ef.setMatrixScale(1.25,1.25,2.)
+				call ef.setAlpha(192)
+				call ef.setDuration(1.0)
+				if a > 0 then
+					call a.addValue(1)
+					if a.value >= NEED_TO then
+						call Effect.create(EFFECT_PATH2,.target.x,.target.y,.target.z+.target.pivot_z,0.).setAnimSpeed(1.5).kill()
+						set b = Buff.add(.caster,.target,ID,DURATION)
+						set b.level = .level
+						call b.intervalAction()
+						set a.value = 0
+					endif
+					set a.gauge = I2R(a.value)/I2R(NEED_TO-1)
+				endif
+				call Backswing.create(.caster)
+			endmethod
+	
+			static method create takes Unit caster, Unit target, integer level returns thistype
+				local thistype this = allocate(caster,target)
+				local real angle = Math.anglePoints(.caster.x,.caster.y,.target.x,.target.y)
+				set .level = level
+				call damageFlagTemplateMeleeAttack()
+				set .damage_id = ID
+				set .weapon_type = WEAPON_TYPE_METAL_HEAVY_SLICE
+				set .ef1 = Effect.createAttatched(EFFECT_PATH1,.caster.origin_unit,"hand left")
+				set .ef2 = Effect.createAttatched(EFFECT_PATH1,.caster.origin_unit,"hand right")
+				return this
+			endmethod
+
+			method onDestroy takes nothing returns nothing
+				if .ef1 > 0 then
+					call .ef1.kill()
+				endif
+				if .ef2 > 0 then
+					call .ef2.kill()
+				endif
+				set .ef1 = 0
+				set .ef2 = 0
+			endmethod
+
+		endstruct
+	
+		public struct main extends Ability
+
+			method relativeTooltip takes nothing returns string
+				return "대상에게 "+/*
+				*/ConstantString.statStringReal(STAT_TYPE_ATTACK,(.owner.attack * DAMAGE_PER_ATTACK) * (1+DAMAGE_PER_LEVEL*(.level-1)),1)+/*
+				*/"의 "+DAMAGE_STRING_PHYSICAL+"를 입힙니다. "+STRING_COLOR_CONSTANT+I2S(NEED_TO)+"번째|r 공격은 대상을 불태워 "+/*
+				*/STRING_COLOR_CONSTANT+R2SW(DURATION,1,1)+"초|r에 걸쳐 "+/*
+				*/ConstantString.statStringReal(STAT_TYPE_HPREGEN,(.owner.hpregen * Buff0017_main.DAMAGE_PER_HPREGEN) * (1+DAMAGE_PER_LEVEL*(.level-1)) * DURATION / Buff0017_main.INTERVAL ,1)+/*
+				*/"의 "+DAMAGE_STRING_MAGICAL+"를 입힙니다.\n\n - 대상의 체력재생 능력치에 비례해 지속 피해량이 증가합니다."
+			endmethod
+
+			method basicAttack takes Unit target returns nothing
+				local actor ac = actor.create(.owner,target,level)
+			endmethod
+
+			method init takes nothing returns nothing
+				set .weapon_delay = 1.5
+				set .weapon_range = 125.
+				set .weapon_is_ranged = false
+				set .count = 0
+				call plusStatValue(5)
+			endmethod
+
+			static method onInit takes nothing returns nothing
+				call Ability.addTypeTag(ID,ABILITY_STRING_WEAPON)
+				call Ability.addTypeTag(ID,ABILITY_TAG_IRON)
+				call Ability.addTypeTag(ID,ABILITY_TAG_FIRE)
+				call Ability.setTypeTooltip(ID,"대상 약화 및 지속피해\n")
+			endmethod
+	
+		endstruct
+	
+	//! runtextmacro abilityDataEnd()
+endscope
+
 /*u010 광란(버프)*/
 scope Buffu010 initializer init
 	//! runtextmacro buffHeader("광란","u010","0","BTNUnholyFrenzy")
@@ -731,7 +874,7 @@ scope Abilityu010 initializer init
 			endmethod
 
 			method relativeTooltip takes nothing returns string
-				return STRING_COLOR_CONSTANT+R2SW(DURATION,1,1)+"초|r 동안 "+STAT_TYPE_COLOR[STAT_TYPE_ATTACK_SPEED]+STAT_TYPE_NAME[STAT_TYPE_ATTACK_SPEED]+"|r가 "+/*
+				return STRING_COLOR_CONSTANT+R2SW(DURATION,1,1)+"초|r 동안 "+STAT_TYPE_NAME[STAT_TYPE_ATTACK_SPEED]+"가 "+/*
 				*/STRING_COLOR_CONSTANT+I2S(R2I(Buffu010_main.ATTACK_SPEED_BONUS*100))+"%|r 증가하며 "+ATTACK_STRING_BASIC+"의 피해량이 "+/*
 				*/ConstantString.statStringReal(STAT_TYPE_MAXHP,( .owner.maxhp * Buffu010_main.HP_COST ) * ( 1+Buffu010_main.DAMAGE_PER_LEVEL*(.level-1) ),1)+" 증가하는 대신 "+/*
 				*/ATTACK_STRING_BASIC+" 적중 시 "+ConstantString.statStringReal(STAT_TYPE_MAXHP,.owner.maxhp * Buffu010_main.HP_COST,1)+"의 체력을 잃습니다.\n\n"+/*
@@ -929,6 +1072,7 @@ scope AddRandomAbility2 initializer init
 		call Ability.addRandomAbility('0014',2)
 		call Ability.addRandomAbility('0015',2)
 		call Ability.addRandomAbility('0016',2)
+		call Ability.addRandomAbility('0017',2)
 	endfunction
 
 endscope

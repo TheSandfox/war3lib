@@ -1,6 +1,8 @@
 library UI
 
 	globals
+		private trigger FRAME_BUTTON_TRIGGER = null
+
 		framehandle FRAME_GAME_UI = null
 		framehandle FRAME_ORIGIN = null
 		framehandle FRAME_MINIMAP = null
@@ -15,7 +17,10 @@ library UI
 		framehandle FRAME_EXP_BAR = null
 		framehandle FRAME_SKILL_SHOP = null
 		framehandle FRAME_SKILL_SHOP_BACKDROP = null
+		framehandle FRAME_SKILL_SHOP_BUTTON = null
 		framehandle FRAME_SLOT_CHANGER = null
+		framehandle FRAME_SLOT_CHANGER_BUTTON = null
+		framehandle FRAME_INVENTORY_BUTTON = null
 		framehandle FRAME_MAKE_POTION = null
 		framehandle array FRAME_ABILITY_ICON[10]
 
@@ -153,6 +158,7 @@ library UI
 		framehandle tooltip_header		= null
 		framehandle tooltip_icon		= null
 		framehandle tooltip_icon_border = null
+		framehandle tooltip_icon_weapon = null
 		framehandle tooltip_name		= null
 		framehandle tooltip_tag			= null
 		framehandle tooltip_casttype			= null
@@ -188,9 +194,14 @@ library UI
 				/*툴팁텍스트*/
 				call BlzFrameSetText(.tooltip_text,.target.relativeTooltip()+"\n\n|cff00ffff능력치 보너스 : |r")
 				/*마나코스트 & 쿨다운*/
-				call BlzFrameSetText(.tooltip_manacost_text,"|cff0099ff"+I2S(R2I(.target.getCarculatedManacost()))+"|r")
-				call BlzFrameSetText(.tooltip_cooldown_text,"|cffffff99"+R2SW(.target.getCarculatedMaxCooldown(),2,2)+"|r\n"+/*
-					*/"|cff999999/"+R2SW(.target.cooldown_min,2,2)+"|r")
+				if Ability.getTypeIsWeapon(.target.id) then
+					call BlzFrameSetText(.tooltip_manacost_text,"|cff00ffff"+I2S(R2I(.target.weapon_range))+"|r")
+					call BlzFrameSetText(.tooltip_cooldown_text,"|cffffff99"+R2SW(.target.weapon_delay,2,2)+"|r")
+				else
+					call BlzFrameSetText(.tooltip_manacost_text,"|cff0099ff"+I2S(R2I(.target.getCarculatedManacost()))+"|r")
+					call BlzFrameSetText(.tooltip_cooldown_text,"|cffffff99"+R2SW(.target.getCarculatedMaxCooldown(),2,2)+"|r\n"+/*
+						*/"|cff999999/"+R2SW(.target.cooldown_min,2,2)+"|r")
+				endif
 				/*스탯보너스*/
 				call BlzFrameSetText(.tooltip_stat_bonus_text1,STAT_TYPE_NAME[Ability.getTypeBonusStatIndex(.target.id,0)] + " +"+ /*
 				*/ConstantString.statStringReal(Ability.getTypeBonusStatIndex(.target.id,0),.target.stat_bonus1,1))
@@ -218,17 +229,29 @@ library UI
 				/*툴팁 스킬이름*/
 				call BlzFrameSetText(.tooltip_name,TIER_STRING_COLOR[Ability.getTypeTier(.target.id)]+"Lv."+I2S(.target.level)+" "+.target.name+"|r")
 				/*단축키색깔(스마트여부)*/
-				if .target.smart == 0 then
-					call BlzFrameSetText(.hotkey_text,"|cff999999"+User.oskeyIndex2String(.index)+"|r")
-				elseif .target.smart == 1 then
-					call BlzFrameSetText(.hotkey_text,"|cffffcc00"+User.oskeyIndex2String(.index)+"|r")
-				elseif .target.smart == 2 then
-					call BlzFrameSetText(.hotkey_text,"|cff00ffff"+User.oskeyIndex2String(.index)+"|r")
+				if Ability.getTypeIsWeapon(.target.id) then
+					call BlzFrameSetText(.hotkey_text,"|cffcc0000"+User.oskeyIndex2String(.index)+"|r")
+				else
+					if .target.smart == 0 then
+						call BlzFrameSetText(.hotkey_text,"|cff999999"+User.oskeyIndex2String(.index)+"|r")
+					elseif .target.smart == 1 then
+						call BlzFrameSetText(.hotkey_text,"|cffffcc00"+User.oskeyIndex2String(.index)+"|r")
+					elseif .target.smart == 2 then
+						call BlzFrameSetText(.hotkey_text,"|cff00ffff"+User.oskeyIndex2String(.index)+"|r")
+					endif
 				endif
 				/*어빌리티 캐스트타입*/
 				call BlzFrameSetText(.tooltip_casttype,Ability.getTypeTag(.target.id,0))
 				/*무기어빌리티면 모델프레임 표시*/
 				call BlzFrameSetVisible(.weapon_particle,.target == .target.owner.weapon_ability)
+				/*무기어빌리티면 마나코스트 아이콘 바꾸기*/
+				if Ability.getTypeIsWeapon(.target.id) then
+					call BlzFrameSetVisible(.tooltip_icon_weapon,true)
+					call BlzFrameSetTexture(.tooltip_manacost_backdrop,STAT_TYPE_ICON[STAT_TYPE_ATTACK_RANGE],0,true)
+				else
+					call BlzFrameSetVisible(.tooltip_icon_weapon,false)
+					call BlzFrameSetTexture(.tooltip_manacost_backdrop,STAT_TYPE_ICON[STAT_TYPE_MAXMP],0,true)
+				endif
 				/*어빌리티 태그*/
 				loop
 					exitwhen Ability.getTypeTag(.target.id,i) == ""
@@ -268,9 +291,15 @@ library UI
 			elseif BlzGetTriggerPlayerMouseButton() == MOUSE_BUTTON_TYPE_RIGHT then
 				set this = Trigger.getData(GetTriggeringTrigger())
 				if .mouse_in and .target > 0 then
-					set .target.smart = .target.smart + 1
-					if .target.smart > 2 then
-						set .target.smart = 0
+					if Ability.getTypeIsWeapon(.target.id) then
+						if .target.owner.weapon_ability == .target then
+							call .target.owner.setWeaponAbility(0)
+						endif
+					else
+						set .target.smart = .target.smart + 1
+						if .target.smart > 2 then
+							set .target.smart = 0
+						endif
 					endif
 					call setTarget(.target)
 				endif
@@ -375,6 +404,11 @@ library UI
 			set .tooltip_icon_border = BlzCreateFrameByType("BACKDROP","",.tooltip_container,"",0)
 			call BlzFrameSetAllPoints(.tooltip_icon_border,.tooltip_icon)
 			call BlzFrameSetTexture(.tooltip_icon_border,"Textures\\ability_border_tier1.blp",0,true)
+			set .tooltip_icon_weapon = BlzCreateFrameByType("BACKDROP","",.tooltip_container,"",0)
+			call BlzFrameSetPoint(.tooltip_icon_weapon,FRAMEPOINT_BOTTOMLEFT,.tooltip_icon,FRAMEPOINT_BOTTOMLEFT,0.,0.)
+			call BlzFrameSetSizePixel(.tooltip_icon_weapon,20,20)
+			call BlzFrameSetVisible(.tooltip_icon_weapon,false)
+			call BlzFrameSetTexture(.tooltip_icon_weapon,"ui\\widgets\\tooltips\\human\\tooltipweaponicon.blp",0,true)
 			set .tooltip_name = BlzCreateFrame("MyTextLarge",.tooltip_container,0,0)
 			call BlzFrameSetPoint(.tooltip_name,FRAMEPOINT_LEFT,.tooltip_icon,FRAMEPOINT_RIGHT,0.01,0.)
 			call BlzFrameSetTextAlignment(.tooltip_name,TEXT_JUSTIFY_CENTER,TEXT_JUSTIFY_LEFT)
@@ -450,6 +484,7 @@ library UI
 			//! runtextmacro destroyFrame(".tooltip_text")
 			//! runtextmacro destroyFrame(".tooltip_icon")
 			//! runtextmacro destroyFrame(".tooltip_icon_border")
+			//! runtextmacro destroyFrame(".tooltip_icon_weapon")
 			//! runtextmacro destroyFrame(".tooltip_name")
 			//! runtextmacro destroyFrame(".tooltip_tag")
 			//! runtextmacro destroyFrame(".tooltip_casttype")
@@ -883,6 +918,23 @@ library UI
 			set .main_timer = null
 		endmethod
 
+		private static method genericButtonAction takes nothing returns nothing
+			if GetLocalPlayer() == GetTriggerPlayer() then
+				call BlzFrameSetEnable(BlzGetTriggerFrame(),false)
+				call BlzFrameSetEnable(BlzGetTriggerFrame(),true)
+			endif
+			if BlzGetTriggerFrameEvent() != FRAMEEVENT_CONTROL_CLICK then
+				return
+			endif
+			if BlzGetTriggerFrame() == FRAME_SKILL_SHOP_BUTTON then
+				call SkillShop.THIS[GetPlayerId(GetTriggerPlayer())].switch()
+			elseif BlzGetTriggerFrame() == FRAME_SLOT_CHANGER_BUTTON then
+				call SlotChanger.THIS[GetPlayerId(GetTriggerPlayer())].switch()
+			elseif BlzGetTriggerFrame() == FRAME_INVENTORY_BUTTON then
+
+			endif
+		endmethod
+
 		static method init takes nothing returns nothing
 			local framehandle f = null
 			local framehandle bf = null
@@ -981,7 +1033,7 @@ library UI
 			set f = BlzCreateFrame("MyTextLarge",FRAME_SKILL_SHOP_BACKDROP,0,0)
 			call BlzFrameSetPoint(f,FRAMEPOINT_BOTTOM,FRAME_SKILL_SHOP_BACKDROP,FRAMEPOINT_TOP,0.,-0.0125)
 			call BlzFrameSetTextAlignment(f,TEXT_JUSTIFY_BOTTOM,TEXT_JUSTIFY_CENTER)
-			call BlzFrameSetText(f,"능력 상점")
+			call BlzFrameSetText(f,"상점")
 			call BlzFrameSetPoint(bf,FRAMEPOINT_BOTTOMLEFT,f,FRAMEPOINT_BOTTOMLEFT,-0.005,-0.005)
 			call BlzFrameSetPoint(bf,FRAMEPOINT_TOPRIGHT,f,FRAMEPOINT_TOPRIGHT,0.005,0.005)
 			set FRAME_SKILL_SHOP = BlzCreateFrameByType("BACKDROP","",FRAME_GAME_UI,"",0)
@@ -999,9 +1051,36 @@ library UI
 			set f = BlzCreateFrame("MyText",FRAME_SLOT_CHANGER,0,0)
 			call BlzFrameSetPoint(f,FRAMEPOINT_BOTTOM,FRAME_SLOT_CHANGER,FRAMEPOINT_TOP,0.,0.)
 			call BlzFrameSetTextAlignment(f,TEXT_JUSTIFY_BOTTOM,TEXT_JUSTIFY_CENTER)
-			call BlzFrameSetText(f,"능력 위치 변경")
+			call BlzFrameSetText(f,"단축키 변경")
 			call BlzFrameSetPoint(bf,FRAMEPOINT_BOTTOMLEFT,f,FRAMEPOINT_BOTTOMLEFT,-0.005,-0.005)
 			call BlzFrameSetPoint(bf,FRAMEPOINT_TOPRIGHT,f,FRAMEPOINT_TOPRIGHT,0.005,0.005)
+			/*버튼*/
+			set FRAME_INVENTORY_BUTTON = BlzCreateFrame("InventoryUIButton",FRAME_GAME_UI,0,0)
+			call BlzFrameSetPointPixel(FRAME_INVENTORY_BUTTON,FRAMEPOINT_BOTTOMLEFT,FRAME_ABILITY_CONTAINER,FRAMEPOINT_BOTTOMRIGHT,16,0)
+			call BlzFrameSetSizePixel(FRAME_INVENTORY_BUTTON,192,48)
+			set f = BlzGetFrameByName("InventoryUIButtonText",0)
+			call BlzFrameSetPointPixel(f,FRAMEPOINT_CENTER,FRAME_INVENTORY_BUTTON,FRAMEPOINT_CENTER,8,0)
+			call BlzFrameSetText(f,"|cffffcc00소지품|r |cffffffff(B)|r")
+			set FRAME_SLOT_CHANGER_BUTTON = BlzCreateFrame("SlotChangerUIButton",FRAME_GAME_UI,0,0)
+			call BlzFrameSetPointPixel(FRAME_SLOT_CHANGER_BUTTON,FRAMEPOINT_BOTTOMLEFT,FRAME_INVENTORY_BUTTON,FRAMEPOINT_TOPLEFT,0,8)
+			call BlzFrameSetSizePixel(FRAME_SLOT_CHANGER_BUTTON,192,48)
+			set f = BlzGetFrameByName("SlotChangerUIButtonText",0)
+			call BlzFrameSetPointPixel(f,FRAMEPOINT_CENTER,FRAME_SLOT_CHANGER_BUTTON,FRAMEPOINT_CENTER,8,0)
+			call BlzFrameSetText(f,"|cffffcc00단축키 변경|r |cffffffff(G)|r")
+			set FRAME_SKILL_SHOP_BUTTON = BlzCreateFrame("SkillShopUIButton",FRAME_GAME_UI,0,0)
+			call BlzFrameSetPointPixel(FRAME_SKILL_SHOP_BUTTON,FRAMEPOINT_BOTTOMLEFT,FRAME_SLOT_CHANGER_BUTTON,FRAMEPOINT_TOPLEFT,0,8)
+			call BlzFrameSetSizePixel(FRAME_SKILL_SHOP_BUTTON,192,48)
+			set f = BlzGetFrameByName("SkillShopUIButtonText",0)
+			call BlzFrameSetPointPixel(f,FRAMEPOINT_CENTER,FRAME_SKILL_SHOP_BUTTON,FRAMEPOINT_CENTER,8,0)
+			call BlzFrameSetText(f,"|cffffcc00상점|r |cffffffff(T)|r")
+			set FRAME_BUTTON_TRIGGER = CreateTrigger()
+			call BlzTriggerRegisterFrameEvent(FRAME_BUTTON_TRIGGER,FRAME_INVENTORY_BUTTON,FRAMEEVENT_CONTROL_CLICK)
+			call BlzTriggerRegisterFrameEvent(FRAME_BUTTON_TRIGGER,FRAME_INVENTORY_BUTTON,FRAMEEVENT_MOUSE_LEAVE)
+			call BlzTriggerRegisterFrameEvent(FRAME_BUTTON_TRIGGER,FRAME_SLOT_CHANGER_BUTTON,FRAMEEVENT_CONTROL_CLICK)
+			call BlzTriggerRegisterFrameEvent(FRAME_BUTTON_TRIGGER,FRAME_SLOT_CHANGER_BUTTON,FRAMEEVENT_MOUSE_LEAVE)
+			call BlzTriggerRegisterFrameEvent(FRAME_BUTTON_TRIGGER,FRAME_SKILL_SHOP_BUTTON,FRAMEEVENT_CONTROL_CLICK)
+			call BlzTriggerRegisterFrameEvent(FRAME_BUTTON_TRIGGER,FRAME_SKILL_SHOP_BUTTON,FRAMEEVENT_MOUSE_LEAVE)
+			call TriggerAddCondition(FRAME_BUTTON_TRIGGER,function thistype.genericButtonAction)
 			/*핸들프리*/
 			set bf = null
 			set f = null

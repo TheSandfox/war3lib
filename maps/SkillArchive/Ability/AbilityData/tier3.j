@@ -355,9 +355,9 @@ scope Ability0021 initializer init
 	//! runtextmacro abilityDataEnd()
 endscope
 
-/*0022 생명력 흡수*/
+/*0022 생명착취의 마법봉*/
 scope Ability0022 initializer init
-	//! runtextmacro abilityDataHeader("0022","생명력 흡수","BTNLifeDrain","3","STAT_TYPE_MAGICPOWER","STAT_TYPE_HPREGEN","true")
+	//! runtextmacro abilityDataHeader("0022","생명착취의 마법봉","BTNWandSkull","3","STAT_TYPE_MAGICPOWER","STAT_TYPE_HPREGEN","true")
 
 	globals
 		private constant real INTERVAL = 0.25
@@ -368,6 +368,7 @@ scope Ability0022 initializer init
 		private constant real HEAL_SECOND = 0.5		/* HEAL x HEAL_SECOND */
 		private constant real RANGE_MAX = 800.
 		private constant integer VALUE_MAX = 10
+		private constant real ANIM_DURATION = 0.75
 		private constant string EFFECT_PATH1 = "Abilities\\Spells\\Other\\Drain\\DrainTarget.mdl"
 		private constant string EFFECT_PATH2 = "Abilities\\Spells\\Other\\Drain\\DrainCaster.mdl"
 	endglobals
@@ -377,11 +378,42 @@ scope Ability0022 initializer init
 		Lightning l = 0
 		Effect ef1 = 0
 		Effect ef2 = 0
+		real play = 0.
+		boolean cancle = false
+		trigger main_trigger = null
+		triggercondition main_cond = null
 
 		implement DamageFlag
 
+		method periodicAction takes nothing returns nothing
+			set .play = .play + TIMER_TICK
+			if .play >= ANIM_DURATION then
+				call .caster.setAnim("attack")
+				call .caster.setAnimSpeed(ANIM_DURATION)
+				set .play = .play - ANIM_DURATION
+			endif
+		endmethod
+
 		method suspendFilterAdditional takes nothing returns boolean
-			return Math.distancePoints(.caster.x,.caster.y,.target.x,.target.y) > RANGE_MAX
+			if Math.distancePoints(.caster.x,.caster.y,.target.x,.target.y) > RANGE_MAX then
+				return true
+			elseif .target.isUnitType(UNIT_TYPE_DEAD) then
+				return true
+			elseif .cancle then
+				return true
+			else
+				return false
+			endif
+		endmethod
+
+		static method weaponChange takes nothing returns nothing
+			local thistype this = Trigger.getData(GetTriggeringTrigger())
+			if WEAPON_CHANGE_UNIT != .owner then
+				return
+			endif
+			if WEAPON_CHANGE_OLD != WEAPON_CHANGE_NEW then
+				set .cancle = true
+			endif
 		endmethod
 
 		method killFilter takes nothing returns boolean
@@ -392,7 +424,6 @@ scope Ability0022 initializer init
 
 		method onComplete takes nothing returns nothing
 			local Ability a = .caster.getAbilityById(ID)
-			call .caster.setAnimSpeed(0.)
 			if a > 0 then
 				if a.value < VALUE_MAX then
 					call .caster.restoreHP(.damage*HEAL)
@@ -424,10 +455,14 @@ scope Ability0022 initializer init
 			set .damage_id = ID
 			set .is_onhit = false
 			set .attack_type = ATTACK_TYPE_BASIC
+			set .main_trigger = Trigger.new(this)
+			set .main_cond = TriggerAddCondition(.main_trigger,function thistype.weaponChange)
+			call Event.triggerRegisterWeaponChangeEvent(.main_trigger)
 			return this
 		endmethod
 
 		method onDestroy takes nothing returns nothing
+			//! runtextmacro destroyTriggerAndCondition(".main_trigger",".main_cond")
 			call .l.destroy()
 			call .ef1.kill()
 			call .ef2.kill()
@@ -447,9 +482,9 @@ scope Ability0022 initializer init
 			*/ConstantString.statStringReal(STAT_TYPE_MAGICPOWER,( .owner.magic_power * DAMAGE_PER_MAGICPOWER ) * ( 1+DAMAGE_PER_LEVEL*(.level-1) ) * (1/INTERVAL),1)+/*
 			*/"의 "+DAMAGE_STRING_MAGICAL+"를 입히고 "+/*
 			*/ConstantString.statStringReal(STAT_TYPE_MAGICPOWER,( .owner.magic_power * DAMAGE_PER_MAGICPOWER ) * ( 1+DAMAGE_PER_LEVEL*(.level-1) ) * (1/INTERVAL) * HEAL,1)+/*
-			*/" 만큼 체력을 회복한 뒤 충전을 1(최대 "+I2S(VALUE_MAX)+") 획득합니다. 충전이 1 이상일 때 적에게 "+ATTACK_STRING_SPELL+"으로 피해를 입히면 충전을 모두 소모하여 충전 1 당 "+/*
+			*/" 만큼 체력을 회복한 뒤 충전을 "+STRING_COLOR_CONSTANT+I2S(R2I(1/INTERVAL))+"(최대 "+I2S(VALUE_MAX)+")|r 획득합니다. 충전이 1 이상일 때 적에게 "+ATTACK_STRING_SPELL+"으로 피해를 입히면 충전을 모두 소모하여 충전 1 당 "+/*
 			*/ConstantString.statStringReal(STAT_TYPE_HPREGEN,( .owner.hpregen * DAMAGE_PER_HPREGEN ) * ( 1+DAMAGE_PER_LEVEL*(.level-1) ),1)+" 만큼 피해량을 증가시킵니다.\n\n"+/*
-			*/" - 충전이 최대치일 때 회복량이 절반으로 감소합니다."
+			*/" - 충전이 최대치일 때 회복량이 절반으로 감소합니다.\n - 무기 교체 시 정신집중이 중단됩니다."
 		endmethod
 
 		method addValue takes integer v returns nothing

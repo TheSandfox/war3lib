@@ -389,10 +389,14 @@ library SkillShop requires UI
 			call refreshLevelState()
 		endmethod
 
+		method switch takes nothing returns nothing
+			call visibleForPlayer(not .visible_flag)
+		endmethod
+
 		static method press takes nothing returns nothing
 			local thistype this = Trigger.getData(GetTriggeringTrigger())
 			if BlzGetTriggerPlayerKey() == OSKEY_T then
-				call visibleForPlayer(not .visible_flag)
+				call switch()
 			elseif BlzGetTriggerFrame() != null then
 				call BlzFrameSetEnable(BlzGetTriggerFrame(),false)
 				call BlzFrameSetEnable(BlzGetTriggerFrame(),true)
