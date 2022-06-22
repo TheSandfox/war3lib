@@ -14,43 +14,13 @@ Frame "TEXT" "SkillShopButtonTextTemplate" {
 	FontShadowOffset 0.002 -0.002,	
 }
 
-Frame "GLUETEXTBUTTON" "SkillShopUIButton" {
-	ControlStyle "HIGHLIGHTONMOUSEOVER",
-	ButtonPushedTextOffset 0.00 0.00,
-
-	ButtonText "SkillShopUIButtonText",
-	Frame "TEXT" "SkillShopUIButtonText" INHERITS "SkillShopButtonTextTemplate" {
-
-	}
-
-	ControlBackdrop "ButtonBackdropTemplate",
-	Frame "BACKDROP" "ButtonBackdropTemplate" INHERITS "EscMenuButtonBackdropTemplate" {
-	}
-
-	ControlPushedBackdrop "ButtonPushedBackdropTemplate",
-	Frame "BACKDROP" "ButtonPushedBackdropTemplate" INHERITS "EscMenuButtonPushedBackdropTemplate" {
-	}
-
-	ControlDisabledBackdrop "ButtonDisabledBackdropTemplate",
-	Frame "BACKDROP" "ButtonDisabledBackdropTemplate" INHERITS "EscMenuButtonDisabledBackdropTemplate" {
-	}
-
-	ControlDisabledPushedBackdrop "ButtonDisabledPushedBackdropTemplate",
-	Frame "BACKDROP" "ButtonDisabledPushedBackdropTemplate" INHERITS "EscMenuButtonDisabledPushedBackdropTemplate" {
-	}
-
-	ControlMouseOverHighlight "ButtonMouseOverHighlightTemplate",
-	Frame "HIGHLIGHT" "ButtonMouseOverHighlightTemplate" INHERITS "EscMenuButtonMouseOverHighlightTemplate" {
-	}
-}
-
 Frame "GLUETEXTBUTTON" "SlotChangerUIButton" {
 	ControlStyle "HIGHLIGHTONMOUSEOVER",
 	ButtonPushedTextOffset 0.00 0.00,
 
-	ButtonText "SlotChangerUIButtonText",
-	Frame "TEXT" "SlotChangerUIButtonText" INHERITS "SkillShopButtonTextTemplate" {
-
+	Frame "BACKDROP" "SlotChangerUIButtonIcon" {
+		Height 0.02,
+		Width 0.02,
 	}
 
 	ControlBackdrop "ButtonBackdropTemplate",
@@ -78,76 +48,11 @@ Frame "GLUETEXTBUTTON" "InventoryUIButton" {
 	ControlStyle "HIGHLIGHTONMOUSEOVER",
 	ButtonPushedTextOffset 0.00 0.00,
 
-	ButtonText "InventoryUIButtonText",
-	Frame "TEXT" "InventoryUIButtonText" INHERITS "SkillShopButtonTextTemplate" {
-
-	}
-
-	ControlBackdrop "ButtonBackdropTemplate",
-	Frame "BACKDROP" "ButtonBackdropTemplate" INHERITS "EscMenuButtonBackdropTemplate" {
-	}
-
-	ControlPushedBackdrop "ButtonPushedBackdropTemplate",
-	Frame "BACKDROP" "ButtonPushedBackdropTemplate" INHERITS "EscMenuButtonPushedBackdropTemplate" {
-	}
-
-	ControlDisabledBackdrop "ButtonDisabledBackdropTemplate",
-	Frame "BACKDROP" "ButtonDisabledBackdropTemplate" INHERITS "EscMenuButtonDisabledBackdropTemplate" {
-	}
-
-	ControlDisabledPushedBackdrop "ButtonDisabledPushedBackdropTemplate",
-	Frame "BACKDROP" "ButtonDisabledPushedBackdropTemplate" INHERITS "EscMenuButtonDisabledPushedBackdropTemplate" {
-	}
-
-	ControlMouseOverHighlight "ButtonMouseOverHighlightTemplate",
-	Frame "HIGHLIGHT" "ButtonMouseOverHighlightTemplate" INHERITS "EscMenuButtonMouseOverHighlightTemplate" {
-	}
-}
-
-Frame "GLUETEXTBUTTON" "SkillShopBuyButton" {
-	ControlStyle "HIGHLIGHTONMOUSEOVER",
-	ButtonPushedTextOffset 0.00 0.00,
-
-	ButtonText "SkillShopBuyButtonText",
-	Frame "TEXT" "SkillShopBuyButtonText" INHERITS "SkillShopButtonTextTemplate" {
-
-	}
-
-	ControlBackdrop "ButtonBackdropTemplate",
-	Frame "BACKDROP" "ButtonBackdropTemplate" INHERITS "EscMenuButtonBackdropTemplate" {
-	}
-
-	ControlPushedBackdrop "ButtonPushedBackdropTemplate",
-	Frame "BACKDROP" "ButtonPushedBackdropTemplate" INHERITS "EscMenuButtonPushedBackdropTemplate" {
-	}
-
-	ControlDisabledBackdrop "ButtonDisabledBackdropTemplate",
-	Frame "BACKDROP" "ButtonDisabledBackdropTemplate" INHERITS "EscMenuButtonDisabledBackdropTemplate" {
-	}
-
-	ControlDisabledPushedBackdrop "ButtonDisabledPushedBackdropTemplate",
-	Frame "BACKDROP" "ButtonDisabledPushedBackdropTemplate" INHERITS "EscMenuButtonDisabledPushedBackdropTemplate" {
-	}
-
-	Frame "BACKDROP" "SkillShopBuyButtonIcon" {
+	Frame "BACKDROP" "InventoryUIButtonIcon" {
 		Height 0.02,
 		Width 0.02,
 	}
 
-	ControlMouseOverHighlight "ButtonMouseOverHighlightTemplate",
-	Frame "HIGHLIGHT" "ButtonMouseOverHighlightTemplate" INHERITS "EscMenuButtonMouseOverHighlightTemplate" {
-	}
-}
-
-Frame "GLUETEXTBUTTON" "SkillShopRefreshButton" {
-	ControlStyle "HIGHLIGHTONMOUSEOVER",
-	ButtonPushedTextOffset 0.00 0.00,
-
-	ButtonText "SkillShopRefreshButtonText",
-	Frame "TEXT" "SkillShopRefreshButtonText" INHERITS "SkillShopButtonTextTemplate" {
-
-	}
-
 	ControlBackdrop "ButtonBackdropTemplate",
 	Frame "BACKDROP" "ButtonBackdropTemplate" INHERITS "EscMenuButtonBackdropTemplate" {
 	}
@@ -162,76 +67,6 @@ Frame "GLUETEXTBUTTON" "SkillShopRefreshButton" {
 
 	ControlDisabledPushedBackdrop "ButtonDisabledPushedBackdropTemplate",
 	Frame "BACKDROP" "ButtonDisabledPushedBackdropTemplate" INHERITS "EscMenuButtonDisabledPushedBackdropTemplate" {
-	}
-
-	Frame "BACKDROP" "SkillShopRefreshButtonIcon" {
-		Height 0.02,
-		Width 0.02,
-	}
-
-	ControlMouseOverHighlight "ButtonMouseOverHighlightTemplate",
-	Frame "HIGHLIGHT" "ButtonMouseOverHighlightTemplate" INHERITS "EscMenuButtonMouseOverHighlightTemplate" {
-	}
-}
-
-Frame "GLUETEXTBUTTON" "SkillShopAutoRefreshButton" {
-	ControlStyle "HIGHLIGHTONMOUSEOVER",
-	ButtonPushedTextOffset 0.00 0.00,
-
-	ButtonText "SkillShopAutoRefreshButtonText",
-	Frame "TEXT" "SkillShopAutoRefreshButtonText" INHERITS "SkillShopButtonTextTemplate" {
-
-	}
-
-	ControlBackdrop "ButtonBackdropTemplate",
-	Frame "BACKDROP" "ButtonBackdropTemplate" INHERITS "EscMenuButtonBackdropTemplate" {
-	}
-
-	ControlPushedBackdrop "ButtonPushedBackdropTemplate",
-	Frame "BACKDROP" "ButtonPushedBackdropTemplate" INHERITS "EscMenuButtonPushedBackdropTemplate" {
-	}
-
-	ControlDisabledBackdrop "ButtonDisabledBackdropTemplate",
-	Frame "BACKDROP" "ButtonDisabledBackdropTemplate" INHERITS "EscMenuButtonDisabledBackdropTemplate" {
-	}
-
-	ControlDisabledPushedBackdrop "ButtonDisabledPushedBackdropTemplate",
-	Frame "BACKDROP" "ButtonDisabledPushedBackdropTemplate" INHERITS "EscMenuButtonDisabledPushedBackdropTemplate" {
-	}
-
-	ControlMouseOverHighlight "ButtonMouseOverHighlightTemplate",
-	Frame "HIGHLIGHT" "ButtonMouseOverHighlightTemplate" INHERITS "EscMenuButtonMouseOverHighlightTemplate" {
-	}
-}
-
-Frame "GLUETEXTBUTTON" "SkillShopDonateButton" {
-	ControlStyle "HIGHLIGHTONMOUSEOVER",
-	ButtonPushedTextOffset 0.00 0.00,
-
-	ButtonText "SkillShopDonateButtonText",
-	Frame "TEXT" "SkillShopDonateButtonText" INHERITS "SkillShopButtonTextTemplate" {
-
-	}
-
-	ControlBackdrop "ButtonBackdropTemplate",
-	Frame "BACKDROP" "ButtonBackdropTemplate" INHERITS "EscMenuButtonBackdropTemplate" {
-	}
-
-	ControlPushedBackdrop "ButtonPushedBackdropTemplate",
-	Frame "BACKDROP" "ButtonPushedBackdropTemplate" INHERITS "EscMenuButtonPushedBackdropTemplate" {
-	}
-
-	ControlDisabledBackdrop "ButtonDisabledBackdropTemplate",
-	Frame "BACKDROP" "ButtonDisabledBackdropTemplate" INHERITS "EscMenuButtonDisabledBackdropTemplate" {
-	}
-
-	ControlDisabledPushedBackdrop "ButtonDisabledPushedBackdropTemplate",
-	Frame "BACKDROP" "ButtonDisabledPushedBackdropTemplate" INHERITS "EscMenuButtonDisabledPushedBackdropTemplate" {
-	}
-
-	Frame "BACKDROP" "SkillShopDonateButtonIcon" {
-		Height 0.02,
-		Width 0.02,
 	}
 
 	ControlMouseOverHighlight "ButtonMouseOverHighlightTemplate",

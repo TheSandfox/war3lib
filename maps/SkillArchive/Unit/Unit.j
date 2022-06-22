@@ -81,7 +81,7 @@ library Unit requires UnitData
 				exitwhen i >= 10 or UnitData.getInitialAbility(.id,i) <= 0
 				set lc = addAbility(UnitData.getInitialAbility(.id,i))
 				set lc.signiture = true
-				if Ability.getTypeTag(lc.id,0) == ABILITY_STRING_WEAPON then
+				if Ability.getTypeCastType(lc.id) == CAST_TYPE_WEAPON then
 					call setWeaponAbility(lc)
 				endif
 				set i = i + 1

@@ -141,6 +141,7 @@ library UnitPrototype
 			set LEVEL_LEVEL = 0
 		endmethod
 
+		/* 0. ~ 5.*/
 		method refreshAttackSpeed takes real v returns nothing
 			local integer i = R2I(v/0.05)
 			if i <= 0 then
@@ -152,6 +153,7 @@ library UnitPrototype
 			call SetUnitAbilityLevel(.origin_unit,'Axx0',i)
 		endmethod
 
+		/* 0. ~ 5.*/
 		method refreshAttackSpeedRequest takes real v returns nothing
 			if .weapon_ability > 0 then
 				call refreshAttackSpeed(.weapon_ability.getAttackSpeedValue(v))
@@ -172,7 +174,7 @@ library UnitPrototype
 					if stattype != STAT_TYPE_MAXHP then
 						return 0.
 					else
-						return 0.01
+						return 0.5
 					endif
 				else
 					return nv
@@ -600,9 +602,37 @@ library UnitPrototype
 				return 0
 			endif
 		endmethod
+
+		method getItemById takes integer iid returns Item_prototype
+			local integer i = 0
+			local Item_prototype it = 0
+			loop
+				exitwhen i >= ITEM_SIZE
+				set it = getItem(i)
+				if it > 0 then
+					if it.id == iid then
+						return it
+					endif
+				endif
+				set i = i + 1
+			endloop
+			return -1
+		endmethod
 		
 		method setItem takes integer index, Item_prototype na returns nothing
 			call SaveInteger(HASH,this,INDEX_ITEM+index,na)
+		endmethod
+
+		method getItemSpace takes nothing returns integer
+			local integer i = 0
+			loop
+				exitwhen i >= ITEM_SIZE
+				if getItem(i) <= 0 then
+					return i
+				endif
+				set i = i + 1
+			endloop
+			return -1
 		endmethod
 		
 		method clearItem takes nothing returns nothing

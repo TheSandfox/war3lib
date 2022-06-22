@@ -131,7 +131,7 @@ scope Ability0013 initializer init
 			endmethod
 	
 			static method onInit takes nothing returns nothing
-				call Ability.addTypeTag(ID,ABILITY_STRING_IMMEDIATE)
+				call Ability.setTypeCastType(ID,CAST_TYPE_IMMEDIATE)
 				call Ability.addTypeTag(ID,ABILITY_TAG_IRON)
 				call Ability.setTypeTooltip(ID,"주변 적 연속공격\n ")
 			endmethod
@@ -255,7 +255,7 @@ scope Ability0014 initializer init
 			endmethod
 
 			static method onInit takes nothing returns nothing
-				call Ability.addTypeTag(ID,ABILITY_STRING_WEAPON)
+				call Ability.setTypeCastType(ID,CAST_TYPE_WEAPON)
 				call Ability.addTypeTag(ID,ABILITY_TAG_CARDMAGIC)
 				call Ability.addTypeTag(ID,ABILITY_TAG_THROW)
 				call Ability.setTypeTooltip(ID,"무작위 피해유형을 가진\n카드 투척")
@@ -498,7 +498,7 @@ scope Ability0015 initializer init
 			endmethod
 	
 			static method onInit takes nothing returns nothing
-				call Ability.addTypeTag(ID,ABILITY_STRING_TARGET_LOCATION)
+				call Ability.setTypeCastType(ID,CAST_TYPE_TARGET_LOCATION)
 				call Ability.addTypeTag(ID,ABILITY_TAG_MAGIC)
 				call Ability.addTypeTag(ID,ABILITY_TAG_DARK)
 				call Ability.setTypeTooltip(ID,"장거리 직선 범위공격\n")
@@ -627,7 +627,7 @@ scope Ability0016 initializer init
 			endmethod
 	
 			static method onInit takes nothing returns nothing
-				call Ability.addTypeTag(ID,ABILITY_STRING_TARGET_UNIT)
+				call Ability.setTypeCastType(ID,CAST_TYPE_TARGET_UNIT)
 				call Ability.addTypeTag(ID,ABILITY_TAG_IRON)
 				call Ability.addTypeTag(ID,ABILITY_TAG_THROW)
 				call Ability.setTypeTooltip(ID,"단일 대상에게\n수리검 투척")
@@ -769,7 +769,7 @@ scope Ability0017 initializer init
 			endmethod
 
 			static method onInit takes nothing returns nothing
-				call Ability.addTypeTag(ID,ABILITY_STRING_WEAPON)
+				call Ability.setTypeCastType(ID,CAST_TYPE_WEAPON)
 				call Ability.addTypeTag(ID,ABILITY_TAG_IRON)
 				call Ability.addTypeTag(ID,ABILITY_TAG_FIRE)
 				call Ability.setTypeTooltip(ID,"대상 약화 및 지속피해\n")
@@ -898,7 +898,7 @@ scope Abilityu010 initializer init
 			endmethod
 	
 			static method onInit takes nothing returns nothing
-				call Ability.addTypeTag(ID,ABILITY_STRING_IMMEDIATE)
+				call Ability.setTypeCastType(ID,CAST_TYPE_IMMEDIATE)
 				call Ability.addTypeTag(ID,ABILITY_TAG_UNDEAD)
 				call Ability.setTypeTooltip(ID,"공격속도 급증 및 체력 희생\n ")
 			endmethod
@@ -1052,7 +1052,7 @@ scope Abilityu011 initializer init
 			endmethod
 	
 			static method onInit takes nothing returns nothing
-				call Ability.addTypeTag(ID,ABILITY_STRING_PASSIVE)
+				call Ability.setTypeCastType(ID,CAST_TYPE_PASSIVE)
 				call Ability.addTypeTag(ID,ABILITY_TAG_POISON)
 				call Ability.addTypeTag(ID,ABILITY_TAG_UNDEAD)
 				call Ability.setTypeTooltip(ID,"지속 범위피해 및\n대상 받는 치유량 감소")

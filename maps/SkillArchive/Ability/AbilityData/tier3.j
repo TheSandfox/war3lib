@@ -138,7 +138,7 @@ scope Ability0020 initializer init
 			endmethod
 	
 			static method onInit takes nothing returns nothing
-				call Ability.addTypeTag(ID,ABILITY_STRING_TARGET_LOCATION)
+				call Ability.setTypeCastType(ID,CAST_TYPE_TARGET_LOCATION)
 				call Ability.addTypeTag(ID,ABILITY_TAG_FIREARM)
 				call Ability.addTypeTag(ID,ABILITY_TAG_SHOOTING)
 				call Ability.setTypeTooltip(ID,"다수의 투사체 연사")
@@ -345,7 +345,7 @@ scope Ability0021 initializer init
 		endmethod
 
 		static method onInit takes nothing returns nothing
-			call Ability.addTypeTag(ID,ABILITY_STRING_TARGET_LOCATION)
+			call Ability.setTypeCastType(ID,CAST_TYPE_TARGET_LOCATION)
 			call Ability.addTypeTag(ID,ABILITY_TAG_MAGIC)
 			call Ability.setTypeTooltip(ID,"이동속도, 회피치\n감소 영역 전개")
 		endmethod
@@ -445,6 +445,7 @@ scope Ability0022 initializer init
 			set .ef2 = Effect.createAttatched(EFFECT_PATH2,.target.origin_unit,"chest")
 			set .suspend_rclick = true
 			set .suspend_ability = true
+			set .suspend_stop = true
 			call SetUnitFacing(.caster.origin_unit,Math.anglePoints(.caster.x,.caster.y,.target.x,.target.y))
 			call .caster.setAnim("attack")
 			call .caster.setAnimSpeed(1.)
@@ -530,7 +531,7 @@ scope Ability0022 initializer init
 		endmethod
 
 		static method onInit takes nothing returns nothing
-			call Ability.addTypeTag(ID,ABILITY_STRING_WEAPON)
+			call Ability.setTypeCastType(ID,CAST_TYPE_WEAPON)
 			call Ability.addTypeTag(ID,ABILITY_TAG_MAGIC)
 			call Ability.setTypeTooltip(ID,"정신집중하여 생명력 흡수\n")
 		endmethod

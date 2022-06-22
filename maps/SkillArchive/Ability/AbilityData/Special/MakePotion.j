@@ -280,10 +280,10 @@ scope Ability0010 initializer init
 				*/R2SW(MANA_RESTORE+MANA_RESTORE_PER_LEVEL*(.level-1),1,1)+"|r 회복시킵니다.\n\n|cffff0000시전자에게는 효과가 없습니다.|r")
 				call BlzFrameSetText(getFrame(INDEX_TOOLTIP_TEXT+2),"|cffffff00"+POTION_NAME[2]+"|r\n\n범위 내 적들에게 "+/*
 				*/STRING_COLOR_CONSTANT+R2SW(DAMAGE_BASE * (1+(.level-1)*DAMAGE_PER_LEVEL),1,1)+"|r의 "+/*
-				*/ABILITY_TAG_DRUG+", "+ABILITY_TAG_FIRE+"계열 "+DAMAGE_STRING_PHYSICAL+"를 입힙니다.")
+				*/AbilityProperty(ABILITY_TAG_DRUG).tag_name+", "+AbilityProperty(ABILITY_TAG_FIRE).tag_name+"계열 "+DAMAGE_STRING_PHYSICAL+"를 입힙니다.")
 				call BlzFrameSetText(getFrame(INDEX_TOOLTIP_TEXT+3),"|cffffff00"+POTION_NAME[3]+"|r\n\n범위 내 적들에게 "+/*
 				*/STRING_COLOR_CONSTANT+R2SW(DAMAGE_BASE * (1+(.level-1)*DAMAGE_PER_LEVEL),1,1)+"|r의 "+/*
-				*/ABILITY_TAG_DRUG+", "+ABILITY_TAG_POISON+"계열 "+DAMAGE_STRING_MAGICAL+"를 입힙니다.")
+				*/AbilityProperty(ABILITY_TAG_DRUG).tag_name+", "+AbilityProperty(ABILITY_TAG_POISON).tag_name+"계열 "+DAMAGE_STRING_MAGICAL+"를 입힙니다.")
 			endmethod
 
 			method refreshButton takes nothing returns nothing
@@ -507,15 +507,15 @@ scope Ability0010 initializer init
 			endmethod
 
 			static method onInit takes nothing returns nothing
-				call Ability.addTypeTag(ID,ABILITY_STRING_TARGET_LOCATION)
+				call Ability.setTypeCastType(ID,CAST_TYPE_TARGET_LOCATION)
 				call Ability.addTypeTag(ID,ABILITY_TAG_PRODUCT)
 				call Ability.addTypeTag(ID,ABILITY_TAG_DRUG)
 				/**/
-				call Ability.addTypeTag(ID2,ABILITY_STRING_TARGET_LOCATION)
+				call Ability.setTypeCastType(ID2,CAST_TYPE_TARGET_LOCATION)
 				call Ability.addTypeTag(ID2,ABILITY_TAG_FIRE)
 				call Ability.addTypeTag(ID2,ABILITY_TAG_DRUG)
 				/**/
-				call Ability.addTypeTag(ID3,ABILITY_STRING_TARGET_LOCATION)
+				call Ability.setTypeCastType(ID3,CAST_TYPE_TARGET_LOCATION)
 				call Ability.addTypeTag(ID3,ABILITY_TAG_POISON)
 				call Ability.addTypeTag(ID3,ABILITY_TAG_DRUG)
 				/**/

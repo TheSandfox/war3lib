@@ -29,6 +29,7 @@ library SkillShop requires UI
 
 		method setTarget takes integer id returns nothing
 			local integer i = 0
+			local integer j = 0
 			local string s = ""
 			set .id = id
 			/*어빌리티 버튼*/
@@ -55,20 +56,20 @@ library SkillShop requires UI
 				/*어빌리티 이름*/
 				call BlzFrameSetText(.name,TIER_STRING_COLOR[Ability.getTypeTier(id)]+Ability.getTypeName(id)+"|r")
 				/*어빌리티태그*/
-				set i = 1
+				set i = 0
 				loop
-					exitwhen Ability.getTypeTag(id,i) == ""
-					if i <= 1 then
-						set s = s + Ability.getTypeTag(id,i)
+					set j = Ability.getTypeTag(id,i)
+					exitwhen j < 0
+					if i <= 0 then
+						set s = s + AbilityProperty(j).tag_name
 					else
-						set s = s + ", " + Ability.getTypeTag(id,i)
+						set s = s + ", " + AbilityProperty(j).tag_name
 					endif
 					set i = i + 1
 				endloop
 				/*간이툴팁*/
 				set s = s + "\n\n"+Ability.getTypeTooltip(id)
 				/*능력치보너스*/
-				set s = s + "\n\n|cff00ffff능력치 보너스 :|r"
 				call BlzFrameSetText(.tag,s)
 				call BlzFrameSetTexture(.bonus_stat1,STAT_TYPE_ICON[Ability.getTypeBonusStatIndex(id,0)],0,true)
 				call BlzFrameSetTexture(.bonus_stat2,STAT_TYPE_ICON[Ability.getTypeBonusStatIndex(id,1)],0,true)

@@ -234,7 +234,7 @@ scope Ability0040 initializer init
 		endmethod
 
 		static method onInit takes nothing returns nothing
-			call Ability.addTypeTag(ID,ABILITY_STRING_TARGET_LOCATION)
+			call Ability.setTypeCastType(ID,CAST_TYPE_TARGET_LOCATION)
 			call Ability.addTypeTag(ID,ABILITY_TAG_FIRE)
 			call Ability.addTypeTag(ID,ABILITY_TAG_DRAGON)
 			call Ability.setTypeTooltip(ID,"지정 범위 초토화\n ")
@@ -432,7 +432,7 @@ scope Ability0041 initializer init
 		endmethod
 
 		static method onInit takes nothing returns nothing
-			call Ability.addTypeTag(ID,ABILITY_STRING_TARGET_LOCATION)
+			call Ability.setTypeCastType(ID,CAST_TYPE_TARGET_LOCATION)
 			call Ability.addTypeTag(ID,ABILITY_TAG_SHOOTING)
 			call Ability.addTypeTag(ID,ABILITY_TAG_DARK)
 			call Ability.setTypeTooltip(ID,"무차별 난사\n ")

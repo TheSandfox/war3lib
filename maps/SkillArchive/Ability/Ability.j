@@ -2,33 +2,70 @@ library Ability requires AbilityPrototype
 
 	globals
 		private hashtable HASH = InitHashtable()
-		constant string ABILITY_STRING_TARGET_LOCATION = "|cff00ffff지점 목표물|r"
-		constant string ABILITY_STRING_TARGET_UNIT = "|cff00ffff유닛 목표물|r"
-		constant string ABILITY_STRING_IMMEDIATE = "|cff00ffff즉시 시전|r"
-		constant string ABILITY_STRING_PASSIVE = "|cff00ffff지속효과|r"
-		constant string ABILITY_STRING_DRAG_TO_USE = "|cff00ffff끌어서 사용|r"
-		constant string ABILITY_STRING_WEAPON = "|cffcc0000무기|r"
-		constant string ABILITY_TAG_IRON		= "|cffffff00강철|r"
-		constant string ABILITY_TAG_ASSASSINATE	= "|cffffff00암살|r"
-		constant string ABILITY_TAG_BRAWL 		= "|cffffff00체술|r"
-		constant string ABILITY_TAG_MAGIC 		= "|cffffff00마법|r"
-		constant string ABILITY_TAG_LIGHTNING 	= "|cffffff00전격|r"
-		constant string ABILITY_TAG_FIREARM		= "|cffffff00병기|r"
-		constant string ABILITY_TAG_SHOOTING	= "|cffffff00사격|r"
-		constant string ABILITY_TAG_ARCHERY		= "|cffffff00궁술|r"
-		constant string ABILITY_TAG_FIRE		= "|cffffff00화염|r"
-		constant string ABILITY_TAG_DIVINE		= "|cffffff00신성|r"
-		constant string ABILITY_TAG_PRODUCT		= "|cffffff00생산|r"
-		constant string ABILITY_TAG_DRUG		= "|cffffff00약물|r"
-		constant string ABILITY_TAG_POISON		= "|cffffff00독성|r"
-		constant string ABILITY_TAG_CARDMAGIC	= "|cffffff00카드마술|r"
-		constant string ABILITY_TAG_THROW		= "|cffffff00투척|r"
-		constant string ABILITY_TAG_DARK		= "|cffffff00암흑|r"
-		constant string ABILITY_TAG_DRAGON		= "|cffffff00용혈|r"
-		constant string ABILITY_TAG_FROST		= "|cffffff00냉기|r"
-		constant string ABILITY_TAG_UNDEAD		= "|cffffff00언데드|r"
-		constant string ABILITY_TAG_BUG			= "|cffffff00벌레|r"
+		constant integer CAST_TYPE_TARGET_LOCATION = 0
+		constant integer CAST_TYPE_TARGET_UNIT = 1
+		constant integer CAST_TYPE_IMMEDIATE = 2
+		constant integer CAST_TYPE_PASSIVE = 3
+		constant integer CAST_TYPE_DRAG_TO_USE = 4
+		constant integer CAST_TYPE_WEAPON = 5
+		constant integer ABILITY_TAG_IRON		= 0
+		constant integer ABILITY_TAG_ASSASSINATE= 1
+		constant integer ABILITY_TAG_BRAWL 		= 2
+		constant integer ABILITY_TAG_MAGIC 		= 3
+		constant integer ABILITY_TAG_LIGHTNING 	= 4
+		constant integer ABILITY_TAG_FIREARM	= 5
+		constant integer ABILITY_TAG_SHOOTING	= 6
+		constant integer ABILITY_TAG_ARCHERY	= 7
+		constant integer ABILITY_TAG_FIRE		= 8
+		constant integer ABILITY_TAG_DIVINE		= 9
+		constant integer ABILITY_TAG_PRODUCT	= 10
+		constant integer ABILITY_TAG_DRUG		= 11
+		constant integer ABILITY_TAG_POISON		= 12
+		constant integer ABILITY_TAG_CARDMAGIC	= 13
+		constant integer ABILITY_TAG_THROW		= 14
+		constant integer ABILITY_TAG_DARK		= 15
+		constant integer ABILITY_TAG_DRAGON		= 16
+		constant integer ABILITY_TAG_FROST		= 17
+		constant integer ABILITY_TAG_UNDEAD		= 18
+		constant integer ABILITY_TAG_BUG		= 19
 	endglobals
+
+	struct AbilityProperty extends array
+
+		string tag_name
+		string cast_type
+
+		private static method onInit takes nothing returns nothing
+			set thistype(ABILITY_TAG_IRON		).tag_name = "|cffffff00강철|r"
+			set thistype(ABILITY_TAG_ASSASSINATE).tag_name = "|cffffff00암살|r"
+			set thistype(ABILITY_TAG_BRAWL		).tag_name = "|cffffff00체술|r"
+			set thistype(ABILITY_TAG_MAGIC		).tag_name = "|cffffff00마법|r"
+			set thistype(ABILITY_TAG_LIGHTNING	).tag_name = "|cffffff00전격|r"
+			set thistype(ABILITY_TAG_FIREARM	).tag_name = "|cffffff00병기|r"
+			set thistype(ABILITY_TAG_SHOOTING	).tag_name = "|cffffff00사격|r"
+			set thistype(ABILITY_TAG_ARCHERY	).tag_name = "|cffffff00궁술|r"
+			set thistype(ABILITY_TAG_FIRE		).tag_name = "|cffffff00화염|r"
+			set thistype(ABILITY_TAG_DIVINE		).tag_name = "|cffffff00신성|r"
+			set thistype(ABILITY_TAG_PRODUCT	).tag_name = "|cffffff00생산|r"
+			set thistype(ABILITY_TAG_DRUG		).tag_name = "|cffffff00약물|r"
+			set thistype(ABILITY_TAG_POISON		).tag_name = "|cffffff00독성|r"
+			set thistype(ABILITY_TAG_CARDMAGIC	).tag_name = "|cffffff00마술|r"
+			set thistype(ABILITY_TAG_THROW		).tag_name = "|cffffff00투척|r"
+			set thistype(ABILITY_TAG_DARK		).tag_name = "|cffffff00암흑|r"
+			set thistype(ABILITY_TAG_DRAGON		).tag_name = "|cffffff00용혈|r"
+			set thistype(ABILITY_TAG_FROST		).tag_name = "|cffffff00냉기|r"
+			set thistype(ABILITY_TAG_UNDEAD		).tag_name = "|cffffff00언데드|r"
+			set thistype(ABILITY_TAG_BUG		).tag_name = "|cffffff00벌레|r"
+			set thistype(CAST_TYPE_TARGET_LOCATION	).cast_type = "|cff00ffff지점 목표물|r"
+			set thistype(CAST_TYPE_TARGET_UNIT		).cast_type = "|cff00ffff유닛 목표물|r"
+			set thistype(CAST_TYPE_IMMEDIATE		).cast_type = "|cff00ffff즉시 시전|r"
+			set thistype(CAST_TYPE_PASSIVE			).cast_type = "|cff00ffff지속효과|r"
+			set thistype(CAST_TYPE_DRAG_TO_USE		).cast_type = "|cff00ffff끌어서 사용|r"
+			set thistype(CAST_TYPE_WEAPON			).cast_type = "|cffcc0000무기|r"
+		endmethod
+
+	endstruct
+
 
 	struct Ability extends Ability_prototype
 
@@ -43,7 +80,8 @@ library Ability requires AbilityPrototype
 		private static constant integer INDEX_BONUS_STAT = 12	/*SIZE : 2*/
 		private static constant integer INDEX_TOOLTIP = 14
 		private static constant integer INDEX_IS_WEAPON = 15
-		private static constant integer INDEX_LAST = 16
+		private static constant integer INDEX_CAST_TYPE = 16
+		private static constant integer INDEX_LAST = 17
 
 		real stat_bonus1 = 0.
 		real stat_bonus2 = 0.
@@ -63,6 +101,14 @@ library Ability requires AbilityPrototype
 
 		static method setTypeTier takes integer id, integer val returns nothing
 			call SaveInteger(HASH,id,INDEX_TIER,val)
+		endmethod
+
+		static method getTypeCastType takes integer id returns integer
+			return LoadInteger(HASH,id,INDEX_CAST_TYPE)
+		endmethod
+
+		static method setTypeCastType takes integer id, integer val returns nothing
+			call SaveInteger(HASH,id,INDEX_CAST_TYPE,val)
 		endmethod
 
 		static method addRandomAbility takes integer id, integer table_num returns nothing
@@ -123,30 +169,30 @@ library Ability requires AbilityPrototype
 			endif
 		endmethod
 
-		static method addTypeTag takes integer id, string val returns nothing
+		static method addTypeTag takes integer id, integer val returns nothing
 			local integer i = 0
 			loop
 				exitwhen i >= INDEX_ICON_PATH
-				if not HaveSavedString(HASH,id,i) then
-					call SaveStr(HASH,id,i,val)
+				if not HaveSavedInteger(HASH,id,i) then
+					call SaveInteger(HASH,id,i,val)
 					exitwhen true
 				endif
 				set i = i + 1
 			endloop
 		endmethod
 
-		static method getTypeTag takes integer id, integer index returns string
-			if HaveSavedString(HASH,id,index) and index < INDEX_ICON_PATH then
-				return LoadStr(HASH,id,index)
+		static method getTypeTag takes integer id, integer index returns integer
+			if HaveSavedInteger(HASH,id,index) and index < INDEX_ICON_PATH then
+				return LoadInteger(HASH,id,index)
 			else
-				return ""
+				return -1
 			endif
 		endmethod
 
-		static method isTypeIncludeTag takes integer id, string findtext returns boolean
+		static method isTypeIncludeTag takes integer id, integer findtext returns boolean
 			local integer i = 0
 			loop
-				exitwhen getTypeTag(id,i) == ""
+				exitwhen getTypeTag(id,i) < 0
 				if getTypeTag(id,i) == findtext then
 					return true
 				endif

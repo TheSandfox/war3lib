@@ -46,6 +46,9 @@ library Game requires Unit, UI
 			if SlotChanger.THIS[GetPlayerId(GetTriggerPlayer())] > 0 then
 				call SlotChanger.THIS[GetPlayerId(GetTriggerPlayer())].destroy()
 			endif
+			if Inventory.THIS[GetPlayerId(GetTriggerPlayer())] > 0 then
+				call Inventory.THIS[GetPlayerId(GetTriggerPlayer())].destroy()
+			endif
 			if User.getFocusUnit(GetTriggerPlayer()) > 0 then
 				set User.getFocusUnit(GetTriggerPlayer()).is_revive = false
 				call User.setFocusUnit(GetTriggerPlayer(),0)
@@ -106,6 +109,7 @@ library Game requires Unit, UI
 			call SkillShop.create(p)
 			call SlotChanger.create(p)
 			call CloseUI.create(p)
+			call Inventory.create(p)
 			/*초기소지금*/
 			if TEST then
 				call User.addGold(p,5000)
@@ -148,7 +152,7 @@ library Game requires Unit, UI
 			local integer i = 0
 			if TEST then
 				/*꿀팁 활성화*/
-				call Tip.init()
+				//call Tip.init()
 				/*프레임관련*/
 				call UI.init()
 				/*플레이어별 초기화*/

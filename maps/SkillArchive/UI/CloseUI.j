@@ -9,6 +9,9 @@ library CloseUI requires UI
 
 		static method act takes nothing returns nothing
 			local thistype this = Trigger.getData(GetTriggeringTrigger())
+			if Inventory.THIS[GetPlayerId(.owner)] > 0 and Inventory.THIS[GetPlayerId(.owner)].close() then
+				return 
+			endif
 			if SlotChanger.THIS[GetPlayerId(.owner)] > 0 and SlotChanger.THIS[GetPlayerId(.owner)].close() then
 				return 
 			endif
