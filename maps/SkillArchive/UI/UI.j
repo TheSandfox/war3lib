@@ -602,8 +602,11 @@ library UI
 	struct ArtifactIcon extends IconFrame
 
 		integer index = -1
+		integer set_temp = -1
+		integer emitter_state = -1 /*0:투명, 1:파랑, 2:노랑*/
 
 		player owner = null
+		framehandle model = null
 		framehandle backdrop = null
 		framehandle hover = null
 		framehandle tooltip_container = null
@@ -617,8 +620,10 @@ library UI
 			if at > 0 then
 				call BlzFrameSetVisible(.backdrop,true)
 				call BlzFrameSetTexture(.backdrop,"replaceabletextures\\commandbuttons\\"+at.icon+".blp",0,true)
+				set .set_temp = Item.getTypeSetNum(at.id)
 			else
 				call BlzFrameSetVisible(.backdrop,false)
+				set .set_temp = -1
 			endif
 		endmethod
 
@@ -632,6 +637,8 @@ library UI
 				call inv.addItem(Inventory.CATEGORY_ARTIFACT,at)
 				call at.unequip()
 				call refresh()
+				set ARTIFACT_UI_REFRESH_PLAYER = .owner
+				call TriggerEvaluate(ARTIFACT_UI_REFRESH)
 			endif
 		endmethod
 
@@ -649,13 +656,44 @@ library UI
 			endif
 		endmethod
 
+		method yellowEmitter takes nothing returns nothing
+			if .emitter_state != 2 then
+				call BlzFrameSetVisible(.model,true)
+				call BlzFrameSetModel(.model,"ui\\ui_artifact_emitter_yellow.mdl",0)
+			endif
+			set .emitter_state = 2
+		endmethod
+
+		method hideEmitter takes nothing returns nothing
+			if .emitter_state != 0 then
+				call BlzFrameSetVisible(.model,false)
+			endif
+			set .emitter_state = 0
+		endmethod
+
+		method blueEmitter takes boolean b returns nothing
+			if not b then
+				call hideEmitter()
+				return
+			endif
+			if .emitter_state != 1 then
+				call BlzFrameSetVisible(.model,true)
+				call BlzFrameSetModel(.model,"ui\\ui_artifact_emitter_blue.mdl",0)
+			endif
+			set .emitter_state = 1
+		endmethod
+
 		static method create takes integer index, player owner returns thistype
 			local thistype this = allocate()
 			set .index = index
 			set .owner = owner
+			set .model = BlzCreateFrameByType("SPRITE","",FRAME_GAME_UI,"",0)
+			call BlzFrameSetModel(.model,"ui\\ui_artifact_emitter_yellow.mdl",0)
 			set .backdrop = BlzCreateFrameByType("BACKDROP","",FRAME_GAME_UI,"",0)
 			call BlzFrameSetAllPoints(.backdrop,FRAME_ARTIFACT_ICON[.index])
 			call BlzFrameSetVisible(.backdrop,false)
+			call BlzFrameSetPoint(.model,FRAMEPOINT_BOTTOMLEFT,.backdrop,FRAMEPOINT_BOTTOMLEFT,0.,0.)
+			call BlzFrameSetSize(.model,0.00001,0.00001)
 			set .hover = BlzCreateFrameByType("BUTTON","",FRAME_ARTIFACT_ICON[.index],"",0)
 			call BlzFrameSetAllPoints(.hover,.backdrop)
 			set .tooltip_container = BlzCreateFrameByType("FRAME","",FRAME_ARTIFACT_ICON[.index],"",0)
@@ -666,10 +704,12 @@ library UI
 			call BlzTriggerRegisterFrameEvent(.main_trigger,.hover,FRAMEEVENT_CONTROL_CLICK)
 			call TriggerRegisterPlayerEvent(.main_trigger,.owner,EVENT_PLAYER_MOUSE_DOWN)
 			set .main_cond = TriggerAddCondition(.main_trigger,function thistype.cond)
+			call hideEmitter()
 			return this
 		endmethod
 
 		method onDestroy takes nothing returns nothing
+			//! runtextmacro destroyFrame(".model")
 			//! runtextmacro destroyFrame(".backdrop")
 			//! runtextmacro destroyFrame(".hover")
 			//! runtextmacro destroyFrame(".tooltip_container")
@@ -730,6 +770,14 @@ library UI
 		framehandle exp_text		= null
 		framehandle name			= null
 		framehandle ability_error = null
+		/**/
+		framehandle artifact_line_t2l = null	/*↗*/
+		framehandle artifact_line_t2r = null	/*↘*/
+		framehandle artifact_line_t2b = null	/*↓*/
+		framehandle artifact_line_l2r = null	/*→*/
+		framehandle artifact_line_l2b = null	/*↘*/
+		framehandle artifact_line_r2b = null	/*↗*/
+		/**/
 		implement ThisUI
 		
 		ChinghoFrame chingho		= 0
@@ -805,16 +853,84 @@ library UI
 			endloop
 		endmethod
 
+		private method hideAllArtifactEmitters takes nothing returns nothing
+
+		endmethod
+
+		private method hideAllArtifactLines takes nothing returns nothing
+			call BlzFrameSetVisible(.artifact_line_t2l,false)
+			call BlzFrameSetVisible(.artifact_line_t2r,false)
+			call BlzFrameSetVisible(.artifact_line_t2b,false)
+			call BlzFrameSetVisible(.artifact_line_l2r,false)
+			call BlzFrameSetVisible(.artifact_line_l2b,false)
+			call BlzFrameSetVisible(.artifact_line_r2b,false)
+		endmethod
+
 		method refreshArtifactIcons takes nothing returns nothing
 			local ArtifactIcon ia = 0 
 			local integer i = 0
+			local integer array iset
+			local boolean array link
+			local framehandle array lines
 			loop
 				exitwhen i >= 4
 				set ia = getObject(this,INDEX_ARTIFACT_ICON+i)
 				call ia.refresh()
+				set iset[i] = ia.set_temp
 				set i = i + 1
 			endloop
-		endmethod
+			call hideAllArtifactLines()
+			/*Carculate Lines*/
+			set lines[0] = .artifact_line_t2l
+			set lines[1] = .artifact_line_t2r
+			set lines[2] = .artifact_line_t2b
+			set lines[3] = .artifact_line_l2r
+			set lines[4] = .artifact_line_l2b
+			set lines[5] = .artifact_line_r2b
+			if iset[0] >= 0 and iset[0] == iset[1] and iset[0] == iset[2] and iset[0] == iset[3] then
+				call ArtifactIcon(getObject(this,INDEX_ARTIFACT_ICON+0)).yellowEmitter()
+				call ArtifactIcon(getObject(this,INDEX_ARTIFACT_ICON+1)).yellowEmitter()
+				call ArtifactIcon(getObject(this,INDEX_ARTIFACT_ICON+2)).yellowEmitter()
+				call ArtifactIcon(getObject(this,INDEX_ARTIFACT_ICON+3)).yellowEmitter()
+				call BlzFrameSetModel(lines[0],"ui\\ui_artifact_line_yellow_tr.mdl",0)
+				call BlzFrameSetModel(lines[1],"ui\\ui_artifact_line_yellow_br.mdl",0)
+				call BlzFrameSetModel(lines[4],"ui\\ui_artifact_line_yellow_br.mdl",0)
+				call BlzFrameSetModel(lines[5],"ui\\ui_artifact_line_yellow_tr.mdl",0)
+				call BlzFrameSetVisible(lines[0],true)
+				call BlzFrameSetVisible(lines[1],true)
+				call BlzFrameSetVisible(lines[4],true)
+				call BlzFrameSetVisible(lines[5],true)
+			else
+				call BlzFrameSetModel(lines[0],"ui\\ui_artifact_line_blue_tr.mdl",0)
+				call BlzFrameSetModel(lines[1],"ui\\ui_artifact_line_blue_br.mdl",0)
+				call BlzFrameSetModel(lines[2],"ui\\ui_artifact_line_blue_vert.mdl",0)
+				call BlzFrameSetModel(lines[3],"ui\\ui_artifact_line_blue_hor.mdl",0)
+				call BlzFrameSetModel(lines[4],"ui\\ui_artifact_line_blue_br.mdl",0)
+				call BlzFrameSetModel(lines[5],"ui\\ui_artifact_line_blue_tr.mdl",0)
+				set link[0] = iset[0] >= 0 and iset[0] == iset[1]
+				set link[1] = iset[0] >= 0 and iset[0] == iset[2] and not link[0]
+				set link[4] = iset[1] >= 0 and iset[1] == iset[3] and not link[0]
+				set link[5] = iset[2] >= 0 and iset[2] == iset[3] and not (link[1] or link[4])
+				set link[2] = iset[0] >= 0 and iset[0] == iset[3] and not (link[0] or link[1] or link[4] or link[5])
+				set link[3] = iset[1] >= 0 and iset[1] == iset[2] and not (link[0] or link[1] or link[4] or link[5])
+				set i = 0
+				loop
+					exitwhen i >= 6
+					call BlzFrameSetVisible(lines[i],link[i])
+					set i = i + 1
+				endloop
+				call ArtifactIcon(getObject(this,INDEX_ARTIFACT_ICON+0)).blueEmitter(link[0] or link[1] or link[2])
+				call ArtifactIcon(getObject(this,INDEX_ARTIFACT_ICON+1)).blueEmitter(link[0] or link[3] or link[4])
+				call ArtifactIcon(getObject(this,INDEX_ARTIFACT_ICON+2)).blueEmitter(link[1] or link[3] or link[5])
+				call ArtifactIcon(getObject(this,INDEX_ARTIFACT_ICON+3)).blueEmitter(link[2] or link[4] or link[5])
+			endif
+			set lines[0] = null
+			set lines[1] = null
+			set lines[2] = null
+			set lines[3] = null
+			set lines[4] = null
+			set lines[5] = null
+ 		endmethod
 
 		method refreshPeriodic takes nothing returns nothing
 			/*체력바*/
@@ -965,6 +1081,26 @@ library UI
 				//call ia.setTarget(target.getAbility(i))
 				set i = i + 1
 			endloop
+			/*아티팩트 선분*/
+			set .artifact_line_t2l = BlzCreateFrameByType("SPRITE","",.container,"",0)
+			set .artifact_line_t2r = BlzCreateFrameByType("SPRITE","",.container,"",0)
+			set .artifact_line_t2b = BlzCreateFrameByType("SPRITE","",.container,"",0)
+			set .artifact_line_l2r = BlzCreateFrameByType("SPRITE","",.container,"",0)
+			set .artifact_line_l2b = BlzCreateFrameByType("SPRITE","",.container,"",0)
+			set .artifact_line_r2b = BlzCreateFrameByType("SPRITE","",.container,"",0)
+			call BlzFrameSetPoint(.artifact_line_t2l,FRAMEPOINT_BOTTOMLEFT,FRAME_ARTIFACT_ICON[1],FRAMEPOINT_BOTTOMLEFT,0.,0.)
+			call BlzFrameSetPoint(.artifact_line_t2r,FRAMEPOINT_BOTTOMLEFT,FRAME_ARTIFACT_ICON[0],FRAMEPOINT_BOTTOMLEFT,0.,0.)
+			call BlzFrameSetPoint(.artifact_line_t2b,FRAMEPOINT_BOTTOMLEFT,FRAME_ARTIFACT_ICON[0],FRAMEPOINT_BOTTOMLEFT,0.,0.)
+			call BlzFrameSetPoint(.artifact_line_l2r,FRAMEPOINT_BOTTOMLEFT,FRAME_ARTIFACT_ICON[1],FRAMEPOINT_BOTTOMLEFT,0.,0.)
+			call BlzFrameSetPoint(.artifact_line_l2b,FRAMEPOINT_BOTTOMLEFT,FRAME_ARTIFACT_ICON[1],FRAMEPOINT_BOTTOMLEFT,0.,0.)
+			call BlzFrameSetPoint(.artifact_line_r2b,FRAMEPOINT_BOTTOMLEFT,FRAME_ARTIFACT_ICON[3],FRAMEPOINT_BOTTOMLEFT,0.,0.)
+			call BlzFrameSetSize(.artifact_line_t2l,0.00001,0.00001)
+			call BlzFrameSetSize(.artifact_line_t2r,0.00001,0.00001)
+			call BlzFrameSetSize(.artifact_line_t2b,0.00001,0.00001)
+			call BlzFrameSetSize(.artifact_line_l2r,0.00001,0.00001)
+			call BlzFrameSetSize(.artifact_line_l2b,0.00001,0.00001)
+			call BlzFrameSetSize(.artifact_line_r2b,0.00001,0.00001)
+			call hideAllArtifactLines()
 			/*아티팩트 아이콘*/
 			set i = 0
 			loop
@@ -1280,6 +1416,13 @@ library UI
 			endif
 		endmethod
 
+		private static method artifactRefreshRequest takes nothing returns nothing
+			local thistype this = THIS[GetPlayerId(ARTIFACT_UI_REFRESH_PLAYER)]
+			if this > 0 then
+				call refreshArtifactIcons()
+			endif
+		endmethod
+
 		private static method onInit takes nothing returns nothing
 			set INDEX_ABILITY_ICON = 0
 			set INDEX_STAT_ICON = INDEX_ABILITY_ICON + 10
@@ -1294,6 +1437,7 @@ library UI
 			set INDEX_ARTIFACT_ICON = INDEX_INVENTORY_ICON + 40
 			call TriggerAddCondition(ERROR_MESSAGE_TRIGGER,function thistype.abilityErrorCondition)
 			call TriggerAddCondition(ABILITY_UI_REFRESH,function thistype.refreshCond)
+			call TriggerAddCondition(ARTIFACT_UI_REFRESH,function thistype.artifactRefreshRequest)
 		endmethod
 
 	endstruct

@@ -4,6 +4,9 @@ library Artifact
 		private constant integer LIMIT = 1024
 		private constant integer STAT_SIZE = 4
 		private constant integer LIMIT2 = LIMIT * STAT_SIZE
+
+		trigger ARTIFACT_UI_REFRESH = CreateTrigger()
+		player ARTIFACT_UI_REFRESH_PLAYER = null
 	endglobals
 
 	struct ItemSetAbility

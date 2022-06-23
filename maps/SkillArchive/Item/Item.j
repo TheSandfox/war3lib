@@ -9,6 +9,7 @@ library Item
 		private constant integer INDEX_SETNUM = 4
 
 		constant integer ITEMSET_ETERNAL_CYCLONE = 0
+		constant integer ITEMSET_ETERNAL_CLEANSING_FIRE = 1
 	endglobals
 
 	struct Item extends Item_prototype

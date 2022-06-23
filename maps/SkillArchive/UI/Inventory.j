@@ -236,7 +236,10 @@ library Inventory requires UI
 			call addItem(CATEGORY_ARTIFACT,Artifact.new('a001'))
 			call addItem(CATEGORY_ARTIFACT,Artifact.new('a002'))
 			call addItem(CATEGORY_ARTIFACT,Artifact.new('a003'))
-			call addItem(CATEGORY_ARTIFACT,Artifact.new('a000'))
+			call addItem(CATEGORY_ARTIFACT,Artifact.new('a010'))
+			call addItem(CATEGORY_ARTIFACT,Artifact.new('a011'))
+			call addItem(CATEGORY_ARTIFACT,Artifact.new('a012'))
+			call addItem(CATEGORY_ARTIFACT,Artifact.new('a013'))
 			call changeCategory(CATEGORY_ARTIFACT)
 			return this
 		endmethod
