@@ -6,6 +6,7 @@
 //! import "Guardians.j"
 //! import "Round.j"
 //! import "TreeOfLife.j"
+//! import "Shuffle.j"
 
 library Game requires Unit, UI
 

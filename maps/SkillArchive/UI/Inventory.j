@@ -20,22 +20,41 @@ library Inventory requires UI
 		player owner = null
 		framehandle icon = null
 		framehandle btn = null
-		framehandle tool = null
-		framehandle tool_backdrop = null
-		framehandle tool_text = null
+		framehandle tooltip = null //EXTERNAL!!!!
 
 		trigger main_trigger = null
 		triggercondition main_cond = null
 		boolean in = false
 
+		method showTooltip takes nothing returns nothing
+			if .tooltip != null then
+				call BlzFrameSetVisible(.tooltip,false)
+				call BlzFrameSetVisible(.tooltip,GetLocalPlayer() == .owner)
+			endif
+		endmethod
+
 		method setTarget takes Item target returns nothing
+			if .target > 0 then
+				call .target.resetTooltip()
+			endif
+			set .tooltip = null
 			if .target != target then
 				if target <= 0 then
 					call BlzFrameSetTexture(.icon,"replaceabletextures\\commandbuttons\\btnblackicon.blp",0,true)
 					call BlzFrameSetAlpha(.icon,64)
+					/*트리거&프레임 비활성화*/
+					set .in = false
+					call BlzFrameSetVisible(.btn,false)
+					call DisableTrigger(.main_trigger)
 				else
 					call BlzFrameSetTexture(.icon,"replaceabletextures\\commandbuttons\\"+target.icon+".blp",0,true)
 					call BlzFrameSetAlpha(.icon,255)
+					call target.resetTooltip()
+					call target.setTooltipPosition(FRAME_INVENTORY,FRAMEPOINT_TOPLEFT,0.,0.,.owner,0)
+					set .tooltip = target.tooltip_container
+					/*트리거&프레임 활성화*/
+					call BlzFrameSetVisible(.btn,true)
+					call EnableTrigger(.main_trigger)
 				endif
 			endif
 			set .target = target
@@ -46,8 +65,12 @@ library Inventory requires UI
 			call BlzFrameSetEnable(BlzGetTriggerFrame(),false)
 			call BlzFrameSetEnable(BlzGetTriggerFrame(),true)
 			if BlzGetTriggerFrameEvent() == FRAMEEVENT_MOUSE_ENTER then
+				call showTooltip()
 				set .in = true
 			elseif BlzGetTriggerFrameEvent() == FRAMEEVENT_MOUSE_LEAVE then
+				if .tooltip != null then
+					call BlzFrameSetVisible(.tooltip,false)
+				endif
 				set .in = false
 			elseif .in and BlzGetTriggerPlayerMouseButton() == MOUSE_BUTTON_TYPE_RIGHT then
 				if .target > 0 then
@@ -82,10 +105,8 @@ library Inventory requires UI
 		method onDestroy takes nothing returns nothing
 			//! runtextmacro destroyFrame(".icon")
 			//! runtextmacro destroyFrame(".btn")
-			//! runtextmacro destroyFrame(".tool")
-			//! runtextmacro destroyFrame(".tool_backdrop")
-			//! runtextmacro destroyFrame(".tool_text")
 			//! runtextmacro destroyTriggerAndCondition(".main_trigger",".main_cond")
+			set .tooltip = null
 			set .owner = null
 		endmethod
 
@@ -175,6 +196,7 @@ library Inventory requires UI
 		method rightClick takes integer index returns nothing
 			if getItem(.category,index).onRightClick() then
 				call pull(.category,index)
+				call getIcon(index).showTooltip()
 			else
 				if GetLocalPlayer() == .owner then
 					call PlaySoundBJ(gg_snd_Error)

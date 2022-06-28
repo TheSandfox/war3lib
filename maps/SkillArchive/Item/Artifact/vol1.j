@@ -39,7 +39,7 @@ scope Artifacta003 initializer init
 endscope
 
 scope Artifacta010 initializer init
-//! runtextmacro artifactHeader("a010", "불 아티팩트1", "BTNFire", "ITEMSET_ETERNAL_CLEANSING_FIRE")
+//! runtextmacro artifactHeader("a010", "불 아티팩트1", "BTNFire", "ITEMSET_CLEANSING_FIRE")
 	public struct main extends Artifact
 
 	endstruct
@@ -47,7 +47,7 @@ scope Artifacta010 initializer init
 endscope
 
 scope Artifacta011 initializer init
-//! runtextmacro artifactHeader("a011", "불 아티팩트2", "BTNWallOfFire", "ITEMSET_ETERNAL_CLEANSING_FIRE")
+//! runtextmacro artifactHeader("a011", "불 아티팩트2", "BTNWallOfFire", "ITEMSET_CLEANSING_FIRE")
 	public struct main extends Artifact
 		
 	endstruct
@@ -55,7 +55,7 @@ scope Artifacta011 initializer init
 endscope
 
 scope Artifacta012 initializer init
-//! runtextmacro artifactHeader("a012", "불 아티팩트3", "BTNFireRocks", "ITEMSET_ETERNAL_CLEANSING_FIRE")
+//! runtextmacro artifactHeader("a012", "불 아티팩트3", "BTNFireRocks", "ITEMSET_CLEANSING_FIRE")
 	public struct main extends Artifact
 		
 	endstruct
@@ -63,7 +63,7 @@ scope Artifacta012 initializer init
 endscope
 
 scope Artifacta013 initializer init
-//! runtextmacro artifactHeader("a013", "불 아티팩트4", "BTNMagicLariet", "ITEMSET_ETERNAL_CLEANSING_FIRE")
+//! runtextmacro artifactHeader("a013", "불 아티팩트4", "BTNMagicLariet", "ITEMSET_CLEANSING_FIRE")
 	public struct main extends Artifact
 		
 	endstruct

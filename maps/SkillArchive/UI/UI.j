@@ -285,6 +285,12 @@ library UI
 				call BlzFrameSetVisible(.unique,.target.signiture)
 				/*최종 리프레시*/
 				call refresh()
+				/*트리거 활성화*/
+				call EnableTrigger(.btn_trigger)
+			else
+				/*트리거 비활성화*/
+				set .mouse_in = false
+				call DisableTrigger(.btn_trigger)
 			endif
 		endmethod
 
@@ -609,7 +615,7 @@ library UI
 		framehandle model = null
 		framehandle backdrop = null
 		framehandle hover = null
-		framehandle tooltip_container = null
+		framehandle tooltip = null
 		boolean in = false
 
 		trigger main_trigger = null
@@ -617,10 +623,14 @@ library UI
 
 		method refresh takes nothing returns nothing
 			local Artifact at = User.getFocusUnit(.owner).getItem(.index)
+			set .tooltip = null
 			if at > 0 then
 				call BlzFrameSetVisible(.backdrop,true)
 				call BlzFrameSetTexture(.backdrop,"replaceabletextures\\commandbuttons\\"+at.icon+".blp",0,true)
 				set .set_temp = Item.getTypeSetNum(at.id)
+				call at.resetTooltip()
+				call at.setTooltipPosition(.hover,FRAMEPOINT_BOTTOMLEFT,0.,0.,.owner,1)
+				set .tooltip = at.tooltip_container
 			else
 				call BlzFrameSetVisible(.backdrop,false)
 				set .set_temp = -1
@@ -634,9 +644,9 @@ library UI
 				return
 			endif
 			if inv.spaceExists(Inventory.CATEGORY_ARTIFACT) then
-				call inv.addItem(Inventory.CATEGORY_ARTIFACT,at)
+				call at.resetTooltip()
 				call at.unequip()
-				call refresh()
+				call inv.addItem(Inventory.CATEGORY_ARTIFACT,at)
 				set ARTIFACT_UI_REFRESH_PLAYER = .owner
 				call TriggerEvaluate(ARTIFACT_UI_REFRESH)
 			endif
@@ -648,11 +658,18 @@ library UI
 			call BlzFrameSetEnable(BlzGetTriggerFrame(),true)
 			if BlzGetTriggerFrameEvent() == FRAMEEVENT_MOUSE_ENTER then
 				set .in = true
+				if .tooltip != null then
+					call BlzFrameSetVisible(.tooltip,GetLocalPlayer()==.owner)
+				endif
 			elseif BlzGetTriggerFrameEvent() == FRAMEEVENT_MOUSE_LEAVE then
 				set .in = false
+				if .tooltip != null then
+					call BlzFrameSetVisible(.tooltip,false)
+				endif
 			elseif .in and BlzGetTriggerPlayerMouseButton() == MOUSE_BUTTON_TYPE_RIGHT then
-				call BJDebugMsg("오잉")
-				call unequipRequest()
+				if Inventory.THIS[GetPlayerId(GetTriggerPlayer())].visible_flag then
+					call unequipRequest()
+				endif
 			endif
 		endmethod
 
@@ -696,8 +713,6 @@ library UI
 			call BlzFrameSetSize(.model,0.00001,0.00001)
 			set .hover = BlzCreateFrameByType("BUTTON","",FRAME_ARTIFACT_ICON[.index],"",0)
 			call BlzFrameSetAllPoints(.hover,.backdrop)
-			set .tooltip_container = BlzCreateFrameByType("FRAME","",FRAME_ARTIFACT_ICON[.index],"",0)
-			call BlzFrameSetTooltip(.hover,.tooltip_container)
 			set .main_trigger = Trigger.new(this)
 			call BlzTriggerRegisterFrameEvent(.main_trigger,.hover,FRAMEEVENT_MOUSE_ENTER)
 			call BlzTriggerRegisterFrameEvent(.main_trigger,.hover,FRAMEEVENT_MOUSE_LEAVE)
@@ -712,9 +727,9 @@ library UI
 			//! runtextmacro destroyFrame(".model")
 			//! runtextmacro destroyFrame(".backdrop")
 			//! runtextmacro destroyFrame(".hover")
-			//! runtextmacro destroyFrame(".tooltip_container")
 			//! runtextmacro destroyTriggerAndCondition(".main_trigger",".main_cond")
 			set .owner = null
+			set .tooltip = null
 		endmethod
 
 	endstruct
@@ -1191,7 +1206,7 @@ library UI
 			elseif BlzGetTriggerFrame() == FRAME_SLOT_CHANGER_BUTTON then
 				call SlotChanger.THIS[GetPlayerId(GetTriggerPlayer())].switch()
 			elseif BlzGetTriggerFrame() == FRAME_INVENTORY_BUTTON then
-
+				call Inventory.THIS[GetPlayerId(GetTriggerPlayer())].switch()
 			endif
 		endmethod
 

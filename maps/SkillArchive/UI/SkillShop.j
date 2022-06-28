@@ -7,6 +7,8 @@ library SkillShop requires UI
 		integer array CHANCE_TIER4
 		integer array CHANCE_TIER5
 		integer array CHANCE_TOTAL
+		private constant real LUCKY_INITIAL = 5.
+		private constant real LUCKY_BONUS = 0.3
 		constant integer CHANCE_LEVEL_MAX = 11
 		private integer array MAX_EXP
 		constant integer LEVEL_MAX = 11
@@ -14,6 +16,10 @@ library SkillShop requires UI
 
 	struct SkillShopWidget extends IconFrame
 
+		static constant integer ICON_SIZE = 96
+
+		player owner = null
+		boolean lucky = false
 		integer id = 0
 		trigger btn_trigger = null
 		triggercondition btn_cond = null
@@ -26,12 +32,15 @@ library SkillShop requires UI
 		framehandle bonus_stat1 = null
 		framehandle bonus_stat2 = null
 		framehandle info_weapon_backdrop = null
+		framehandle info_lucky_backdrop = null
+		framehandle info_lucky_model = null
 
 		method setTarget takes integer id returns nothing
 			local integer i = 0
 			local integer j = 0
 			local string s = ""
 			set .id = id
+			set .lucky = false
 			/*어빌리티 버튼*/
 			call BlzFrameSetEnable(.btn,id > 0)
 			call BlzFrameSetVisible(BlzGetFrameByName("SkillShopBuyButtonIcon",this),id > 0)
@@ -42,11 +51,18 @@ library SkillShop requires UI
 				call BlzFrameSetTexture(.icon,"ReplaceableTextures\\CommandButtons\\BTNBlackIcon.blp",0,true)
 				call BlzFrameSetVisible(.tier_border,false)
 				call BlzFrameSetVisible(.info_weapon_backdrop,false)
+				call BlzFrameSetVisible(.info_lucky_backdrop,false)
+				call BlzFrameSetVisible(.info_lucky_model,false)
 				call BlzFrameSetText(.name,"")
 				call BlzFrameSetText(.tag,"")
 				call BlzFrameSetPoint(BlzGetFrameByName("SkillShopBuyButtonText",this),FRAMEPOINT_CENTER,.btn,FRAMEPOINT_CENTER,0.,0.)
 				call BlzFrameSetText(BlzGetFrameByName("SkillShopBuyButtonText",this),"|c99999999판매됨|r")
 			else	/*그 외*/
+				/*럭키보너스*/
+				set .lucky = GetRandomReal(0.,100.) < /*
+				*/(LUCKY_INITIAL + User.getFocusUnit(.owner).getCarculatedStatValue(STAT_TYPE_LUCK) * LUCKY_BONUS) / Ability.getTypeTier(id)
+				call BlzFrameSetVisible(.info_lucky_backdrop,.lucky)
+				call BlzFrameSetVisible(.info_lucky_model,.lucky)
 				/*어빌리티 아이콘*/
 				call BlzFrameSetTexture(.icon,"ReplaceableTextures\\CommandButtons\\"+Ability.getTypeIconPath(id)+".blp",0,true)
 				call BlzFrameSetTexture(.tier_border,"Textures\\ability_border_tier"+I2S(Ability.getTypeTier(id))+".blp",0,true)
@@ -75,7 +91,12 @@ library SkillShop requires UI
 				call BlzFrameSetTexture(.bonus_stat2,STAT_TYPE_ICON[Ability.getTypeBonusStatIndex(id,1)],0,true)
 				/*구매버튼*/
 				call BlzFrameSetPoint(BlzGetFrameByName("SkillShopBuyButtonText",this),FRAMEPOINT_CENTER,.btn,FRAMEPOINT_CENTER,Math.px2Size(12),0.)
-				call BlzFrameSetText(BlzGetFrameByName("SkillShopBuyButtonText",this),"|cffffcc00"+I2S(Ability.getTypeCost(id))+"|r")
+				if .lucky then
+					call BlzFrameSetText(BlzGetFrameByName("SkillShopBuyButtonText",this),"|cffffcc00"+I2S(Ability.getTypeCost(id))+"|r"+/*
+					*/STAT_TYPE_COLOR[STAT_TYPE_LUCK]+" (+2)|r")
+				else
+					call BlzFrameSetText(BlzGetFrameByName("SkillShopBuyButtonText",this),"|cffffcc00"+I2S(Ability.getTypeCost(id))+"|r")
+				endif
 			endif
 		endmethod
 
@@ -94,6 +115,10 @@ library SkillShop requires UI
 					set ti = i
 					/*자리가 있으면*/
 					if ti > -1 then
+						/*행운보너스 적용*/
+						if .lucky then
+							call i.addLevel(1)
+						endif
 						/*장착중인 무기가 없으면 배운 능력으로*/
 						if Ability.getTypeIsWeapon(i.id) then
 							if i.level == 1 and i.owner.weapon_ability == 0 then
@@ -129,23 +154,35 @@ library SkillShop requires UI
 			endif
 		endmethod
 
-		static method create takes framehandle parent, integer index returns thistype
+		static method create takes framehandle parent, player owner ,integer index returns thistype
 			local thistype this = allocate()
+			set .owner = owner
 			set .container = BlzCreateFrameByType("BACKDROP","",parent,"",0)
 			call BlzFrameSetPoint(.container,FRAMEPOINT_TOPLEFT,FRAME_SKILL_SHOP,FRAMEPOINT_TOPLEFT,index*BlzFrameGetWidth(FRAME_SKILL_SHOP)/5,0.)
 			call BlzFrameSetSize(.container,BlzFrameGetWidth(FRAME_SKILL_SHOP)/5,BlzFrameGetHeight(FRAME_SKILL_SHOP))
 			call BlzFrameSetTexture(.container,"Textures\\black32.blp",0,true)
 			set .icon = BlzCreateFrameByType("BACKDROP","",.container,"",0)
 			call BlzFrameSetPoint(.icon,FRAMEPOINT_TOP,.container,FRAMEPOINT_TOP,0.,-0.01)
-			call BlzFrameSetSize(.icon,Math.px2Size(96),Math.px2Size(96))
+			call BlzFrameSetSizePixel(.icon,ICON_SIZE,ICON_SIZE)
 			set .tier_border = BlzCreateFrameByType("BACKDROP","",.container,"",0)
 			call BlzFrameSetAllPoints(.tier_border,.icon)
 			call BlzFrameSetTexture(.tier_border,"Textures\\ability_border_tier1.blp",0,true)
 			call BlzFrameSetVisible(.tier_border,false)
+			/*무기변형아이콘*/
 			set .info_weapon_backdrop = BlzCreateFrameByType("BACKDROP","",.container,"",0)
 			call BlzFrameSetPoint(.info_weapon_backdrop,FRAMEPOINT_BOTTOMLEFT,.icon,FRAMEPOINT_BOTTOMRIGHT,0.,0.)
 			call BlzFrameSetSizePixel(.info_weapon_backdrop,32,32)
 			call BlzFrameSetTexture(.info_weapon_backdrop,"ui\\widgets\\tooltips\\human\\tooltipweaponicon.blp",0,true)
+			/*행운보너스*/
+			set .info_lucky_backdrop = BlzCreateFrameByType("BACKDROP","",.container,"",0)
+			call BlzFrameSetPoint(.info_lucky_backdrop,FRAMEPOINT_BOTTOMRIGHT,.icon,FRAMEPOINT_BOTTOMRIGHT,0.,0.)
+			call BlzFrameSetSizePixel(.info_lucky_backdrop,32,32)
+			call BlzFrameSetTexture(.info_lucky_backdrop,STAT_TYPE_ICON[STAT_TYPE_LUCK],0,true)
+			set .info_lucky_model = BlzCreateFrameByType("SPRITE","",.container,"",0)
+			call BlzFrameSetPoint(.info_lucky_model,FRAMEPOINT_BOTTOMLEFT,.icon,FRAMEPOINT_BOTTOMLEFT,0.,0.)
+			call BlzFrameSetSize(.info_lucky_model,0.0001,0.0001)
+			call BlzFrameSetModel(.info_lucky_model,"ui\\ui_skillshop_lucky_emitter.mdl",0)
+			/**/
 			set .name = BlzCreateFrame("MyTextLarge",.container,0,0)
 			call BlzFrameSetPoint(.name,FRAMEPOINT_TOP,.icon,FRAMEPOINT_BOTTOM,0.,-0.005)
 			call BlzFrameSetTextAlignment(.name,TEXT_JUSTIFY_TOP,TEXT_JUSTIFY_CENTER)
@@ -189,10 +226,13 @@ library SkillShop requires UI
 			//! runtextmacro destroyFrame(".bonus_stat1")
 			//! runtextmacro destroyFrame(".bonus_stat2")
 			//! runtextmacro destroyFrame(".info_weapon_backdrop")
+			//! runtextmacro destroyFrame(".info_lucky_backdrop")
+			//! runtextmacro destroyFrame(".info_lucky_model")
 			call TriggerRemoveCondition(.btn_trigger,.btn_cond)
 			call Trigger.remove(.btn_trigger)
 			set .btn_trigger = null
 			set .btn_cond = null
+			set .owner = null
 		endmethod
 
 	endstruct
@@ -225,6 +265,8 @@ library SkillShop requires UI
 		framehandle gold_text = null
 		framehandle chance_backdrop = null
 		framehandle chance_text = null
+		framehandle ui_timer_backdrop = null
+		framehandle ui_timer_text = null
 		boolean autorefresh = true
 		integer autorefresh_time = ROUND_TIME_INITIAL+ROUND_TIME
 		integer autorefresh_time_max = ROUND_TIME
@@ -326,6 +368,8 @@ library SkillShop requires UI
 			set .visible_flag = flag
 			if GetLocalPlayer()==.owner then
 				call BlzFrameSetVisible(FRAME_SKILL_SHOP_BACKDROP,flag)
+				call BlzFrameSetVisible(.ui_timer_backdrop,not flag)
+				call BlzFrameSetVisible(.ui_timer_text,not flag)
 			endif
 			if .visible_flag then
 				call refreshChanceText()
@@ -371,6 +415,7 @@ library SkillShop requires UI
 			endif
 			call BlzFrameSetText(BlzGetFrameByName("SkillShopAutoRefreshButtonText",this),s)
 			call BlzFrameSetText(.autorefresh_text,I2S(minitue)+":"+second)
+			call BlzFrameSetText(.ui_timer_text,I2S(minitue)+":"+second)
 		endmethod
 
 		method setAutoRefreshState takes boolean flag returns nothing
@@ -472,7 +517,7 @@ library SkillShop requires UI
 			/*스킬위젯*/
 			loop
 				exitwhen i >= 5
-				call UI.setObject(this,UI.INDEX_SKILL_SHOP_WIDGET+i,SkillShopWidget.create(.container,i))
+				call UI.setObject(this,UI.INDEX_SKILL_SHOP_WIDGET+i,SkillShopWidget.create(.container,.owner,i))
 				set i = i + 1
 			endloop
 			/*자동갱신 활성화*/
@@ -483,12 +528,20 @@ library SkillShop requires UI
 			call BlzFrameSetPoint(BlzGetFrameByName("SkillShopAutoRefreshButtonText",this),FRAMEPOINT_CENTER,.btn_autorefresh,FRAMEPOINT_CENTER,0.,0.)
 			call BlzFrameSetTextAlignment(BlzGetFrameByName("SkillShopAutoRefreshButtonText",this),TEXT_JUSTIFY_CENTER,TEXT_JUSTIFY_CENTER)
 			call refreshAutoRefresh()
+			/*리프레시타이머*/
 			set .autorefresh_text_backdrop = BlzCreateFrame("MyTextBox",.btn_autorefresh,0,0)
 			call BlzFrameSetPoint(.autorefresh_text_backdrop,FRAMEPOINT_BOTTOM,.btn_autorefresh,FRAMEPOINT_TOP,0.,-0.0025)
 			call BlzFrameSetSize(.autorefresh_text_backdrop,0.045,0.015)
 			set .autorefresh_text = BlzCreateFrame("MyText",.autorefresh_text_backdrop,0,0)
 			call BlzFrameSetPoint(.autorefresh_text,FRAMEPOINT_CENTER,.autorefresh_text_backdrop,FRAMEPOINT_CENTER,0,0)
 			call BlzFrameSetTextAlignment(.autorefresh_text,TEXT_JUSTIFY_CENTER,TEXT_JUSTIFY_CENTER)
+			set .ui_timer_backdrop = BlzCreateFrameByType("BACKDROP","",FRAME_GAME_UI,"",0)
+			call BlzFrameSetTexture(.ui_timer_backdrop,"textures\\black32.blp",0,true)
+			call BlzFrameSetAlpha(.ui_timer_backdrop,128)
+			set .ui_timer_text = BlzCreateFrame("MyTextSmall",FRAME_GAME_UI,0,0)
+			call BlzFrameSetPointPixel(.ui_timer_text,FRAMEPOINT_BOTTOM,FRAME_SKILL_SHOP_BUTTON,FRAMEPOINT_TOP,0,4)
+			call BlzFrameSetPointPixel(.ui_timer_backdrop,FRAMEPOINT_TOPLEFT,.ui_timer_text,FRAMEPOINT_TOPLEFT,-4,4)
+			call BlzFrameSetPointPixel(.ui_timer_backdrop,FRAMEPOINT_BOTTOMRIGHT,.ui_timer_text,FRAMEPOINT_BOTTOMRIGHT,4,-4)
 			/*리프레시버튼*/
 			set .btn_refresh = BlzCreateFrame("SkillShopRefreshButton",.container,0,this)
 			call BlzFrameSetPoint(.btn_refresh,FRAMEPOINT_TOPRIGHT,.btn_autorefresh,FRAMEPOINT_TOPLEFT,0.,0.)
@@ -557,6 +610,8 @@ library SkillShop requires UI
 			call BlzFrameSetPoint(.chance_backdrop,FRAMEPOINT_BOTTOMRIGHT,.chance_text,FRAMEPOINT_BOTTOMRIGHT,0.005,-0.005)
 			/*가시성처리*/
 			call BlzFrameSetVisible(.container,GetLocalPlayer()==.owner)
+			call BlzFrameSetVisible(.ui_timer_backdrop,GetLocalPlayer()==.owner)
+			call BlzFrameSetVisible(.ui_timer_text,GetLocalPlayer()==.owner)
 			/*트리거*/
 			set .keypress = Trigger.new(this)
 			call BlzTriggerRegisterPlayerKeyEvent(.keypress,.owner,OSKEY_T,0,true)
@@ -603,6 +658,8 @@ library SkillShop requires UI
 			//! runtextmacro destroyFrame(".gold_text")
 			//! runtextmacro destroyFrame(".chance_backdrop")
 			//! runtextmacro destroyFrame(".chance_text")
+			//! runtextmacro destroyFrame(".ui_timer_backdrop")
+			//! runtextmacro destroyFrame(".ui_timer_text")
 			/**/
 			call TriggerRemoveCondition(.keypress,.keypress_cond)
 			call Trigger.remove(.keypress)

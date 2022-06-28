@@ -10,3 +10,4 @@
 //! import "Texttag.j"
 //! import "Sound.j"
 //! import "Mouse.j"
+//! import "Shuffle.j"
