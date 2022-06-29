@@ -1,12 +1,12 @@
 library Inventory requires UI
 
 	globals
-		private constant integer PER_ROW = 8
-		private constant integer PER_COL = 5
+		private constant integer PER_ROW = 16
+		private constant integer PER_COL = 4
 		private constant integer SLOT = PER_ROW * PER_COL
 		private constant integer CATEGORY = 8
 		private constant integer INSET_Y = 40
-		private constant integer SIZE = 40
+		private constant integer SIZE = 48
 		private trigger INVENTORY_RIGHTCLICK = CreateTrigger()
 		private integer INVENTORY_RIGHTCLICK_INDEX = -1
 		private player INVENTORY_RIGHTCLICK_PLAYER = null
@@ -30,6 +30,12 @@ library Inventory requires UI
 			if .tooltip != null then
 				call BlzFrameSetVisible(.tooltip,false)
 				call BlzFrameSetVisible(.tooltip,GetLocalPlayer() == .owner)
+			endif
+		endmethod
+
+		method hideTooltip takes nothing returns nothing
+			if .tooltip != null then
+				call BlzFrameSetVisible(.tooltip,false)
 			endif
 		endmethod
 
@@ -68,9 +74,7 @@ library Inventory requires UI
 				call showTooltip()
 				set .in = true
 			elseif BlzGetTriggerFrameEvent() == FRAMEEVENT_MOUSE_LEAVE then
-				if .tooltip != null then
-					call BlzFrameSetVisible(.tooltip,false)
-				endif
+				call hideTooltip()
 				set .in = false
 			elseif .in and BlzGetTriggerPlayerMouseButton() == MOUSE_BUTTON_TYPE_RIGHT then
 				if .target > 0 then
@@ -81,16 +85,16 @@ library Inventory requires UI
 			endif
 		endmethod
 
-		static method create takes player owner, integer index returns thistype
+		static method create takes player owner, integer index, framehandle parent returns thistype
 			local thistype this = allocate()
 			set .index = index
 			set .owner = owner
 			set .main_trigger = Trigger.new(this)
 			set .main_cond = TriggerAddCondition(.main_trigger,function thistype.cond)
-			set .icon = BlzCreateFrameByType("BACKDROP","",FRAME_INVENTORY,"",0)
+			set .icon = BlzCreateFrameByType("BACKDROP","",parent,"",0)
 			call BlzFrameSetPointPixel(.icon,FRAMEPOINT_TOPLEFT,FRAME_INVENTORY,FRAMEPOINT_TOPLEFT,32+ModuloInteger(index,PER_ROW)*SIZE,-32-INSET_Y-R2I(index/PER_ROW)*SIZE)
 			call BlzFrameSetSizePixel(.icon,SIZE,SIZE)
-			set .btn = BlzCreateFrameByType("BUTTON","",FRAME_INVENTORY,"",0)
+			set .btn = BlzCreateFrameByType("BUTTON","",parent,"",0)
 			call BlzFrameSetAllPoints(.btn,.icon)
 			call BlzTriggerRegisterFrameEvent(.main_trigger,.btn,FRAMEEVENT_MOUSE_ENTER)
 			call BlzTriggerRegisterFrameEvent(.main_trigger,.btn,FRAMEEVENT_MOUSE_LEAVE)
@@ -119,12 +123,68 @@ library Inventory requires UI
 		static integer CATEGORY_MATERIAL = 0
 		static integer CATEGORY_ARTIFACT = 1
 
+		static constant integer DIALOG_WIDTH = 480
+		static constant integer DIALOG_HEIGHT = 192
+
 		trigger keypress = null
 		triggercondition keypress_cond = null
 		boolean visible_flag = false
 		player owner = null
 		integer category = 0
+		/*컨테이너*/
+		framehandle container = null
+		/*마우스가리개*/
+		framehandle mouseover_above = null
+		/*Dialog*/
+		framehandle dialog_backdrop = null
+		framehandle dialog_text = null
+		framehandle dialog_btn_confirm = null
+		framehandle dialog_btn_cancle = null
+		boolean dialog_visible = false
+		integer dialog_category = -1
+		integer dialog_index = -1
+		/**/
 		implement ThisUI
+
+		method closeDialog takes nothing returns nothing
+			set .dialog_category = -1
+			set .dialog_index = -1
+			call BlzFrameSetVisible(.dialog_backdrop,false)
+			call BlzFrameSetVisible(.mouseover_above,false)
+			set .dialog_visible = false
+		endmethod
+
+		method useRequest takes integer category, integer index returns nothing
+			if getItem(category,index).onRightClick() then
+				call pull(category,index)
+				if .dialog_visible then
+					call closeDialog()
+				else
+					call getIcon(index).showTooltip()
+				endif
+			else
+				if GetLocalPlayer() == .owner then
+					call PlaySoundBJ(gg_snd_Error)
+				endif
+			endif
+		endmethod
+
+		method dialogConfirm takes nothing returns nothing
+			if .dialog_category < 0 or .dialog_index < 0 then
+				return
+			endif
+			call useRequest(.dialog_category,.dialog_index)
+		endmethod
+
+		method showDialog takes integer category, integer index returns nothing
+			set .dialog_category = category
+			set .dialog_index = index
+			call getIcon(index).hideTooltip()
+			call BlzFrameSetText(.dialog_text,getItem(.dialog_category,.dialog_index).getDialogText())
+			call BlzFrameSetVisible(.dialog_backdrop,true)
+			call BlzFrameSetVisible(.mouseover_above,true)
+			set .dialog_visible = true
+		endmethod
 
 		method setItem takes integer category, integer index, Item it returns nothing
 			call SaveInteger(HASH,this,index+category*SLOT,it)
@@ -171,6 +231,9 @@ library Inventory requires UI
 
 		method changeCategory takes integer category returns nothing
 			local integer i = 0
+			if .dialog_visible then
+				return
+			endif
 			if category != .category then
 				loop
 					exitwhen i >= SLOT
@@ -194,13 +257,10 @@ library Inventory requires UI
 		endmethod
 
 		method rightClick takes integer index returns nothing
-			if getItem(.category,index).onRightClick() then
-				call pull(.category,index)
-				call getIcon(index).showTooltip()
+			if getItem(.category,index).itemtype == ITEMTYPE_ARTIFACT then
+				call showDialog(.category,index)
 			else
-				if GetLocalPlayer() == .owner then
-					call PlaySoundBJ(gg_snd_Error)
-				endif
+				call useRequest(.category,index)
 			endif
 		endmethod
 
@@ -211,6 +271,8 @@ library Inventory requires UI
 			endif
 			if .visible_flag then
 				//TODO REFRESH
+			else
+				call closeDialog()
 			endif
 		endmethod
 
@@ -220,8 +282,13 @@ library Inventory requires UI
 
 		method close takes nothing returns boolean
 			if .visible_flag then
-				call visibleForPlayer(false)
-				return true
+				if .dialog_visible then
+					call closeDialog()
+					return true
+				else
+					call visibleForPlayer(false)
+					return true
+				endif
 			else
 				return false
 			endif
@@ -234,6 +301,13 @@ library Inventory requires UI
 			elseif BlzGetTriggerFrame() != null then
 				call BlzFrameSetEnable(BlzGetTriggerFrame(),false)
 				call BlzFrameSetEnable(BlzGetTriggerFrame(),true)
+				if BlzGetTriggerFrameEvent() == FRAMEEVENT_CONTROL_CLICK then
+					if BlzGetTriggerFrame() == .dialog_btn_confirm then
+						call dialogConfirm()
+					elseif BlzGetTriggerFrame() == .dialog_btn_cancle then
+						call closeDialog()
+					endif
+				endif
 			endif
 		endmethod
 
@@ -241,17 +315,44 @@ library Inventory requires UI
 			local thistype this = allocate()
 			local integer i = 0
 			set .owner = p
-			/*아이콘*/
-			loop
-				exitwhen i >= SLOT
-				call setIcon(i,InventoryIcon.create(p,i))
-				set i = i + 1
-			endloop
 			/*트리거*/
 			set .keypress = Trigger.new(this)
 			call BlzTriggerRegisterPlayerKeyEvent(.keypress,.owner,OSKEY_B,0,true)
-
 			set .keypress_cond = TriggerAddCondition(.keypress,function thistype.press)
+			/*컨테이너*/
+			set .container = BlzCreateFrameByType("FRAME","",FRAME_INVENTORY,"",0)
+			call BlzFrameSetVisible(.container,GetLocalPlayer() == .owner)
+			/*아이콘*/
+			loop
+				exitwhen i >= SLOT
+				call setIcon(i,InventoryIcon.create(p,i,.container))
+				set i = i + 1
+			endloop
+			/*마우스오버*/
+			set .mouseover_above = BlzCreateFrameByType("FRAME","",.container,"",0)
+			call BlzFrameSetAllPoints(.mouseover_above,FRAME_INVENTORY)
+			/*다이얼로그*/
+			set .dialog_backdrop = BlzCreateFrame("MBEdge",.container,0,0)
+			call BlzFrameSetPoint(.dialog_backdrop,FRAMEPOINT_CENTER,FRAME_ORIGIN,FRAMEPOINT_CENTER,0.,0.)
+			call BlzFrameSetSizePixel(.dialog_backdrop,DIALOG_WIDTH,DIALOG_HEIGHT)
+			call closeDialog()
+			set .dialog_text = BlzCreateFrame("MyText",.dialog_backdrop,0,0)
+			call BlzFrameSetPointPixel(.dialog_text,FRAMEPOINT_TOPLEFT,.dialog_backdrop,FRAMEPOINT_TOPLEFT,32,-32)
+			call BlzFrameSetPointPixel(.dialog_text,FRAMEPOINT_BOTTOMRIGHT,.dialog_backdrop,FRAMEPOINT_BOTTOMRIGHT,-32,32)
+			call BlzFrameSetTextAlignment(.dialog_text,TEXT_JUSTIFY_TOP,TEXT_JUSTIFY_CENTER)
+			set .dialog_btn_confirm = BlzCreateFrame("InventoryDialogConfirmButton",.dialog_backdrop,0,0)
+			call BlzFrameSetPointPixel(.dialog_btn_confirm,FRAMEPOINT_BOTTOMRIGHT,.dialog_backdrop,FRAMEPOINT_BOTTOM,-16,16)
+			call BlzFrameSetSizePixel(.dialog_btn_confirm,192,48)
+			call BlzTriggerRegisterFrameEvent(.keypress,.dialog_btn_confirm,FRAMEEVENT_CONTROL_CLICK)
+			call BlzTriggerRegisterFrameEvent(.keypress,.dialog_btn_confirm,FRAMEEVENT_MOUSE_ENTER)
+			call BlzTriggerRegisterFrameEvent(.keypress,.dialog_btn_confirm,FRAMEEVENT_MOUSE_LEAVE)
+			set .dialog_btn_cancle = BlzCreateFrame("InventoryDialogCancleButton",.dialog_backdrop,0,0)
+			call BlzFrameSetPointPixel(.dialog_btn_cancle,FRAMEPOINT_BOTTOMLEFT,.dialog_backdrop,FRAMEPOINT_BOTTOM,16,16)
+			call BlzFrameSetSizePixel(.dialog_btn_cancle,192,48)
+			call BlzTriggerRegisterFrameEvent(.keypress,.dialog_btn_cancle,FRAMEEVENT_CONTROL_CLICK)
+			call BlzTriggerRegisterFrameEvent(.keypress,.dialog_btn_cancle,FRAMEEVENT_MOUSE_ENTER)
+			call BlzTriggerRegisterFrameEvent(.keypress,.dialog_btn_cancle,FRAMEEVENT_MOUSE_LEAVE)
+			/*인덱싱*/
 			set THIS[GetPlayerId(p)] = this
 			/*테스트용*/
 			call addItem(CATEGORY_ARTIFACT,Artifact.new('a000'))
@@ -273,6 +374,12 @@ library Inventory requires UI
 				call getIcon(i).destroy()
 				set i = i + 1
 			endloop
+			//! runtextmacro destroyFrame(".container")
+			//! runtextmacro destroyFrame(".dialog_backdrop")
+			//! runtextmacro destroyFrame(".dialog_text")
+			//! runtextmacro destroyFrame(".dialog_btn_confirm")
+			//! runtextmacro destroyFrame(".dialog_btn_cancle")
+			//! runtextmacro destroyFrame(".mouseover_above")
 			//! runtextmacro destroyTriggerAndCondition(".keypress",".keypress_cond")
 			set .owner = null
 		endmethod

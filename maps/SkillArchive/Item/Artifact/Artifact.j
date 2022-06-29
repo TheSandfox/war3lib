@@ -61,6 +61,10 @@ library Artifact requires Item
 		integer exp = 0
 		framehandle exp_text = null
 
+		stub method getDialogText takes nothing returns string
+			return "|cffffcc00알림|r\n\n아티팩트 장착 시 |cffff0000해제가 불가능|r합니다.\n장착하시겠습니까?"
+		endmethod
+
 		method getBackdrop takes integer index returns framehandle
 			return BACKDROP[this*STAT_SIZE+index]
 		endmethod

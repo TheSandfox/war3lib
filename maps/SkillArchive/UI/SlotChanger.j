@@ -105,24 +105,6 @@ library SlotChanger requires UI
 			call refresh()
 		endmethod
 
-		method confirm takes nothing returns nothing
-			local integer i = 0
-			local Unit u = User.getFocusUnit(.owner)
-			loop
-				exitwhen i >= 10
-				set ABILITY_TEMP[i] = u.getAbility(UI.getObject(this,UI.INDEX_SLOT_CHANGER_INDEX+i))
-				set i = i + 1
-			endloop
-			set i = 0
-			loop
-				exitwhen i >= 10
-				call u.setAbility(i,ABILITY_TEMP[i])
-				set i = i + 1
-			endloop
-			call UI.THIS[GetPlayerId(.owner)].refreshAbilityIconsTarget()
-			call stateDefault()
-		endmethod
-
 		method visibleForPlayer takes boolean flag returns nothing
 			if not .visible_flag and flag then
 				call stateDefault()
@@ -140,6 +122,24 @@ library SlotChanger requires UI
 			else
 				return false
 			endif
+		endmethod
+
+		method confirm takes nothing returns nothing
+			local integer i = 0
+			local Unit u = User.getFocusUnit(.owner)
+			loop
+				exitwhen i >= 10
+				set ABILITY_TEMP[i] = u.getAbility(UI.getObject(this,UI.INDEX_SLOT_CHANGER_INDEX+i))
+				set i = i + 1
+			endloop
+			set i = 0
+			loop
+				exitwhen i >= 10
+				call u.setAbility(i,ABILITY_TEMP[i])
+				set i = i + 1
+			endloop
+			call UI.THIS[GetPlayerId(.owner)].refreshAbilityIconsTarget()
+			call stateDefault()
 		endmethod
 
 		method switch takes nothing returns nothing
@@ -162,6 +162,7 @@ library SlotChanger requires UI
 				if BlzGetTriggerFrameEvent() == FRAMEEVENT_CONTROL_CLICK then
 					if BlzGetTriggerFrame() == .confirm_button then
 						call confirm()
+						call close()
 						return
 					endif
 					loop
@@ -201,19 +202,20 @@ library SlotChanger requires UI
 				call UI.setObject(this,UI.INDEX_SLOT_CHANGER_INDEX+i,i)
 				/*아이콘*/
 				set f = BlzCreateFrameByType("BACKDROP","",.container,"",0)
-				call BlzFrameSetPoint(f,FRAMEPOINT_TOPLEFT,FRAME_SLOT_CHANGER,FRAMEPOINT_TOPLEFT,Math.px2Size(16+(16+48)*i),Math.px2Size(-16))
-				call BlzFrameSetSize(f,Math.px2Size(48),Math.px2Size(48))
+				call BlzFrameSetAllPoints(f,FRAME_ABILITY_ICON[i])
+				/*call BlzFrameSetPointPixel(f,FRAMEPOINT_BOTTOM,FRAME_ABILITY_ICON[i],FRAMEPOINT_BOTTOM,0,0)
+				call BlzFrameSetSize(f,Math.px2Size(64),Math.px2Size(64))*/
 				call SaveFrameHandle(UI.HASH,this,UI.INDEX_SLOT_CHANGER_ICON+i,f)
 				/*백그라운드 텍스트*/
 				set f = BlzCreateFrame("MyText",.container,0,0)
-				call BlzFrameSetPoint(f,FRAMEPOINT_TOP,LoadFrameHandle(UI.HASH,this,UI.INDEX_SLOT_CHANGER_ICON+i),FRAMEPOINT_BOTTOM,0.,-Math.px2Size(16))
+				call BlzFrameSetPoint(f,FRAMEPOINT_BOTTOM,LoadFrameHandle(UI.HASH,this,UI.INDEX_SLOT_CHANGER_ICON+i),FRAMEPOINT_TOP,0.,Math.px2Size(16))
 				call BlzFrameSetSize(f,Math.px2Size(48),Math.px2Size(48))
 				call BlzFrameSetTextAlignment(f,TEXT_JUSTIFY_CENTER,TEXT_JUSTIFY_CENTER)
 				call BlzFrameSetText(f,"|cff999999"+User.OSKEY_INDEX_TO_STRING[i]+"|r")
 				call SaveFrameHandle(UI.HASH,this,UI.INDEX_SLOT_CHANGER_HOTKEY+i,f)
 				/*버튼프레임*/
 				set f = BlzCreateFrame("SlotChangerButton",.container,0,this*10+i)
-				call BlzFrameSetPoint(f,FRAMEPOINT_TOP,LoadFrameHandle(UI.HASH,this,UI.INDEX_SLOT_CHANGER_ICON+i),FRAMEPOINT_BOTTOM,0.,-Math.px2Size(16))
+				call BlzFrameSetPoint(f,FRAMEPOINT_BOTTOM,LoadFrameHandle(UI.HASH,this,UI.INDEX_SLOT_CHANGER_ICON+i),FRAMEPOINT_TOP,0.,Math.px2Size(16))
 				call BlzFrameSetSize(f,Math.px2Size(48),Math.px2Size(48))
 				call BlzTriggerRegisterFrameEvent(.keypress,f,FRAMEEVENT_CONTROL_CLICK)
 				call BlzTriggerRegisterFrameEvent(.keypress,f,FRAMEEVENT_MOUSE_LEAVE)
@@ -226,7 +228,7 @@ library SlotChanger requires UI
 			endloop
 			/*컨펌버튼*/
 			set .confirm_button = BlzCreateFrame("SlotChangerConfirmButton",.container,0,this)
-			call BlzFrameSetPoint(.confirm_button,FRAMEPOINT_BOTTOM,FRAME_SLOT_CHANGER,FRAMEPOINT_BOTTOM,0,Math.px2Size(16))
+			call BlzFrameSetPoint(.confirm_button,FRAMEPOINT_TOP,FRAME_SLOT_CHANGER,FRAMEPOINT_TOP,0,-Math.px2Size(16))
 			call BlzFrameSetSize(.confirm_button,Math.px2Size(192),Math.px2Size(48))
 			call BlzTriggerRegisterFrameEvent(.keypress,.confirm_button,FRAMEEVENT_CONTROL_CLICK)
 			call BlzTriggerRegisterFrameEvent(.keypress,.confirm_button,FRAMEEVENT_MOUSE_LEAVE)

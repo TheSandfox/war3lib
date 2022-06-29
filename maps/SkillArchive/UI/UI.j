@@ -28,6 +28,8 @@ library UI
 		framehandle FRAME_MAKE_POTION = null
 		framehandle array FRAME_ABILITY_ICON[10]
 		framehandle array FRAME_ARTIFACT_ICON[4]
+		framehandle array FRAME_INVENTORY_CATEGORY_BUTTON[4]
+		framehandle array FRAME_INVENTORY_CATEGORY_TOOLTIP[4]
 
 		private constant integer MINIMAP_OFFSET_X = 0
 		private constant integer MINIMAP_OFFSET_Y = 16	/*FROM BOTTOMLEFT*/
@@ -53,14 +55,14 @@ library UI
 		private constant integer SKILL_SHOP_WIDTH = 1280
 		private constant integer SKILL_SHOP_HEIGHT = 396
 		private constant integer SKILL_SHOP_INSET = 32
-		private constant integer INVENTORY_WIDTH = 384
-		private constant integer INVENTORY_HEIGHT = 304
+		private constant integer INVENTORY_WIDTH = 48*16 + 64	/* 64*8 + 64*/	
+		private constant integer INVENTORY_HEIGHT = 48*4 + 64 + 40 /* 64*8 + 64 + 40 */
 		private constant integer INVENTORY_OFFSET_X = 0
 		private constant integer INVENTORY_OFFSET_Y = 16+256
 		private constant integer ABILITY_ERROR_OFFSET_Y = 268 /*FROM BOTTOM*/
-		private constant integer SLOT_CHANGER_WIDTH = (64*10)+16
-		private constant integer SLOT_CHANGER_HEIGHT = (64*3)+16
-		private constant integer SLOT_CHANGER_OFFSET_Y = -96 /*FROM CENTER*/
+		private constant integer SLOT_CHANGER_WIDTH = 720//(64*10)+16
+		private constant integer SLOT_CHANGER_HEIGHT = 96 + 24 + 24 + 96//(64*3)+16
+		private constant integer SLOT_CHANGER_OFFSET_Y = 16 /*FROM BOTTOM*/
 		private constant integer ARTIFACT_ICON_OFFSET_X = -128
 		private constant integer ARTIFACT_ICON_OFFSET_Y = 64
 
@@ -1009,29 +1011,32 @@ library UI
 			local StatIcon sa = 0
 			set .main_timer = Timer.new(this)
 			/*컨테이너*/
-			set .container = BlzCreateFrameByType("FRAME","",FRAME_GAME_UI,"",0)
+			set .container = BlzCreateFrameByType("FRAME","",FRAME_STAT2,"",0)
 			call BlzFrameSetPoint(.container,FRAMEPOINT_BOTTOMLEFT,FRAME_ORIGIN,FRAMEPOINT_BOTTOMLEFT,0.,0.)
 			/*체력바 마나바*/
-			set .hp_fill = BlzCreateFrameByType("BACKDROP","",.container,"",0)
+			set .hp_fill = BlzCreateFrameByType("BACKDROP","",FRAME_HP_BAR,"",0)
 			call BlzFrameSetPoint(.hp_fill,FRAMEPOINT_BOTTOMLEFT,FRAME_HP_BAR,FRAMEPOINT_BOTTOMLEFT,0.,0.)
 			call BlzFrameSetTexture(.hp_fill,"replaceabletextures\\teamcolor\\teamcolor06.blp",0,true)
-			set .hp_text = BlzCreateFrame("MyText",.container,0,0)
+			set .hp_text = BlzCreateFrame("MyText",.hp_fill,0,0)
 			call BlzFrameSetAllPoints(.hp_text,FRAME_HP_BAR)
 			call BlzFrameSetTextAlignment(.hp_text,TEXT_JUSTIFY_CENTER,TEXT_JUSTIFY_CENTER)
-			set .hp_icon = BlzCreateFrameByType("BACKDROP","",.container,"",0)
+			set .hp_icon = BlzCreateFrameByType("BACKDROP","",.hp_fill,"",0)
 			call BlzFrameSetPoint(.hp_icon,FRAMEPOINT_TOPLEFT,.hp_text,FRAMEPOINT_TOPLEFT,Math.px2Size(BAR_HEIGHT-20)/2,-Math.px2Size(BAR_HEIGHT-20)/2)
 			call BlzFrameSetSize(.hp_icon,Math.px2Size(20),Math.px2Size(20))
 			call BlzFrameSetTexture(.hp_icon,"ui\\widgets\\tooltips\\human\\tooltiphpicon.blp",0,true)
-			set .mp_fill = BlzCreateFrameByType("BACKDROP","",.container,"",0)
+			set .mp_fill = BlzCreateFrameByType("BACKDROP","",FRAME_MP_BAR,"",0)
 			call BlzFrameSetPoint(.mp_fill,FRAMEPOINT_BOTTOMLEFT,FRAME_MP_BAR,FRAMEPOINT_BOTTOMLEFT,0.,0.)
 			call BlzFrameSetTexture(.mp_fill,"replaceabletextures\\teamcolor\\teamcolor01.blp",0,true)
-			set .mp_text = BlzCreateFrame("MyText",.container,0,0)
+			set .mp_text = BlzCreateFrame("MyText",.mp_fill,0,0)
 			call BlzFrameSetAllPoints(.mp_text,FRAME_MP_BAR)
 			call BlzFrameSetTextAlignment(.mp_text,TEXT_JUSTIFY_CENTER,TEXT_JUSTIFY_CENTER)
-			set .mp_icon = BlzCreateFrameByType("BACKDROP","",.container,"",0)
+			set .mp_icon = BlzCreateFrameByType("BACKDROP","",.mp_fill,"",0)
 			call BlzFrameSetPoint(.mp_icon,FRAMEPOINT_TOPLEFT,.mp_text,FRAMEPOINT_TOPLEFT,Math.px2Size(BAR_HEIGHT-20)/2,-Math.px2Size(BAR_HEIGHT-20)/2)
 			call BlzFrameSetSize(.mp_icon,Math.px2Size(20),Math.px2Size(20))
 			call BlzFrameSetTexture(.mp_icon,"ui\\widgets\\tooltips\\human\\tooltipmanaicon.blp",0,true)
+			/*게이지 가시성*/
+			call BlzFrameSetVisible(.hp_fill,GetLocalPlayer() == p)
+			call BlzFrameSetVisible(.mp_fill,GetLocalPlayer() == p)
 			/*칭호*/
 			set .chingho = ChinghoFrame.create(.container,FRAME_STAT1)
 			/*레벨*/
@@ -1050,6 +1055,8 @@ library UI
 			call BlzFrameSetPoint(.exp_text,FRAMEPOINT_BOTTOM,FRAME_EXP_BAR,FRAMEPOINT_BOTTOM,0.,0.)
 			call BlzFrameSetTextAlignment(.exp_text,TEXT_JUSTIFY_BOTTOM,TEXT_JUSTIFY_CENTER)
 			call BlzFrameSetText(.exp_text,"0%")
+			call BlzFrameSetVisible(.exp_fill,false)
+			call BlzFrameSetVisible(.exp_text,false)
 			/*유닛이름*/
 			set .name = BlzCreateFrame("MyTextLarge",.container,0,0)
 			call BlzFrameSetPoint(.name,FRAMEPOINT_TOPLEFT,.chingho.backdrop,FRAMEPOINT_BOTTOMLEFT,0.,0.)
@@ -1203,10 +1210,25 @@ library UI
 			endif
 			if BlzGetTriggerFrame() == FRAME_SKILL_SHOP_BUTTON then
 				call SkillShop.THIS[GetPlayerId(GetTriggerPlayer())].switch()
+				return
 			elseif BlzGetTriggerFrame() == FRAME_SLOT_CHANGER_BUTTON then
 				call SlotChanger.THIS[GetPlayerId(GetTriggerPlayer())].switch()
+				return
 			elseif BlzGetTriggerFrame() == FRAME_INVENTORY_BUTTON then
 				call Inventory.THIS[GetPlayerId(GetTriggerPlayer())].switch()
+				return
+			elseif BlzGetTriggerFrame() == FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_MATERIAL] then
+				call Inventory.THIS[GetPlayerId(GetTriggerPlayer())].changeCategory(ITEMTYPE_MATERIAL)
+				return
+			elseif BlzGetTriggerFrame() == FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_ARTIFACT] then
+				call Inventory.THIS[GetPlayerId(GetTriggerPlayer())].changeCategory(ITEMTYPE_ARTIFACT)
+				return
+			elseif BlzGetTriggerFrame() == FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_FOOD] then
+				call Inventory.THIS[GetPlayerId(GetTriggerPlayer())].changeCategory(ITEMTYPE_FOOD)
+				return
+			elseif BlzGetTriggerFrame() == FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_GACHA] then
+				call Inventory.THIS[GetPlayerId(GetTriggerPlayer())].changeCategory(ITEMTYPE_GACHA)
+				return
 			endif
 		endmethod
 
@@ -1249,19 +1271,6 @@ library UI
 			call BlzFrameClearAllPoints(FRAME_PORTRAIT)
 			call BlzFrameSetAbsPoint(FRAME_PORTRAIT,FRAMEPOINT_TOPLEFT,Math.px2Size((1920/2)+PORTRAIT_OFFSET_X)*0.75,Math.px2Size(PORTRAIT_OFFSET_Y+PORTRAIT_BORDER+PORTRAIT_SIZE))
 			call BlzFrameSetAbsPoint(FRAME_PORTRAIT,FRAMEPOINT_BOTTOMRIGHT,Math.px2Size((1920/2)+PORTRAIT_SIZE+PORTRAIT_OFFSET_X)*0.75,Math.px2Size(PORTRAIT_OFFSET_Y+PORTRAIT_BORDER))
-			/*체력바 마나바*/
-			set FRAME_HP_BAR = BlzCreateFrameByType("BACKDROP","",FRAME_GAME_UI,"",0)
-			call BlzFrameSetPoint(FRAME_HP_BAR,FRAMEPOINT_BOTTOMLEFT,FRAME_ORIGIN,FRAMEPOINT_BOTTOM,/*
-				*/Math.px2Size(-BAR_WIDTH/2),Math.px2Size(HP_BAR_OFFSET_Y))
-			call BlzFrameSetSize(FRAME_HP_BAR,Math.px2Size(BAR_WIDTH),Math.px2Size(BAR_HEIGHT))
-			call BlzFrameSetTexture(FRAME_HP_BAR,"ReplaceableTextures\\teamcolor\\teamcolor10.blp",0,true)
-			call BlzFrameSetAlpha(FRAME_HP_BAR,96)
-			set FRAME_MP_BAR = BlzCreateFrameByType("BACKDROP","",FRAME_GAME_UI,"",0)
-			call BlzFrameSetPoint(FRAME_MP_BAR,FRAMEPOINT_BOTTOMLEFT,FRAME_ORIGIN,FRAMEPOINT_BOTTOM,/*
-				*/Math.px2Size(-BAR_WIDTH/2),Math.px2Size(MP_BAR_OFFSET_Y))
-			call BlzFrameSetSize(FRAME_MP_BAR,Math.px2Size(BAR_WIDTH),Math.px2Size(BAR_HEIGHT))
-			call BlzFrameSetTexture(FRAME_MP_BAR,"ReplaceableTextures\\teamcolor\\teamcolor13.blp",0,true)
-			call BlzFrameSetAlpha(FRAME_MP_BAR,96)
 			/*어빌리티박스*/
 			set FRAME_ABILITY_CONTAINER = BlzCreateFrameByType("BACKDROP","",FRAME_GAME_UI,"",0)
 			call BlzFrameSetPoint(FRAME_ABILITY_CONTAINER,FRAMEPOINT_BOTTOMLEFT,FRAME_ORIGIN,FRAMEPOINT_BOTTOM,/*
@@ -1286,16 +1295,36 @@ library UI
 			call BlzFrameSetPoint(FRAME_STAT1,FRAMEPOINT_BOTTOMRIGHT,FRAME_PORTRAIT_BACKDROP,FRAMEPOINT_BOTTOMRIGHT,Math.px2Size(STAT1_WIDTH),0.)
 			call BlzFrameSetTexture(FRAME_STAT1,"replaceabletextures\\teamcolor\\teamcolor27.blp",0,true)
 			call BlzFrameSetAlpha(FRAME_STAT1,200)
-			set FRAME_STAT2 = BlzCreateFrameByType("BACKDROP","",FRAME_GAME_UI,"",0)
+			set FRAME_STAT2 = BlzCreateFrameByType("FRAME","",FRAME_GAME_UI,"",0)
 			call BlzFrameSetPoint(FRAME_STAT2,FRAMEPOINT_TOPLEFT,FRAME_STAT1,FRAMEPOINT_TOPRIGHT,0.,0.)
-			call BlzFrameSetPoint(FRAME_STAT2,FRAMEPOINT_BOTTOMRIGHT,FRAME_HP_BAR,FRAMEPOINT_TOPRIGHT,0.,0.)
-			call BlzFrameSetTexture(FRAME_STAT2,"Textures\\Black32.blp",0,true)
-			call BlzFrameSetAlpha(FRAME_STAT2,128)
+			set f = BlzCreateFrameByType("BACKDROP","",FRAME_STAT2,"",0)
+			call BlzFrameSetTexture(f,"Textures\\Black32.blp",0,true)
+			call BlzFrameSetAlpha(f,128)
+			call BlzFrameSetAllPoints(f,FRAME_STAT2)
+			/*체력바 마나바*/
+			set FRAME_HP_BAR = BlzCreateFrameByType("FRAME","",FRAME_GAME_UI,"",0)
+			call BlzFrameSetPoint(FRAME_HP_BAR,FRAMEPOINT_BOTTOMLEFT,FRAME_ORIGIN,FRAMEPOINT_BOTTOM,/*
+				*/Math.px2Size(-BAR_WIDTH/2),Math.px2Size(HP_BAR_OFFSET_Y))
+			call BlzFrameSetSize(FRAME_HP_BAR,Math.px2Size(BAR_WIDTH),Math.px2Size(BAR_HEIGHT))
+			set f = BlzCreateFrameByType("BACKDROP","",FRAME_HP_BAR,"",0)
+			call BlzFrameSetTexture(f,"ReplaceableTextures\\teamcolor\\teamcolor10.blp",0,true)
+			call BlzFrameSetAlpha(f,96)
+			call BlzFrameSetAllPoints(f,FRAME_HP_BAR)
+			/*setPoint*/call BlzFrameSetPoint(FRAME_STAT2,FRAMEPOINT_BOTTOMRIGHT,FRAME_HP_BAR,FRAMEPOINT_TOPRIGHT,0.,0.)
+			set FRAME_MP_BAR = BlzCreateFrameByType("BACKDROP","",FRAME_GAME_UI,"",0)
+			call BlzFrameSetPoint(FRAME_MP_BAR,FRAMEPOINT_BOTTOMLEFT,FRAME_ORIGIN,FRAMEPOINT_BOTTOM,/*
+				*/Math.px2Size(-BAR_WIDTH/2),Math.px2Size(MP_BAR_OFFSET_Y))
+			call BlzFrameSetSize(FRAME_MP_BAR,Math.px2Size(BAR_WIDTH),Math.px2Size(BAR_HEIGHT))
+			set f = BlzCreateFrameByType("BACKDROP","",FRAME_MP_BAR,"",0)
+			call BlzFrameSetTexture(f,"ReplaceableTextures\\teamcolor\\teamcolor13.blp",0,true)
+			call BlzFrameSetAlpha(f,96)
+			call BlzFrameSetAllPoints(f,FRAME_MP_BAR)
 			/*경험치바*/
 			set FRAME_EXP_BAR = BlzCreateFrameByType("BACKDROP","",FRAME_GAME_UI,"",0)
 			call BlzFrameSetPoint(FRAME_EXP_BAR,FRAMEPOINT_BOTTOMLEFT,FRAME_STAT1,FRAMEPOINT_BOTTOMLEFT,0.,0.)
 			call BlzFrameSetPoint(FRAME_EXP_BAR,FRAMEPOINT_TOPRIGHT,FRAME_STAT1,FRAMEPOINT_BOTTOMRIGHT,0.,Math.px2Size(EXP_BAR_HEIGHT))
 			call BlzFrameSetTexture(FRAME_EXP_BAR,"replaceabletextures\\teamcolor\\teamcolor03.blp",0,true)
+			call BlzFrameSetVisible(FRAME_EXP_BAR,false)
 			/*포션제조*/
 			set FRAME_MAKE_POTION = BlzCreateFrameByType("FRAME","",FRAME_GAME_UI,"",0)
 			call BlzFrameSetPoint(FRAME_MAKE_POTION,FRAMEPOINT_TOPLEFT,FRAME_ORIGIN,FRAMEPOINT_TOPLEFT,0,0)
@@ -1308,7 +1337,7 @@ library UI
 			set f = BlzCreateFrame("MyTextLarge",FRAME_SKILL_SHOP_BACKDROP,0,0)
 			call BlzFrameSetPoint(f,FRAMEPOINT_BOTTOM,FRAME_SKILL_SHOP_BACKDROP,FRAMEPOINT_TOP,0.,-0.0125)
 			call BlzFrameSetTextAlignment(f,TEXT_JUSTIFY_BOTTOM,TEXT_JUSTIFY_CENTER)
-			call BlzFrameSetText(f,"상점")
+			call BlzFrameSetText(f,"상점 (T)")
 			call BlzFrameSetPoint(bf,FRAMEPOINT_BOTTOMLEFT,f,FRAMEPOINT_BOTTOMLEFT,-0.005,-0.005)
 			call BlzFrameSetPoint(bf,FRAMEPOINT_TOPRIGHT,f,FRAMEPOINT_TOPRIGHT,0.005,0.005)
 			set FRAME_SKILL_SHOP = BlzCreateFrameByType("BACKDROP","",FRAME_GAME_UI,"",0)
@@ -1318,30 +1347,48 @@ library UI
 			call BlzFrameSetVisible(FRAME_SKILL_SHOP_BACKDROP,false)
 			/*슬롯체인저*/
 			set FRAME_SLOT_CHANGER = BlzCreateFrame("MBEdge",FRAME_GAME_UI,0,0)
-			call BlzFrameSetPoint(FRAME_SLOT_CHANGER,FRAMEPOINT_CENTER,FRAME_ORIGIN,FRAMEPOINT_CENTER,0.,Math.px2Size(SLOT_CHANGER_OFFSET_Y))
+			call BlzFrameSetPoint(FRAME_SLOT_CHANGER,FRAMEPOINT_BOTTOM,FRAME_ORIGIN,FRAMEPOINT_BOTTOM,0.,Math.px2Size(SLOT_CHANGER_OFFSET_Y))
 			call BlzFrameSetSize(FRAME_SLOT_CHANGER,Math.px2Size(SLOT_CHANGER_WIDTH),Math.px2Size(SLOT_CHANGER_HEIGHT))
 			call BlzFrameSetVisible(FRAME_SLOT_CHANGER,false)
-			set f = BlzCreateFrame("MyTextBox",FRAME_SLOT_CHANGER,0,0)
-			set bf = f
-			set f = BlzCreateFrame("MyText",FRAME_SLOT_CHANGER,0,0)
-			call BlzFrameSetPoint(f,FRAMEPOINT_BOTTOM,FRAME_SLOT_CHANGER,FRAMEPOINT_TOP,0.,0.)
+			set f = BlzCreateFrameByType("FRAME","",FRAME_SLOT_CHANGER,"",0)
+			call BlzFrameSetAllPoints(f,FRAME_SLOT_CHANGER)
+			set f = BlzCreateFrameByType("BACKDROP","",FRAME_SLOT_CHANGER,"",0)
+			call BlzFrameSetPointPixel(f,FRAMEPOINT_BOTTOMLEFT,FRAME_SLOT_CHANGER,FRAMEPOINT_BOTTOMLEFT,12,12)
+			call BlzFrameSetPointPixel(f,FRAMEPOINT_TOPRIGHT,FRAME_SLOT_CHANGER,FRAMEPOINT_TOPRIGHT,-12,-12)
+			call BlzFrameSetTexture(f,"textures\\black32.blp",0,true)
+			set f = BlzCreateFrame("MyTextLarge",FRAME_SLOT_CHANGER,0,0)
+			call BlzFrameSetPointPixel(f,FRAMEPOINT_TOPLEFT,FRAME_SLOT_CHANGER,FRAMEPOINT_TOPLEFT,16,-16)
 			call BlzFrameSetTextAlignment(f,TEXT_JUSTIFY_BOTTOM,TEXT_JUSTIFY_CENTER)
-			call BlzFrameSetText(f,"단축키 변경")
-			call BlzFrameSetPoint(bf,FRAMEPOINT_BOTTOMLEFT,f,FRAMEPOINT_BOTTOMLEFT,-0.005,-0.005)
-			call BlzFrameSetPoint(bf,FRAMEPOINT_TOPRIGHT,f,FRAMEPOINT_TOPRIGHT,0.005,0.005)
+			call BlzFrameSetText(f,"|cffffcc00단축키 변경 (G)|r")
 			/*인벤토리*/
 			set FRAME_INVENTORY = BlzCreateFrame("MBEdge",FRAME_GAME_UI,0,0)
 			call BlzFrameSetPointPixel(FRAME_INVENTORY,FRAMEPOINT_BOTTOMRIGHT,FRAME_ORIGIN,FRAMEPOINT_BOTTOMRIGHT,INVENTORY_OFFSET_X,INVENTORY_OFFSET_Y)
 			call BlzFrameSetSizePixel(FRAME_INVENTORY,INVENTORY_WIDTH,INVENTORY_HEIGHT)
 			call BlzFrameSetVisible(FRAME_INVENTORY,false)
-			set f = BlzCreateFrame("MyTextBox",FRAME_INVENTORY,0,0)
-			set bf = f
-			set f = BlzCreateFrame("MyText",FRAME_INVENTORY,0,0)
-			call BlzFrameSetPoint(f,FRAMEPOINT_BOTTOM,FRAME_INVENTORY,FRAMEPOINT_TOP,0.,0.)
-			call BlzFrameSetTextAlignment(f,TEXT_JUSTIFY_BOTTOM,TEXT_JUSTIFY_CENTER)
-			call BlzFrameSetText(f,"소지품")
-			call BlzFrameSetPoint(bf,FRAMEPOINT_BOTTOMLEFT,f,FRAMEPOINT_BOTTOMLEFT,-0.005,-0.005)
-			call BlzFrameSetPoint(bf,FRAMEPOINT_TOPRIGHT,f,FRAMEPOINT_TOPRIGHT,0.005,0.005)
+			set f = BlzCreateFrameByType("FRAME","",FRAME_INVENTORY,"",0)
+			call BlzFrameSetAllPoints(f,FRAME_INVENTORY)
+			set f = BlzCreateFrame("MyTextLarge",FRAME_INVENTORY,0,0)
+			call BlzFrameSetPointPixel(f,FRAMEPOINT_TOP,FRAME_INVENTORY,FRAMEPOINT_TOP,0.,-16)
+			call BlzFrameSetText(f,"|cffffcc00소지품 (B)|r")
+				/*카테고리버튼*/
+			//! textmacro inventoryCategoryButton takes typeprime, typecapital, xoffset
+			set FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_$typeprime$] = BlzCreateFrame("InventoryCategory$typecapital$Button",FRAME_INVENTORY,0,0)
+			call BlzFrameSetPointPixel(FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_$typeprime$],FRAMEPOINT_TOPLEFT,FRAME_INVENTORY,FRAMEPOINT_TOPLEFT,32+$xoffset$,-32)
+			call BlzFrameSetSizePixel(FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_$typeprime$],32,32)
+			set FRAME_INVENTORY_CATEGORY_TOOLTIP[ITEMTYPE_$typeprime$] = BlzCreateFrameByType("FRAME","",FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_$typeprime$],"",0)
+				set f = BlzCreateFrame("MyTextBox",FRAME_INVENTORY_CATEGORY_TOOLTIP[ITEMTYPE_$typeprime$],0,0)
+				set bf = f
+				set f = BlzCreateFrame("MyText",FRAME_INVENTORY_CATEGORY_TOOLTIP[ITEMTYPE_$typeprime$],0,0)
+				call BlzFrameSetPointPixel(f,FRAMEPOINT_BOTTOMLEFT,FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_$typeprime$],FRAMEPOINT_TOPLEFT,8,8)
+				call BlzFrameSetText(f,ITEMTYPE_NAME[ITEMTYPE_$typeprime$])
+				call BlzFrameSetPointPixel(bf,FRAMEPOINT_BOTTOMLEFT,f,FRAMEPOINT_BOTTOMLEFT,-8,-8)
+				call BlzFrameSetPointPixel(bf,FRAMEPOINT_TOPRIGHT,f,FRAMEPOINT_TOPRIGHT,8,8)
+				call BlzFrameSetTooltip(FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_$typeprime$],FRAME_INVENTORY_CATEGORY_TOOLTIP[ITEMTYPE_$typeprime$])
+			//! endtextmacro
+			//! runtextmacro inventoryCategoryButton("MATERIAL","Material","0")
+			//! runtextmacro inventoryCategoryButton("ARTIFACT","Artifact","40")
+			//! runtextmacro inventoryCategoryButton("FOOD","Food","80")
+			//! runtextmacro inventoryCategoryButton("GACHA","Gacha","120")
 			/*버튼*/
 				/*인벤토리버튼*/
 			set FRAME_INVENTORY_BUTTON = BlzCreateFrame("InventoryUIButton",FRAME_GAME_UI,0,0)
@@ -1417,6 +1464,14 @@ library UI
 			call BlzTriggerRegisterFrameEvent(FRAME_BUTTON_TRIGGER,FRAME_SLOT_CHANGER_BUTTON,FRAMEEVENT_MOUSE_LEAVE)
 			call BlzTriggerRegisterFrameEvent(FRAME_BUTTON_TRIGGER,FRAME_SKILL_SHOP_BUTTON,FRAMEEVENT_CONTROL_CLICK)
 			call BlzTriggerRegisterFrameEvent(FRAME_BUTTON_TRIGGER,FRAME_SKILL_SHOP_BUTTON,FRAMEEVENT_MOUSE_LEAVE)
+			call BlzTriggerRegisterFrameEvent(FRAME_BUTTON_TRIGGER,FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_MATERIAL],FRAMEEVENT_CONTROL_CLICK)
+			call BlzTriggerRegisterFrameEvent(FRAME_BUTTON_TRIGGER,FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_MATERIAL],FRAMEEVENT_MOUSE_LEAVE)
+			call BlzTriggerRegisterFrameEvent(FRAME_BUTTON_TRIGGER,FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_ARTIFACT],FRAMEEVENT_CONTROL_CLICK)
+			call BlzTriggerRegisterFrameEvent(FRAME_BUTTON_TRIGGER,FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_ARTIFACT],FRAMEEVENT_MOUSE_LEAVE)
+			call BlzTriggerRegisterFrameEvent(FRAME_BUTTON_TRIGGER,FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_FOOD],FRAMEEVENT_CONTROL_CLICK)
+			call BlzTriggerRegisterFrameEvent(FRAME_BUTTON_TRIGGER,FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_FOOD],FRAMEEVENT_MOUSE_LEAVE)
+			call BlzTriggerRegisterFrameEvent(FRAME_BUTTON_TRIGGER,FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_GACHA],FRAMEEVENT_CONTROL_CLICK)
+			call BlzTriggerRegisterFrameEvent(FRAME_BUTTON_TRIGGER,FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_GACHA],FRAMEEVENT_MOUSE_LEAVE)
 			call TriggerAddCondition(FRAME_BUTTON_TRIGGER,function thistype.genericButtonAction)
 			/*핸들프리*/
 			set bf = null

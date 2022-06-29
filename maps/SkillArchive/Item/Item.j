@@ -19,6 +19,8 @@ library Item requires Frame
 
 		constant integer ITEMTYPE_MATERIAL = 0
 		constant integer ITEMTYPE_ARTIFACT = 1
+		constant integer ITEMTYPE_FOOD = 2
+		constant integer ITEMTYPE_GACHA = 3
 
 		string array ITEMTYPE_ICON
 		string array ITEMTYPE_NAME
@@ -125,6 +127,10 @@ library Item requires Frame
 			call SaveInteger(HASH,target,setnum,val)
 		endmethod
 
+		stub method getDialogText takes nothing returns string
+			return "Tooltip Missing"
+		endmethod
+
 		stub method relativeTooltip takes nothing returns string
 			return "Tooltip Missing"
 		endmethod
@@ -224,8 +230,12 @@ library Item requires Frame
 			//
 			set ITEMTYPE_NAME[ITEMTYPE_MATERIAL] = "소재"
 			set ITEMTYPE_NAME[ITEMTYPE_ARTIFACT] = "아티팩트"
-			set ITEMTYPE_ICON[ITEMTYPE_MATERIAL] = "replaceabletextures\\commandbuttons\\btnfootman.blp"
+			set ITEMTYPE_NAME[ITEMTYPE_FOOD] = "음식"
+			set ITEMTYPE_NAME[ITEMTYPE_GACHA] = "가챠"
+			set ITEMTYPE_ICON[ITEMTYPE_MATERIAL] = "ui\\widgets\\tooltips\\human\\tooltipmaterialicon.blp"
 			set ITEMTYPE_ICON[ITEMTYPE_ARTIFACT] = "ui\\widgets\\tooltips\\human\\tooltipartifacticon.blp"
+			set ITEMTYPE_ICON[ITEMTYPE_FOOD] = "ui\\widgets\\tooltips\\human\\tooltipfoodicon.blp"
+			set ITEMTYPE_ICON[ITEMTYPE_GACHA] = "ui\\widgets\\tooltips\\human\\tooltipgachaicon.blp"
 			//
 			set ITEMSET_DESC1[ITEMSET_ETERNAL_CYCLONE] = "영구순환의 소용돌이 2세트효과(작성중)"
 			set ITEMSET_DESC2[ITEMSET_ETERNAL_CYCLONE] = "영구순환의 소용돌이 4세트효과(작성중)"

@@ -70,7 +70,12 @@ library SkillShop requires UI
 				/*무기변형이면*/
 				call BlzFrameSetVisible(.info_weapon_backdrop,Ability.getTypeIsWeapon(id))
 				/*어빌리티 이름*/
-				call BlzFrameSetText(.name,TIER_STRING_COLOR[Ability.getTypeTier(id)]+Ability.getTypeName(id)+"|r")
+				if .lucky then
+					call BlzFrameSetText(.name,TIER_STRING_COLOR[Ability.getTypeTier(id)]+Ability.getTypeName(id)+"|r"+/*
+					*/STAT_TYPE_COLOR[STAT_TYPE_LUCK]+" x2|r")
+				else
+					call BlzFrameSetText(.name,TIER_STRING_COLOR[Ability.getTypeTier(id)]+Ability.getTypeName(id)+"|r")
+				endif
 				/*어빌리티태그*/
 				set i = 0
 				loop
@@ -91,12 +96,7 @@ library SkillShop requires UI
 				call BlzFrameSetTexture(.bonus_stat2,STAT_TYPE_ICON[Ability.getTypeBonusStatIndex(id,1)],0,true)
 				/*구매버튼*/
 				call BlzFrameSetPoint(BlzGetFrameByName("SkillShopBuyButtonText",this),FRAMEPOINT_CENTER,.btn,FRAMEPOINT_CENTER,Math.px2Size(12),0.)
-				if .lucky then
-					call BlzFrameSetText(BlzGetFrameByName("SkillShopBuyButtonText",this),"|cffffcc00"+I2S(Ability.getTypeCost(id))+"|r"+/*
-					*/STAT_TYPE_COLOR[STAT_TYPE_LUCK]+" (+2)|r")
-				else
-					call BlzFrameSetText(BlzGetFrameByName("SkillShopBuyButtonText",this),"|cffffcc00"+I2S(Ability.getTypeCost(id))+"|r")
-				endif
+				call BlzFrameSetText(BlzGetFrameByName("SkillShopBuyButtonText",this),"|cffffcc00"+I2S(Ability.getTypeCost(id))+"|r")
 			endif
 		endmethod
 
