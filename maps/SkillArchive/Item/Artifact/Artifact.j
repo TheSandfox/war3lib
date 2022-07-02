@@ -1,9 +1,7 @@
 library Artifact requires Item
 
 	globals
-		private constant integer LIMIT = 1024
 		private constant integer STAT_SIZE = 4
-		private constant integer LIMIT2 = LIMIT * STAT_SIZE
 
 		trigger ARTIFACT_UI_REFRESH = CreateTrigger()
 		player ARTIFACT_UI_REFRESH_PLAYER = null
@@ -48,14 +46,16 @@ library Artifact requires Item
 
 	struct Artifact extends Item
 
+		private static hashtable HASH = InitHashtable()
+		private static constant integer INDEX_BACKDROP = 0
+		private static constant integer INDEX_TEXT = 4
+		private static constant integer INDEX_STAT_TYPE = 8
+		private static constant integer INDEX_STAT_BONUS = 12
+		private static constant integer INDEX_STAT_VALUE = 16
+
 		static integer CREATE_ID = 0
 		static integer LAST_CREATED = 0
 		static trigger CREATE_TRIGGER = null
-		static integer array STAT_TYPE[LIMIT2]	/*장비의 스탯보너스 종류*/
-		static real array STAT_BONUS[LIMIT2]	/*장비의 스탯보너스 양*/
-		static real array STAT_VALUE[LIMIT2]	/*착용자에게 실적용돼있는 값*/
-		static framehandle array BACKDROP[LIMIT2]
-		static framehandle array TEXT[LIMIT2]
 
 		integer level = 1
 		integer exp = 0
@@ -66,49 +66,52 @@ library Artifact requires Item
 		endmethod
 
 		method getBackdrop takes integer index returns framehandle
-			return BACKDROP[this*STAT_SIZE+index]
+			return LoadFrameHandle(HASH,this,INDEX_BACKDROP+index)
+			//return BACKDROP[this*STAT_SIZE+index]
 		endmethod
 
 		method setBackdrop takes integer index, framehandle f returns nothing
-			if f == null and BACKDROP[this*STAT_SIZE+index] != null then
-				call BlzDestroyFrame(BACKDROP[this*STAT_SIZE+index])
+			if f == null and HaveSavedHandle(HASH,this,INDEX_BACKDROP+index) then
+				call BlzDestroyFrame(LoadFrameHandle(HASH,this,INDEX_BACKDROP+index))
+				call RemoveSavedHandle(HASH,this,INDEX_BACKDROP+index)
 			endif
-			set BACKDROP[this*STAT_SIZE+index] = f
+			call SaveFrameHandle(HASH,this,INDEX_BACKDROP+index,f)
 		endmethod
 
 		method getText takes integer index returns framehandle
-			return TEXT[this*STAT_SIZE+index]
+			return LoadFrameHandle(HASH,this,INDEX_TEXT+index)
 		endmethod
 
 		method setText takes integer index, framehandle f returns nothing
-			if f == null and TEXT[this*STAT_SIZE+index] != null then
-				call BlzDestroyFrame(TEXT[this*STAT_SIZE+index])
+			if f == null and HaveSavedHandle(HASH,this,INDEX_TEXT+index) then
+				call BlzDestroyFrame(LoadFrameHandle(HASH,this,INDEX_TEXT+index))
+				call RemoveSavedHandle(HASH,this,INDEX_TEXT+index)
 			endif
-			set TEXT[this*STAT_SIZE+index] = f
+			call SaveFrameHandle(HASH,this,INDEX_TEXT+index,f)
 		endmethod
 
 		method getStatType takes integer index returns integer
-			return STAT_TYPE[this*STAT_SIZE+index]
+			return LoadInteger(HASH,this,INDEX_STAT_TYPE+index)
 		endmethod
 
 		method setStatType takes integer index, integer newval returns nothing
-			set STAT_TYPE[this*STAT_SIZE+index] = newval
+			call SaveInteger(HASH,this,INDEX_STAT_TYPE+index,newval)
 		endmethod
 
 		method getStatBonus takes integer index returns real
-			return STAT_BONUS[this*STAT_SIZE+index]
+			return LoadReal(HASH,this,INDEX_STAT_BONUS+index)
 		endmethod
 
 		method setStatBonus takes integer index, real newval returns nothing
-			set STAT_BONUS[this*STAT_SIZE+index] = newval
+			call SaveReal(HASH,this,INDEX_STAT_BONUS+index,newval)
 		endmethod
 
 		method getStatValue takes integer index returns real
-			return STAT_VALUE[this*STAT_SIZE+index]
+			return LoadReal(HASH,this,INDEX_STAT_VALUE+index)
 		endmethod
 
 		method setStatValue takes integer index, real newval returns nothing
-			set STAT_VALUE[this*STAT_SIZE+index] = newval
+			call SaveReal(HASH,this,INDEX_STAT_VALUE+index,newval)
 		endmethod
 
 		method registArtifact takes Unit owner, integer aid, boolean flag returns nothing
@@ -194,6 +197,10 @@ library Artifact requires Item
 			call applyStatValue(index)
 		endmethod
 
+		method getExtraText takes nothing returns string
+			return "+"+I2S(.level)
+		endmethod
+
 		stub method activate takes nothing returns nothing
 		
 		endmethod
@@ -217,7 +224,7 @@ library Artifact requires Item
 		endmethod
 
 		method onRightClick takes nothing returns boolean
-			local Unit u = User.getFocusUnit(GetTriggerPlayer())
+			local Unit u = User.getFocusUnit(INVENTORY_ITEM_USE_PLAYER)
 			local integer result = 0
 			if u > 0 then
 				if u.getItemById(.id) > 0 then
@@ -225,7 +232,7 @@ library Artifact requires Item
 				else
 					set result = equip(u)
 					if result == 1 then
-						call UI.THIS[GetPlayerId(GetTriggerPlayer())].refreshArtifactIcons()
+						call UI.THIS[GetPlayerId(INVENTORY_ITEM_USE_PLAYER)].refreshArtifactIcons()
 						return true
 					else
 						return false
@@ -299,12 +306,7 @@ library Artifact requires Item
 		static method create takes nothing returns thistype
 			local thistype this = allocate()
 			set .itemtype = ITEMTYPE_ARTIFACT
-			if this >= LIMIT then
-				call destroy()
-				return 0
-			else
-				return this
-			endif
+			return this
 		endmethod
 
 		static method new takes integer iid returns thistype

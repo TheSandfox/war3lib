@@ -25,7 +25,12 @@ library UI
 		framehandle FRAME_INVENTORY = null
 		framehandle FRAME_INVENTORY_BUTTON = null
 		framehandle FRAME_INVENTORY_BUTTON_TOOLTIP = null
+		framehandle FRAME_CRAFT = null
+		framehandle FRAME_CRAFT_BUTTON = null
+		framehandle FRAME_CRAFT_BUTTON_TOOLTIP = null
 		framehandle FRAME_MAKE_POTION = null
+		framehandle FRAME_TOOLTIP = null
+		framehandle FRAME_OVERLAY = null
 		framehandle array FRAME_ABILITY_ICON[10]
 		framehandle array FRAME_ARTIFACT_ICON[4]
 		framehandle array FRAME_INVENTORY_CATEGORY_BUTTON[4]
@@ -59,6 +64,7 @@ library UI
 		private constant integer INVENTORY_HEIGHT = 48*4 + 64 + 40 /* 64*8 + 64 + 40 */
 		private constant integer INVENTORY_OFFSET_X = 0
 		private constant integer INVENTORY_OFFSET_Y = 16+256
+		private constant integer CRAFT_WIDTH = 320
 		private constant integer ABILITY_ERROR_OFFSET_Y = 268 /*FROM BOTTOM*/
 		private constant integer SLOT_CHANGER_WIDTH = 720//(64*10)+16
 		private constant integer SLOT_CHANGER_HEIGHT = 96 + 24 + 24 + 96//(64*3)+16
@@ -614,6 +620,7 @@ library UI
 		integer emitter_state = -1 /*0:투명, 1:파랑, 2:노랑*/
 
 		player owner = null
+		framehandle container = null
 		framehandle model = null
 		framehandle backdrop = null
 		framehandle hover = null
@@ -668,10 +675,10 @@ library UI
 				if .tooltip != null then
 					call BlzFrameSetVisible(.tooltip,false)
 				endif
-			elseif .in and BlzGetTriggerPlayerMouseButton() == MOUSE_BUTTON_TYPE_RIGHT then
+			/*elseif .in and BlzGetTriggerPlayerMouseButton() == MOUSE_BUTTON_TYPE_RIGHT then
 				if Inventory.THIS[GetPlayerId(GetTriggerPlayer())].visible_flag then
 					call unequipRequest()
-				endif
+				endif*/
 			endif
 		endmethod
 
@@ -706,26 +713,29 @@ library UI
 			local thistype this = allocate()
 			set .index = index
 			set .owner = owner
-			set .model = BlzCreateFrameByType("SPRITE","",FRAME_GAME_UI,"",0)
+			set .container = BlzCreateFrameByType("FRAME","",FRAME_GAME_UI,"",0)
+			call BlzFrameSetVisible(.container,GetLocalPlayer() == .owner)
+			set .model = BlzCreateFrameByType("SPRITE","",.container,"",0)
 			call BlzFrameSetModel(.model,"ui\\ui_artifact_emitter_yellow.mdl",0)
-			set .backdrop = BlzCreateFrameByType("BACKDROP","",FRAME_GAME_UI,"",0)
+			set .backdrop = BlzCreateFrameByType("BACKDROP","",.container,"",0)
 			call BlzFrameSetAllPoints(.backdrop,FRAME_ARTIFACT_ICON[.index])
 			call BlzFrameSetVisible(.backdrop,false)
 			call BlzFrameSetPoint(.model,FRAMEPOINT_BOTTOMLEFT,.backdrop,FRAMEPOINT_BOTTOMLEFT,0.,0.)
 			call BlzFrameSetSize(.model,0.00001,0.00001)
-			set .hover = BlzCreateFrameByType("BUTTON","",FRAME_ARTIFACT_ICON[.index],"",0)
+			set .hover = BlzCreateFrameByType("BUTTON","",.container,"",0)
 			call BlzFrameSetAllPoints(.hover,.backdrop)
 			set .main_trigger = Trigger.new(this)
 			call BlzTriggerRegisterFrameEvent(.main_trigger,.hover,FRAMEEVENT_MOUSE_ENTER)
 			call BlzTriggerRegisterFrameEvent(.main_trigger,.hover,FRAMEEVENT_MOUSE_LEAVE)
 			call BlzTriggerRegisterFrameEvent(.main_trigger,.hover,FRAMEEVENT_CONTROL_CLICK)
-			call TriggerRegisterPlayerEvent(.main_trigger,.owner,EVENT_PLAYER_MOUSE_DOWN)
+			//call TriggerRegisterPlayerEvent(.main_trigger,.owner,EVENT_PLAYER_MOUSE_DOWN)
 			set .main_cond = TriggerAddCondition(.main_trigger,function thistype.cond)
 			call hideEmitter()
 			return this
 		endmethod
 
 		method onDestroy takes nothing returns nothing
+			//! runtextmacro destroyFrame(".container")
 			//! runtextmacro destroyFrame(".model")
 			//! runtextmacro destroyFrame(".backdrop")
 			//! runtextmacro destroyFrame(".hover")
@@ -1217,6 +1227,9 @@ library UI
 			elseif BlzGetTriggerFrame() == FRAME_INVENTORY_BUTTON then
 				call Inventory.THIS[GetPlayerId(GetTriggerPlayer())].switch()
 				return
+			elseif BlzGetTriggerFrame() == FRAME_CRAFT_BUTTON then
+				call Craft.THIS[GetPlayerId(GetTriggerPlayer())].switch()
+				return
 			elseif BlzGetTriggerFrame() == FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_MATERIAL] then
 				call Inventory.THIS[GetPlayerId(GetTriggerPlayer())].changeCategory(ITEMTYPE_MATERIAL)
 				return
@@ -1243,6 +1256,8 @@ library UI
 			local trigger t = null
 			set FRAME_ORIGIN = BlzGetOriginFrame(ORIGIN_FRAME_GAME_UI,0)
 			set FRAME_GAME_UI = BlzCreateFrameByType("FRAME","",FRAME_ORIGIN,"",0)
+			set FRAME_TOOLTIP = BlzCreateFrameByType("FRAME","",FRAME_ORIGIN,"",0)
+			set FRAME_OVERLAY = BlzCreateFrameByType("FRAME","",FRAME_ORIGIN,"",0)
 			/**/
 			call BlzFrameSetPoint(FRAME_GAME_UI,FRAMEPOINT_BOTTOMLEFT,FRAME_ORIGIN,FRAMEPOINT_BOTTOMLEFT,0.,0.)
 			/*미니맵*/
@@ -1337,7 +1352,7 @@ library UI
 			set f = BlzCreateFrame("MyTextLarge",FRAME_SKILL_SHOP_BACKDROP,0,0)
 			call BlzFrameSetPoint(f,FRAMEPOINT_BOTTOM,FRAME_SKILL_SHOP_BACKDROP,FRAMEPOINT_TOP,0.,-0.0125)
 			call BlzFrameSetTextAlignment(f,TEXT_JUSTIFY_BOTTOM,TEXT_JUSTIFY_CENTER)
-			call BlzFrameSetText(f,"상점 (T)")
+			call BlzFrameSetText(f,"상점")
 			call BlzFrameSetPoint(bf,FRAMEPOINT_BOTTOMLEFT,f,FRAMEPOINT_BOTTOMLEFT,-0.005,-0.005)
 			call BlzFrameSetPoint(bf,FRAMEPOINT_TOPRIGHT,f,FRAMEPOINT_TOPRIGHT,0.005,0.005)
 			set FRAME_SKILL_SHOP = BlzCreateFrameByType("BACKDROP","",FRAME_GAME_UI,"",0)
@@ -1359,7 +1374,7 @@ library UI
 			set f = BlzCreateFrame("MyTextLarge",FRAME_SLOT_CHANGER,0,0)
 			call BlzFrameSetPointPixel(f,FRAMEPOINT_TOPLEFT,FRAME_SLOT_CHANGER,FRAMEPOINT_TOPLEFT,16,-16)
 			call BlzFrameSetTextAlignment(f,TEXT_JUSTIFY_BOTTOM,TEXT_JUSTIFY_CENTER)
-			call BlzFrameSetText(f,"|cffffcc00단축키 변경 (G)|r")
+			call BlzFrameSetText(f,"|cffffcc00단축키 변경|r")
 			/*인벤토리*/
 			set FRAME_INVENTORY = BlzCreateFrame("MBEdge",FRAME_GAME_UI,0,0)
 			call BlzFrameSetPointPixel(FRAME_INVENTORY,FRAMEPOINT_BOTTOMRIGHT,FRAME_ORIGIN,FRAMEPOINT_BOTTOMRIGHT,INVENTORY_OFFSET_X,INVENTORY_OFFSET_Y)
@@ -1369,7 +1384,17 @@ library UI
 			call BlzFrameSetAllPoints(f,FRAME_INVENTORY)
 			set f = BlzCreateFrame("MyTextLarge",FRAME_INVENTORY,0,0)
 			call BlzFrameSetPointPixel(f,FRAMEPOINT_TOP,FRAME_INVENTORY,FRAMEPOINT_TOP,0.,-16)
-			call BlzFrameSetText(f,"|cffffcc00소지품 (B)|r")
+			call BlzFrameSetText(f,"|cffffcc00소지품|r")
+			/*공방*/
+			set FRAME_CRAFT = BlzCreateFrame("MBEdge",FRAME_GAME_UI,0,0)
+			call BlzFrameSetPoint(FRAME_CRAFT,FRAMEPOINT_BOTTOMRIGHT,FRAME_INVENTORY,FRAMEPOINT_BOTTOMLEFT,0.,0.)
+			call BlzFrameSetSizePixel(FRAME_CRAFT,CRAFT_WIDTH,INVENTORY_HEIGHT)
+			call BlzFrameSetVisible(FRAME_CRAFT,false)
+			set f = BlzCreateFrameByType("FRAME","",FRAME_CRAFT,"",0)
+			call BlzFrameSetAllPoints(f,FRAME_CRAFT)
+			set f = BlzCreateFrame("MyTextLarge",FRAME_CRAFT,0,0)
+			call BlzFrameSetPointPixel(f,FRAMEPOINT_TOP,FRAME_CRAFT,FRAMEPOINT_TOP,0.,-16)
+			call BlzFrameSetText(f,"|cffffcc00공방|r")
 				/*카테고리버튼*/
 			//! textmacro inventoryCategoryButton takes typeprime, typecapital, xoffset
 			set FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_$typeprime$] = BlzCreateFrame("InventoryCategory$typecapital$Button",FRAME_INVENTORY,0,0)
@@ -1389,59 +1414,33 @@ library UI
 			//! runtextmacro inventoryCategoryButton("ARTIFACT","Artifact","40")
 			//! runtextmacro inventoryCategoryButton("FOOD","Food","80")
 			//! runtextmacro inventoryCategoryButton("GACHA","Gacha","120")
-			/*버튼*/
-				/*인벤토리버튼*/
-			set FRAME_INVENTORY_BUTTON = BlzCreateFrame("InventoryUIButton",FRAME_GAME_UI,0,0)
-			call BlzFrameSetSizePixel(FRAME_INVENTORY_BUTTON,48,48)
-			set f = BlzGetFrameByName("InventoryUIButtonIcon",0)
-			call BlzFrameSetPointPixel(f,FRAMEPOINT_CENTER,FRAME_INVENTORY_BUTTON,FRAMEPOINT_CENTER,0,0)
-			call BlzFrameSetSizePixel(f,32,32)
-			call BlzFrameSetTexture(f,"replaceabletextures\\commandbuttons\\btnbag_08.blp",0,true)
-			set FRAME_INVENTORY_BUTTON_TOOLTIP = BlzCreateFrameByType("FRAME","",FRAME_INVENTORY_BUTTON,"",0)
-			call BlzFrameSetTooltip(FRAME_INVENTORY_BUTTON,FRAME_INVENTORY_BUTTON_TOOLTIP)
-			set f = BlzCreateFrame("MyTextBox",FRAME_INVENTORY_BUTTON_TOOLTIP,0,0)
-			set bf = f
-			set f = BlzCreateFrame("MyText",FRAME_INVENTORY_BUTTON_TOOLTIP,0,0)
-			call BlzFrameSetText(f,"|cffffcc00소지품|r |cffffffff(B)|r")
-			call BlzFrameSetPoint(f,FRAMEPOINT_BOTTOMLEFT,FRAME_INVENTORY_BUTTON,FRAMEPOINT_TOPLEFT,0.005,0.005)
-			call BlzFrameSetPoint(bf,FRAMEPOINT_BOTTOMLEFT,f,FRAMEPOINT_BOTTOMLEFT,-0.005,-0.005)
-			call BlzFrameSetPoint(bf,FRAMEPOINT_TOPRIGHT,f,FRAMEPOINT_TOPRIGHT,0.005,0.005)
-				/*슬롯체인저*/
-			set FRAME_SLOT_CHANGER_BUTTON = BlzCreateFrame("SlotChangerUIButton",FRAME_GAME_UI,0,0)
-			call BlzFrameSetSizePixel(FRAME_SLOT_CHANGER_BUTTON,48,48)
-			set f = BlzGetFrameByName("SlotChangerUIButtonIcon",0)
-			call BlzFrameSetPointPixel(f,FRAMEPOINT_CENTER,FRAME_SLOT_CHANGER_BUTTON,FRAMEPOINT_CENTER,0,0)
-			call BlzFrameSetSizePixel(f,32,32)
-			call BlzFrameSetTexture(f,"ReplaceableTextures\\CommandButtons\\BTNEngineeringUpgrade.blp",0,true)
-			set FRAME_SLOT_CHANGER_BUTTON_TOOLTIP = BlzCreateFrameByType("FRAME","",FRAME_SLOT_CHANGER_BUTTON,"",0)
-			call BlzFrameSetTooltip(FRAME_SLOT_CHANGER_BUTTON,FRAME_SLOT_CHANGER_BUTTON_TOOLTIP)
-			set f = BlzCreateFrame("MyTextBox",FRAME_SLOT_CHANGER_BUTTON_TOOLTIP,0,0)
-			set bf = f
-			set f = BlzCreateFrame("MyText",FRAME_SLOT_CHANGER_BUTTON_TOOLTIP,0,0)
-			call BlzFrameSetText(f,"|cffffcc00단축키 변경|r |cffffffff(G)|r")
-			call BlzFrameSetPoint(f,FRAMEPOINT_BOTTOMLEFT,FRAME_SLOT_CHANGER_BUTTON,FRAMEPOINT_TOPLEFT,0.005,0.005)
-			call BlzFrameSetPoint(bf,FRAMEPOINT_BOTTOMLEFT,f,FRAMEPOINT_BOTTOMLEFT,-0.005,-0.005)
-			call BlzFrameSetPoint(bf,FRAMEPOINT_TOPRIGHT,f,FRAMEPOINT_TOPRIGHT,0.005,0.005)
-				/*상점*/
-			set FRAME_SKILL_SHOP_BUTTON = BlzCreateFrame("SkillShopUIButton",FRAME_GAME_UI,0,0)
-			call BlzFrameSetSizePixel(FRAME_SKILL_SHOP_BUTTON,48,48)
-			set f = BlzGetFrameByName("SkillShopUIButtonIcon",0)
-			call BlzFrameSetPointPixel(f,FRAMEPOINT_CENTER,FRAME_SKILL_SHOP_BUTTON,FRAMEPOINT_CENTER,0,0)
-			call BlzFrameSetSizePixel(f,32,32)
-			call BlzFrameSetTexture(f,"ReplaceableTextures\\CommandButtons\\BTNMerchant.blp",0,true)
-			set FRAME_SKILL_SHOP_BUTTON_TOOLTIP = BlzCreateFrameByType("FRAME","",FRAME_SKILL_SHOP_BUTTON,"",0)
-			call BlzFrameSetTooltip(FRAME_SKILL_SHOP_BUTTON,FRAME_SKILL_SHOP_BUTTON_TOOLTIP)
-			set f = BlzCreateFrame("MyTextBox",FRAME_SKILL_SHOP_BUTTON_TOOLTIP,0,0)
-			set bf = f
-			set f = BlzCreateFrame("MyText",FRAME_SKILL_SHOP_BUTTON_TOOLTIP,0,0)
-			call BlzFrameSetText(f,"|cffffcc00상점|r |cffffffff(T)|r")
-			call BlzFrameSetPoint(f,FRAMEPOINT_BOTTOMLEFT,FRAME_SKILL_SHOP_BUTTON,FRAMEPOINT_TOPLEFT,0.005,0.005)
-			call BlzFrameSetPoint(bf,FRAMEPOINT_BOTTOMLEFT,f,FRAMEPOINT_BOTTOMLEFT,-0.005,-0.005)
-			call BlzFrameSetPoint(bf,FRAMEPOINT_TOPRIGHT,f,FRAMEPOINT_TOPRIGHT,0.005,0.005)
+			/*UI버튼*/
+			//! textmacro createUIButton takes prime, const, icon, hangul, shortcut
+				set FRAME_$const$_BUTTON = BlzCreateFrame("$prime$UIButton",FRAME_GAME_UI,0,0)
+				call BlzFrameSetSizePixel(FRAME_$const$_BUTTON,48,48)
+				set f = BlzGetFrameByName("$prime$UIButtonIcon",0)
+				call BlzFrameSetPointPixel(f,FRAMEPOINT_CENTER,FRAME_$const$_BUTTON,FRAMEPOINT_CENTER,0,0)
+				call BlzFrameSetSizePixel(f,32,32)
+				call BlzFrameSetTexture(f,"replaceabletextures\\commandbuttons\\$icon$.blp",0,true)
+				set FRAME_$const$_BUTTON_TOOLTIP = BlzCreateFrameByType("FRAME","",FRAME_$const$_BUTTON,"",0)
+				call BlzFrameSetTooltip(FRAME_$const$_BUTTON,FRAME_$const$_BUTTON_TOOLTIP)
+				set f = BlzCreateFrame("MyTextBox",FRAME_$const$_BUTTON_TOOLTIP,0,0)
+				set bf = f
+				set f = BlzCreateFrame("MyText",FRAME_$const$_BUTTON_TOOLTIP,0,0)
+				call BlzFrameSetText(f,"|cffffcc00$hangul$|r |cffffffff($shortcut$)|r")
+				call BlzFrameSetPoint(f,FRAMEPOINT_BOTTOMLEFT,FRAME_$const$_BUTTON,FRAMEPOINT_TOPLEFT,0.005,0.005)
+				call BlzFrameSetPoint(bf,FRAMEPOINT_BOTTOMLEFT,f,FRAMEPOINT_BOTTOMLEFT,-0.005,-0.005)
+				call BlzFrameSetPoint(bf,FRAMEPOINT_TOPRIGHT,f,FRAMEPOINT_TOPRIGHT,0.005,0.005)
+			//! endtextmacro
+			//! runtextmacro createUIButton("Inventory","INVENTORY","btnbag_08","소지품","B")
+			//! runtextmacro createUIButton("SlotChanger","SLOT_CHANGER","BTNEngineeringUpgrade","단축키 변경","G")
+			//! runtextmacro createUIButton("SkillShop","SKILL_SHOP","BTNMerchant","상점","T")
+			//! runtextmacro createUIButton("Craft","CRAFT","BTNblacksmithing","공방","U")
 				/*SET POINT*/
 			call BlzFrameSetPointPixel(FRAME_SKILL_SHOP_BUTTON,FRAMEPOINT_BOTTOMLEFT,FRAME_ABILITY_CONTAINER,FRAMEPOINT_BOTTOMRIGHT,0,0)
 			call BlzFrameSetPointPixel(FRAME_SLOT_CHANGER_BUTTON,FRAMEPOINT_BOTTOMLEFT,FRAME_SKILL_SHOP_BUTTON,FRAMEPOINT_BOTTOMRIGHT,0,0)
 			call BlzFrameSetPointPixel(FRAME_INVENTORY_BUTTON,FRAMEPOINT_BOTTOMLEFT,FRAME_SLOT_CHANGER_BUTTON,FRAMEPOINT_BOTTOMRIGHT,0,0)
+			call BlzFrameSetPointPixel(FRAME_CRAFT_BUTTON,FRAMEPOINT_BOTTOMLEFT,FRAME_INVENTORY_BUTTON,FRAMEPOINT_BOTTOMRIGHT,0,0)
 			/*아티팩트*/
 			set i = 0
 			loop
@@ -1458,6 +1457,8 @@ library UI
 			call BlzFrameSetPointPixel(FRAME_ARTIFACT_ICON[3],FRAMEPOINT_BOTTOMRIGHT,FRAME_ORIGIN,FRAMEPOINT_BOTTOMRIGHT,-96+ARTIFACT_ICON_OFFSET_X,16+ARTIFACT_ICON_OFFSET_Y)
 			/*트리거*/
 			set FRAME_BUTTON_TRIGGER = CreateTrigger()
+			call BlzTriggerRegisterFrameEvent(FRAME_BUTTON_TRIGGER,FRAME_CRAFT_BUTTON,FRAMEEVENT_CONTROL_CLICK)
+			call BlzTriggerRegisterFrameEvent(FRAME_BUTTON_TRIGGER,FRAME_CRAFT_BUTTON,FRAMEEVENT_MOUSE_LEAVE)
 			call BlzTriggerRegisterFrameEvent(FRAME_BUTTON_TRIGGER,FRAME_INVENTORY_BUTTON,FRAMEEVENT_CONTROL_CLICK)
 			call BlzTriggerRegisterFrameEvent(FRAME_BUTTON_TRIGGER,FRAME_INVENTORY_BUTTON,FRAMEEVENT_MOUSE_LEAVE)
 			call BlzTriggerRegisterFrameEvent(FRAME_BUTTON_TRIGGER,FRAME_SLOT_CHANGER_BUTTON,FRAMEEVENT_CONTROL_CLICK)
@@ -1504,7 +1505,7 @@ library UI
 			set INDEX_SLOT_CHANGER_INDEX = INDEX_SLOT_CHANGER_ICON + 10
 			set INDEX_SLOT_CHANGER_HOTKEY = INDEX_SLOT_CHANGER_INDEX + 10
 			set INDEX_INVENTORY_ICON = INDEX_SLOT_CHANGER_HOTKEY + 10
-			set INDEX_ARTIFACT_ICON = INDEX_INVENTORY_ICON + 40
+			set INDEX_ARTIFACT_ICON = INDEX_INVENTORY_ICON + Inventory_SLOT
 			call TriggerAddCondition(ERROR_MESSAGE_TRIGGER,function thistype.abilityErrorCondition)
 			call TriggerAddCondition(ABILITY_UI_REFRESH,function thistype.refreshCond)
 			call TriggerAddCondition(ARTIFACT_UI_REFRESH,function thistype.artifactRefreshRequest)
@@ -1518,3 +1519,4 @@ endlibrary
 //! import "CloseUI.j"
 //! import "SlotChanger.j"
 //! import "Inventory.j"
+//! import "Craft.j"

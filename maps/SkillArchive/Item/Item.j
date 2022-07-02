@@ -126,6 +126,10 @@ library Item requires Frame
 		static method setUnitSetNum takes Unit_prototype target, integer setnum, integer val returns nothing
 			call SaveInteger(HASH,target,setnum,val)
 		endmethod
+		
+		stub method getExtraText takes nothing returns string
+			return ""
+		endmethod
 
 		stub method getDialogText takes nothing returns string
 			return "Tooltip Missing"
@@ -149,7 +153,7 @@ library Item requires Frame
 		endmethod
 
 		method initTooltip takes nothing returns nothing
-			set .tooltip_container = BlzCreateFrameByType("FRAME","",FRAME_GAME_UI,"",0)
+			set .tooltip_container = BlzCreateFrameByType("FRAME","",FRAME_TOOLTIP,"",0)
 			set	.tooltip_outline = BlzCreateFrameByType("BACKDROP","",.tooltip_container,"",0)
 			call BlzFrameSetTexture(.tooltip_outline,"replaceabletextures\\teamcolor\\teamcolor16.blp",0,true)
 			set .tooltip_backdrop = BlzCreateFrameByType("BACKDROP","",.tooltip_container,"",0)

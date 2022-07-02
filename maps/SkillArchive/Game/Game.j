@@ -11,7 +11,7 @@
 library Game requires Unit, UI
 
 	globals
-		constant boolean TEST = true
+		constant boolean TEST = false//true
 
 		player PLAYER_UNDEAD = Player(20)
 		player PLAYER_MONSTER = Player(23)
@@ -111,6 +111,7 @@ library Game requires Unit, UI
 			call SlotChanger.create(p)
 			call CloseUI.create(p)
 			call Inventory.create(p)
+			call Craft.create(p)
 			/*초기소지금*/
 			if TEST then
 				call User.addGold(p,5000)
