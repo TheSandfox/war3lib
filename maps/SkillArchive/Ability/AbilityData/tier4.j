@@ -204,7 +204,7 @@ endscope
 
 /*0031 불사조*/
 scope Ability0031 initializer init
-	//! runtextmacro abilityDataHeader("0031","불사조","BTNstorm_ui_icon_kaelthas_phoenix","4","STAT_TYPE_MAGICPOWER","STAT_TYPE_MAXMP","false")
+	//! runtextmacro abilityDataHeader("0031","불사조","BTNAbility_storm_ui_icon_kaelthas_phoenix","4","STAT_TYPE_MAGICPOWER","STAT_TYPE_MAXMP","false")
 
 	globals
 		private constant real CAST = 0.25

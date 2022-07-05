@@ -1,3 +1,4 @@
+//! import "config.j"
 //! import "Unit\Unit.j"
 //! import "Ability\Ability.j"
 //! import "Game\Game.j"

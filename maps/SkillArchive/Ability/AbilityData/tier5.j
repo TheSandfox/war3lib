@@ -1,6 +1,6 @@
 /*0040 화룡의 숨결*/
 scope Ability0040 initializer init
-	//! runtextmacro abilityDataHeader("0040","화룡의 숨결","BTNstorm_ui_icon_deathwing_molten_flame","5","STAT_TYPE_MAGICPOWER","STAT_TYPE_MAGIC_PENET","false")
+	//! runtextmacro abilityDataHeader("0040","화룡의 숨결","BTNAbility_storm_ui_icon_deathwing_molten_flame","5","STAT_TYPE_MAGICPOWER","STAT_TYPE_MAGIC_PENET","false")
 
 	globals
 		private constant real CAST = 0.75
@@ -247,7 +247,7 @@ endscope
 
 /*0041 종막: 이스보셋*/
 scope Ability0041 initializer init
-	//! runtextmacro abilityDataHeader("0041","종막: 이스보셋","BTNIsubosete","5","STAT_TYPE_ATTACK","STAT_TYPE_MAXMP","false")
+	//! runtextmacro abilityDataHeader("0041","종막: 이스보셋","BTNAbility_Isubosete","5","STAT_TYPE_ATTACK","STAT_TYPE_MAXMP","false")
 
 	globals
 		private constant real CAST = 0.8

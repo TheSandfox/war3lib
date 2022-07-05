@@ -142,7 +142,7 @@ endscope
 	
 /*0001 쌍극의 번개*/
 scope Ability0001 initializer init
-	//! runtextmacro abilityDataHeader("0001","쌍극의 번개","btn-ability-protoss-doubleshieldrecharge","1","STAT_TYPE_MAGICPOWER","STAT_TYPE_MAGIC_PENET","false")
+	//! runtextmacro abilityDataHeader("0001","쌍극의 번개","btnAbility_protoss-doubleshieldrecharge","1","STAT_TYPE_MAGICPOWER","STAT_TYPE_MAGIC_PENET","false")
 	
 		globals
 			private constant real DELAY = 0.65
@@ -560,7 +560,7 @@ endscope
 
 /*0004 연쇄번개*/
 scope Ability0004 initializer init
-	//! runtextmacro abilityDataHeader("0004","연쇄번개","btn-ability-swarm-kerrigan-chainreaction","1","STAT_TYPE_MAGICPOWER","STAT_TYPE_ACCURACY","false")
+	//! runtextmacro abilityDataHeader("0004","연쇄번개","btnAbility_swarm-kerrigan-chainreaction","1","STAT_TYPE_MAGICPOWER","STAT_TYPE_ACCURACY","false")
 	
 		globals
 			private constant real DELAY = 0.2
@@ -885,7 +885,7 @@ endscope
 
 /*0007 순보*/
 scope Ability0007 initializer init
-	//! runtextmacro abilityDataHeader("0007","순보","BTNSavageStrike","1","STAT_TYPE_ATTACK","STAT_TYPE_ACCURACY","false")
+	//! runtextmacro abilityDataHeader("0007","순보","BTNAbility_SavageStrike","1","STAT_TYPE_ATTACK","STAT_TYPE_ACCURACY","false")
 	
 		globals
 			private constant real RANGE_MAX = 500.
@@ -1023,7 +1023,7 @@ endscope
 
 /*0008 다중사격*/
 scope Ability0008 initializer init
-	//! runtextmacro abilityDataHeader("0008","다중사격","BTNMultishot","1","STAT_TYPE_ATTACK","STAT_TYPE_ACCURACY","false")
+	//! runtextmacro abilityDataHeader("0008","다중사격","BTNAbility_Multishot","1","STAT_TYPE_ATTACK","STAT_TYPE_ACCURACY","false")
 	
 		globals
 			private constant real DELAY = 0.2
@@ -1311,7 +1311,7 @@ endscope
 
 /*u001 끈적거미(버프)*/
 scope Buffu001 initializer init
-	//! runtextmacro buffHeader("끈적거미","u001","0","BTNMonsterSpiderCarapace_01")
+	//! runtextmacro buffHeader("끈적거미","u001","0","BTNAbility_MonsterSpiderCarapace_01")
 
 	public struct main extends Buff
 
@@ -1344,7 +1344,7 @@ endscope
 
 /*u001 끈적거미*/
 scope Abilityu001 initializer init
-	//! runtextmacro abilityDataHeader("u001","끈적거미","BTNMonsterSpiderCarapace_01","1","STAT_TYPE_ACCURACY","STAT_TYPE_ATTACK","true")
+	//! runtextmacro abilityDataHeader("u001","끈적거미","BTNAbility_MonsterSpiderCarapace_01","1","STAT_TYPE_ACCURACY","STAT_TYPE_ATTACK","true")
 	
 		globals
 			private constant real BACKSWING = 0.25

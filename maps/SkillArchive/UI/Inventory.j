@@ -20,6 +20,7 @@ library Inventory requires UI
 		Item target = -1
 		player owner = null
 		framehandle icon = null
+		framehandle tier_border = null
 		framehandle btn = null
 		framehandle extra_backdrop = null
 		framehandle extra_text = null
@@ -49,33 +50,34 @@ library Inventory requires UI
 				call .target.resetTooltip()
 			endif
 			set .tooltip = null
-			if .target != target then
-				call BlzFrameSetVisible(.extra_backdrop,false)
-				call BlzFrameSetVisible(.extra_text,false)
-				if target <= 0 then
-					call BlzFrameSetTexture(.icon,"replaceabletextures\\commandbuttons\\btnblackicon.blp",0,true)
-					call BlzFrameSetAlpha(.icon,64)
-					/*트리거&프레임 비활성화*/
-					set .in = false
-					call BlzFrameSetVisible(.btn,false)
-					call DisableTrigger(.main_trigger)
-				else
-					call BlzFrameSetTexture(.icon,"replaceabletextures\\commandbuttons\\"+target.icon+".blp",0,true)
-					call BlzFrameSetAlpha(.icon,255)
-					call target.resetTooltip()
-					call target.setTooltipPosition(FRAME_INVENTORY,FRAMEPOINT_TOPLEFT,0.,0.,.owner,0)
-					set .tooltip = target.tooltip_container
-					/*엑스트라텍스트*/
-					set s = target.getExtraText()
-					if s != "" then
-						call BlzFrameSetVisible(.extra_backdrop,true)
-						call BlzFrameSetVisible(.extra_text,true)
-						call BlzFrameSetText(.extra_text,s)
-					endif
-					/*트리거&프레임 활성화*/
-					call BlzFrameSetVisible(.btn,true)
-					call EnableTrigger(.main_trigger)
+			call BlzFrameSetVisible(.tier_border,false)
+			call BlzFrameSetVisible(.extra_backdrop,false)
+			call BlzFrameSetVisible(.extra_text,false)
+			if target <= 0 then
+				call BlzFrameSetTexture(.icon,"replaceabletextures\\commandbuttons\\btnblackicon.blp",0,true)
+				call BlzFrameSetAlpha(.icon,64)
+				/*트리거&프레임 비활성화*/
+				set .in = false
+				call BlzFrameSetVisible(.btn,false)
+				call DisableTrigger(.main_trigger)
+			else
+				call BlzFrameSetTexture(.icon,"replaceabletextures\\commandbuttons\\"+target.icon+".blp",0,true)
+				call BlzFrameSetAlpha(.icon,255)
+				call BlzFrameSetVisible(.tier_border,true)
+				call BlzFrameSetTexture(.tier_border,"Textures\\ability_border_tier"+I2S(Item.getTypeTier(target.id))+".blp",0,true)
+				call target.resetTooltip()
+				call target.setTooltipPosition(FRAME_INVENTORY,FRAMEPOINT_TOPLEFT,0.,0.,.owner,0)
+				set .tooltip = target.tooltip_container
+				/*엑스트라텍스트*/
+				set s = target.getExtraText()
+				if s != "" then
+					call BlzFrameSetVisible(.extra_backdrop,true)
+					call BlzFrameSetVisible(.extra_text,true)
+					call BlzFrameSetText(.extra_text,s)
 				endif
+				/*트리거&프레임 활성화*/
+				call BlzFrameSetVisible(.btn,true)
+				call EnableTrigger(.main_trigger)
 			endif
 			set .target = target
 		endmethod
@@ -108,6 +110,8 @@ library Inventory requires UI
 			set .icon = BlzCreateFrameByType("BACKDROP","",parent,"",0)
 			call BlzFrameSetPointPixel(.icon,FRAMEPOINT_TOPLEFT,FRAME_INVENTORY,FRAMEPOINT_TOPLEFT,32+ModuloInteger(index,PER_ROW)*SIZE,-32-INSET_Y-R2I(index/PER_ROW)*SIZE)
 			call BlzFrameSetSizePixel(.icon,SIZE,SIZE)
+			set .tier_border = BlzCreateFrameByType("BACKDROP","",.icon,"",0)
+			call BlzFrameSetAllPoints(.tier_border,.icon)
 			set .extra_backdrop = BlzCreateFrameByType("BACKDROP","",.icon,"",0)
 			call BlzFrameSetAlpha(.extra_backdrop,128)
 			call BlzFrameSetTexture(.extra_backdrop,"textures\\black32.blp",0,true)
@@ -131,6 +135,7 @@ library Inventory requires UI
 
 		method onDestroy takes nothing returns nothing
 			//! runtextmacro destroyFrame(".icon")
+			//! runtextmacro destroyFrame(".tier_border")
 			//! runtextmacro destroyFrame(".btn")
 			//! runtextmacro destroyFrame(".extra_backdrop")
 			//! runtextmacro destroyFrame(".extra_text")
@@ -183,19 +188,54 @@ library Inventory requires UI
 			endif
 		endmethod
 
-		method addItem takes integer category, Item it returns boolean
+		method spaceExists takes integer category returns boolean
+			return getItem(category,SLOT-1) == 0
+		endmethod
+
+		method getItemIndexById takes integer iid returns integer
+			local integer cat = Item.getTypeItemType(iid)
 			local integer i = 0
+			local Item it = 0
 			loop
 				exitwhen i >= SLOT
-				if getItem(category,i) <= 0 then
-					call setItem(category,i,it)
-					if category == .category then
-						call getIcon(i).setTarget(it)
+				set it = getItem(cat,i)
+				if it > 0 then
+					if it.id == iid then
+						return i
 					endif
-					return true
 				endif
 				set i = i + 1
 			endloop
+			return -1
+		endmethod
+
+		method addItem takes Item it returns boolean
+			local integer i = 0
+			local integer iidx = 0
+			local integer category = Item.getTypeItemType(it.id)
+			if Item.getTypeStackable(it.id) then
+				set iidx = getItemIndexById(it.id)
+				if iidx > -1 then
+					call it.merge(getItem(category,iidx))
+					call getIcon(i).setTarget(getItem(category,iidx))
+					return true
+				endif
+			endif
+			if spaceExists(category) then
+				loop
+					exitwhen i >= SLOT
+					if getItem(category,i) <= 0 then
+						call setItem(category,i,it)
+						if category == .category then
+							call getIcon(i).setTarget(it)
+						endif
+						return true
+					endif
+					set i = i + 1
+				endloop
+			else
+				return false
+			endif
 			return false
 		endmethod
 
@@ -270,10 +310,6 @@ library Inventory requires UI
 			set .category = category
 		endmethod
 
-		method spaceExists takes integer category returns boolean
-			return getItem(category,SLOT-1) == 0
-		endmethod
-
 		method setIcon takes integer index, InventoryIcon ni returns nothing
 			call SaveInteger(UI.HASH,this,UI.INDEX_INVENTORY_ICON+index,ni)
 		endmethod
@@ -283,7 +319,7 @@ library Inventory requires UI
 		endmethod
 
 		method rightClick takes integer index returns nothing
-			if getItem(.category,index).itemtype == ITEMTYPE_ARTIFACT then
+			if Item.getTypeItemType(getItem(.category,index).id) == ITEMTYPE_ARTIFACT then
 				call showDialog(.category,index)
 			else
 				call useRequest(.category,index)
@@ -382,14 +418,51 @@ library Inventory requires UI
 			/*인덱싱*/
 			set THIS[GetPlayerId(p)] = this
 			/*테스트용*/
-			call addItem(CATEGORY_ARTIFACT,Artifact.new('a000'))
-			call addItem(CATEGORY_ARTIFACT,Artifact.new('a001'))
-			call addItem(CATEGORY_ARTIFACT,Artifact.new('a002'))
-			call addItem(CATEGORY_ARTIFACT,Artifact.new('a003'))
-			call addItem(CATEGORY_ARTIFACT,Artifact.new('a010'))
-			call addItem(CATEGORY_ARTIFACT,Artifact.new('a011'))
-			call addItem(CATEGORY_ARTIFACT,Artifact.new('a012'))
-			call addItem(CATEGORY_ARTIFACT,Artifact.new('a013'))
+			call addItem(Item.new('a000'))
+			call addItem(Item.new('m000'))
+			call addItem(Item.new('m001'))
+			call addItem(Item.new('m002'))
+			call addItem(Item.new('m010'))
+			call addItem(Item.new('m011'))
+			call addItem(Item.new('m012'))
+			call addItem(Item.new('m020'))
+			call addItem(Item.new('m021'))
+			call addItem(Item.new('m022'))
+			call addItem(Item.new('m030'))
+			call addItem(Item.new('m031'))
+			call addItem(Item.new('m032'))
+			call addItem(Item.new('m040'))
+			call addItem(Item.new('m041'))
+			call addItem(Item.new('m042'))
+			call addItem(Item.new('m100'))
+			call addItem(Item.new('m101'))
+			call addItem(Item.new('m102'))
+			call addItem(Item.new('m103'))
+			call addItem(Item.new('m104'))
+			call addItem(Item.new('m110'))
+			call addItem(Item.new('m111'))
+			call addItem(Item.new('m112'))
+			call addItem(Item.new('m113'))
+			call addItem(Item.new('m114'))
+			call addItem(Item.new('m120'))
+			call addItem(Item.new('m121'))
+			call addItem(Item.new('m122'))
+			call addItem(Item.new('m123'))
+			call addItem(Item.new('m124'))
+			call addItem(Item.new('m130'))
+			call addItem(Item.new('m131'))
+			call addItem(Item.new('m132'))
+			call addItem(Item.new('m133'))
+			call addItem(Item.new('m134'))
+			call addItem(Item.new('m140'))
+			call addItem(Item.new('m141'))
+			call addItem(Item.new('m142'))
+			call addItem(Item.new('m143'))
+			call addItem(Item.new('m144'))
+			/*call Item.new('m000').drop(0,-300)
+			call Item.new('m000').drop(0,-300)
+			call Item.new('m000').drop(0,-300)
+			call Item.new('m000').drop(0,-300)*/
 			call changeCategory(CATEGORY_ARTIFACT)
 			return this
 		endmethod
@@ -415,8 +488,21 @@ library Inventory requires UI
 			call THIS[GetPlayerId(INVENTORY_RIGHTCLICK_PLAYER)].rightClick(INVENTORY_RIGHTCLICK_INDEX)
 		endmethod
 
+		static method itemPick takes nothing returns nothing
+			local Unit picker = Unit(ITEM_PICK_UNIT)
+			local thistype this = THIS[GetPlayerId(picker.owner)]
+			local Item it = ITEM_PICK_ITEM
+			if this <= 0 or it <= 0 then
+				return
+			endif
+			if not addItem(it) then
+				call it.drop(picker.x,picker.y)
+			endif
+		endmethod
+
 		static method onInit takes nothing returns nothing
 			call TriggerAddCondition(INVENTORY_RIGHTCLICK,function thistype.rightClickRequest)
+			call TriggerAddCondition(ITEM_PICK_TRIGGER,function thistype.itemPick)
 		endmethod
 
 	endstruct

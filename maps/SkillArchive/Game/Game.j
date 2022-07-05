@@ -11,7 +11,7 @@
 library Game requires Unit, UI
 
 	globals
-		constant boolean TEST = false//true
+		constant boolean TEST = true
 
 		player PLAYER_UNDEAD = Player(20)
 		player PLAYER_MONSTER = Player(23)
@@ -185,14 +185,21 @@ library Game requires Unit, UI
 
 		static method initAlly takes nothing returns nothing
 			local integer i = 0
+			set PLAYER_ITEM = Player(22)
 			loop
 				exitwhen i >= PLAYER_MAX
 				call SetPlayerAllianceStateBJ(Player(i),PLAYER_GUARDIANS,bj_ALLIANCE_ALLIED_VISION)
 				call SetPlayerAllianceStateBJ(PLAYER_GUARDIANS,Player(i),bj_ALLIANCE_ALLIED_VISION)
+				call SetPlayerAllianceStateBJ(Player(i),PLAYER_ITEM,bj_ALLIANCE_ALLIED_VISION)
+				call SetPlayerAllianceStateBJ(PLAYER_ITEM,Player(i),bj_ALLIANCE_ALLIED_VISION)
 				set i = i + 1
 			endloop
 			call SetPlayerAllianceStateBJ(PLAYER_MONSTER,PLAYER_UNDEAD,bj_ALLIANCE_ALLIED_VISION)
 			call SetPlayerAllianceStateBJ(PLAYER_UNDEAD,PLAYER_MONSTER,bj_ALLIANCE_ALLIED_VISION)
+			call SetPlayerAllianceStateBJ(PLAYER_ITEM,PLAYER_UNDEAD,bj_ALLIANCE_ALLIED_VISION)
+			call SetPlayerAllianceStateBJ(PLAYER_UNDEAD,PLAYER_ITEM,bj_ALLIANCE_ALLIED_VISION)
+			call SetPlayerAllianceStateBJ(PLAYER_ITEM,PLAYER_MONSTER,bj_ALLIANCE_ALLIED_VISION)
+			call SetPlayerAllianceStateBJ(PLAYER_MONSTER,PLAYER_ITEM,bj_ALLIANCE_ALLIED_VISION)
 		endmethod
 
 		private static method onInit takes nothing returns nothing

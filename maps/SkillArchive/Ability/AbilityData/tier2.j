@@ -143,7 +143,7 @@ endscope
 
 /*0014 마법 카드패*/
 scope Ability0014 initializer init
-	//! runtextmacro abilityDataHeader("0014","마법 카드패","BTNPickACard","2","STAT_TYPE_ACCURACY","STAT_TYPE_ATTACK","true")
+	//! runtextmacro abilityDataHeader("0014","마법 카드패","BTNAbility_PickACard","2","STAT_TYPE_ACCURACY","STAT_TYPE_ATTACK","true")
 	
 		globals
 			private constant real BACKSWING = 0.25
@@ -268,7 +268,7 @@ endscope
 
 /*0015 암흑비전파동*/
 scope Ability0015 initializer init
-	//! runtextmacro abilityDataHeader("0015","암흑비전파동","BTNArchonQ","2","STAT_TYPE_MAGICPOWER","STAT_TYPE_MAGIC_PENET","false")
+	//! runtextmacro abilityDataHeader("0015","암흑비전파동","BTNAbility_ArchonQ","2","STAT_TYPE_MAGICPOWER","STAT_TYPE_MAGIC_PENET","false")
 	
 		globals
 			private constant real DELAY = 0.5
@@ -511,7 +511,7 @@ endscope
 
 /*0016 수리검 투척*/
 scope Ability0016 initializer init
-	//! runtextmacro abilityDataHeader("0016","수리검 투척","BTNShuriken","2","STAT_TYPE_ATTACK","STAT_TYPE_ACCURACY","false")
+	//! runtextmacro abilityDataHeader("0016","수리검 투척","BTNAbility_Shuriken","2","STAT_TYPE_ATTACK","STAT_TYPE_ACCURACY","false")
 	
 		globals
 			private constant real DELAY = 0.25
@@ -640,7 +640,7 @@ endscope
 
 /*0017 불붙은 시미터(버프)*/
 scope Buff0017 initializer init
-	//! runtextmacro buffHeader("불붙은 시미터","0017","1","BTNGangplank_Passive")
+	//! runtextmacro buffHeader("불붙은 시미터","0017","1","BTNAbility_Gangplank_Passive")
 
 	public struct main extends Buff
 
@@ -674,7 +674,7 @@ endscope
 
 /*0017 불붙은 시미터*/
 scope Ability0017 initializer init
-	//! runtextmacro abilityDataHeader("0017","불붙은 시미터","BTNGangplank_Passive","2","STAT_TYPE_ATTACK","STAT_TYPE_HPREGEN","true")
+	//! runtextmacro abilityDataHeader("0017","불붙은 시미터","BTNAbility_Gangplank_Passive","2","STAT_TYPE_ATTACK","STAT_TYPE_HPREGEN","true")
 	
 		globals
 			private constant string EFFECT_PATH1 = "Abilities\\Weapons\\PhoenixMissile\\Phoenix_Missile_mini.mdl"

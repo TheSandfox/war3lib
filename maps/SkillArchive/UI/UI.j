@@ -63,8 +63,8 @@ library UI
 		private constant integer INVENTORY_WIDTH = 48*16 + 64	/* 64*8 + 64*/	
 		private constant integer INVENTORY_HEIGHT = 48*4 + 64 + 40 /* 64*8 + 64 + 40 */
 		private constant integer INVENTORY_OFFSET_X = 0
-		private constant integer INVENTORY_OFFSET_Y = 16+256
-		private constant integer CRAFT_WIDTH = 320
+		private constant integer INVENTORY_OFFSET_Y = 48+256
+		private constant integer CRAFT_WIDTH = 480
 		private constant integer ABILITY_ERROR_OFFSET_Y = 268 /*FROM BOTTOM*/
 		private constant integer SLOT_CHANGER_WIDTH = 720//(64*10)+16
 		private constant integer SLOT_CHANGER_HEIGHT = 96 + 24 + 24 + 96//(64*3)+16
@@ -655,7 +655,7 @@ library UI
 			if inv.spaceExists(Inventory.CATEGORY_ARTIFACT) then
 				call at.resetTooltip()
 				call at.unequip()
-				call inv.addItem(Inventory.CATEGORY_ARTIFACT,at)
+				call inv.addItem(at)
 				set ARTIFACT_UI_REFRESH_PLAYER = .owner
 				call TriggerEvaluate(ARTIFACT_UI_REFRESH)
 			endif
@@ -1372,7 +1372,7 @@ library UI
 			call BlzFrameSetPointPixel(f,FRAMEPOINT_TOPRIGHT,FRAME_SLOT_CHANGER,FRAMEPOINT_TOPRIGHT,-12,-12)
 			call BlzFrameSetTexture(f,"textures\\black32.blp",0,true)
 			set f = BlzCreateFrame("MyTextLarge",FRAME_SLOT_CHANGER,0,0)
-			call BlzFrameSetPointPixel(f,FRAMEPOINT_TOPLEFT,FRAME_SLOT_CHANGER,FRAMEPOINT_TOPLEFT,16,-16)
+			call BlzFrameSetPointPixel(f,FRAMEPOINT_TOPLEFT,FRAME_SLOT_CHANGER,FRAMEPOINT_TOPLEFT,32,-32)
 			call BlzFrameSetTextAlignment(f,TEXT_JUSTIFY_BOTTOM,TEXT_JUSTIFY_CENTER)
 			call BlzFrameSetText(f,"|cffffcc00단축키 변경|r")
 			/*인벤토리*/
@@ -1383,7 +1383,7 @@ library UI
 			set f = BlzCreateFrameByType("FRAME","",FRAME_INVENTORY,"",0)
 			call BlzFrameSetAllPoints(f,FRAME_INVENTORY)
 			set f = BlzCreateFrame("MyTextLarge",FRAME_INVENTORY,0,0)
-			call BlzFrameSetPointPixel(f,FRAMEPOINT_TOP,FRAME_INVENTORY,FRAMEPOINT_TOP,0.,-16)
+			call BlzFrameSetPointPixel(f,FRAMEPOINT_TOP,FRAME_INVENTORY,FRAMEPOINT_TOP,0.,-32)
 			call BlzFrameSetText(f,"|cffffcc00소지품|r")
 			/*공방*/
 			set FRAME_CRAFT = BlzCreateFrame("MBEdge",FRAME_GAME_UI,0,0)
@@ -1393,7 +1393,7 @@ library UI
 			set f = BlzCreateFrameByType("FRAME","",FRAME_CRAFT,"",0)
 			call BlzFrameSetAllPoints(f,FRAME_CRAFT)
 			set f = BlzCreateFrame("MyTextLarge",FRAME_CRAFT,0,0)
-			call BlzFrameSetPointPixel(f,FRAMEPOINT_TOP,FRAME_CRAFT,FRAMEPOINT_TOP,0.,-16)
+			call BlzFrameSetPointPixel(f,FRAMEPOINT_TOP,FRAME_CRAFT,FRAMEPOINT_TOP,0.,-32)
 			call BlzFrameSetText(f,"|cffffcc00공방|r")
 				/*카테고리버튼*/
 			//! textmacro inventoryCategoryButton takes typeprime, typecapital, xoffset
@@ -1432,10 +1432,10 @@ library UI
 				call BlzFrameSetPoint(bf,FRAMEPOINT_BOTTOMLEFT,f,FRAMEPOINT_BOTTOMLEFT,-0.005,-0.005)
 				call BlzFrameSetPoint(bf,FRAMEPOINT_TOPRIGHT,f,FRAMEPOINT_TOPRIGHT,0.005,0.005)
 			//! endtextmacro
-			//! runtextmacro createUIButton("Inventory","INVENTORY","btnbag_08","소지품","B")
+			//! runtextmacro createUIButton("Inventory","INVENTORY","btnUI_bag_08","소지품","B")
 			//! runtextmacro createUIButton("SlotChanger","SLOT_CHANGER","BTNEngineeringUpgrade","단축키 변경","G")
 			//! runtextmacro createUIButton("SkillShop","SKILL_SHOP","BTNMerchant","상점","T")
-			//! runtextmacro createUIButton("Craft","CRAFT","BTNblacksmithing","공방","U")
+			//! runtextmacro createUIButton("Craft","CRAFT","BTNUI_blacksmithing","공방","U")
 				/*SET POINT*/
 			call BlzFrameSetPointPixel(FRAME_SKILL_SHOP_BUTTON,FRAMEPOINT_BOTTOMLEFT,FRAME_ABILITY_CONTAINER,FRAMEPOINT_BOTTOMRIGHT,0,0)
 			call BlzFrameSetPointPixel(FRAME_SLOT_CHANGER_BUTTON,FRAMEPOINT_BOTTOMLEFT,FRAME_SKILL_SHOP_BUTTON,FRAMEPOINT_BOTTOMRIGHT,0,0)

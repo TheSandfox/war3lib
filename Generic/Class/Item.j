@@ -4,15 +4,55 @@ library ItemPrototype
 		public integer SIZE = 6 
 		constant integer ERROR_CODE_ALREADY_EQUIPPED = 0
 		constant integer ERROR_CODE_NO_SPACE = -1
+		private hashtable HASH = InitHashtable()
+		private constant integer INDEX_ORIGIN_HANDLE = 0
+		private constant integer INDEX_INSTANCE_ID = 1
+		private trigger ITEM_GET_TRIGGER = CreateTrigger()
+
+		player PLAYER_ITEM = null
+
+		trigger ITEM_PICK_TRIGGER = CreateTrigger()
+		integer ITEM_PICK_UNIT = 0
+		integer ITEM_PICK_ITEM = 0
 	endglobals
 
 	struct Item_prototype
 
+		integer count = 1
 		string icon = ""
 		string name = ""
 		integer id = 0
 		integer index = -1
 		Unit_prototype owner = 0
+
+		method operator origin_item takes nothing returns unit
+			if HaveSavedHandle(HASH,this,INDEX_ORIGIN_HANDLE) then
+				return LoadUnitHandle(HASH,this,INDEX_ORIGIN_HANDLE)
+			else
+				return null
+			endif
+		endmethod
+
+		method operator origin_item= takes unit it returns nothing
+			if .origin_item != null then
+				call RemoveSavedInteger(HASH,GetHandleId(.origin_item),INDEX_INSTANCE_ID)
+				call RemoveUnit(.origin_item)
+			endif
+			if it == null then
+				call RemoveSavedHandle(HASH,this,INDEX_ORIGIN_HANDLE)
+			else
+				call SaveUnitHandle(HASH,this,INDEX_ORIGIN_HANDLE,it)
+				call SaveInteger(HASH,GetHandleId(it),INDEX_INSTANCE_ID,this)
+			endif
+		endmethod
+
+		static method get takes unit it returns thistype
+			if HaveSavedInteger(HASH,GetHandleId(it),INDEX_INSTANCE_ID) then
+				return LoadInteger(HASH,GetHandleId(it),INDEX_INSTANCE_ID)
+			else
+				return 0
+			endif
+		endmethod
 
 		stub method onEquip takes nothing returns nothing
 
@@ -49,8 +89,48 @@ library ItemPrototype
 			set .index = -1
 		endmethod
 
+		stub method getDropName takes nothing returns string
+			return .name
+		endmethod
+
+		method drop takes real x, real y returns nothing
+			local unit it = CreateUnit(PLAYER_ITEM,'idum',x,y,270.)
+			call unequip()
+			call BlzSetUnitName(it,getDropName())
+			set .origin_item = it
+			set it = null
+		endmethod
+
+		method pick takes Unit_prototype u returns nothing
+			set .origin_item = null
+			set ITEM_PICK_UNIT = u
+			set ITEM_PICK_ITEM = this
+			call TriggerEvaluate(ITEM_PICK_TRIGGER)
+		endmethod
+
 		method onDestroy takes nothing returns nothing
 			call unequip()
+			set .origin_item = null
+		endmethod
+
+		static method itemGet takes nothing returns nothing
+			local thistype this = 0
+			if GetSpellAbilityId() == 'Axx4' then
+				set this = get(GetSpellTargetUnit())
+				if this > 0 and Unit_prototype.get(GetTriggerUnit()) > 0 then
+					call pick(Unit_prototype.get(GetTriggerUnit()))
+				endif
+				return
+			elseif (GetIssuedOrderIdBJ() == String2OrderIdBJ("smart")) and GetOwningPlayer(GetOrderTargetUnit()) == PLAYER_ITEM then
+				call IssueTargetOrder(GetTriggerUnit(),"absorb",GetOrderTargetUnit())
+				return
+			endif
+		endmethod
+
+		static method onInit takes nothing returns nothing
+			call TriggerRegisterAnyUnitEventBJ(ITEM_GET_TRIGGER,EVENT_PLAYER_UNIT_SPELL_EFFECT)
+			call TriggerRegisterAnyUnitEventBJ(ITEM_GET_TRIGGER,EVENT_PLAYER_UNIT_ISSUED_TARGET_ORDER)
+			call TriggerAddCondition(ITEM_GET_TRIGGER,function thistype.itemGet)
 		endmethod
 
 	endstruct

@@ -1,3 +1,5 @@
+//! import "ArtifactData.j"
+
 library Artifact requires Item
 
 	globals
@@ -52,10 +54,6 @@ library Artifact requires Item
 		private static constant integer INDEX_STAT_TYPE = 8
 		private static constant integer INDEX_STAT_BONUS = 12
 		private static constant integer INDEX_STAT_VALUE = 16
-
-		static integer CREATE_ID = 0
-		static integer LAST_CREATED = 0
-		static trigger CREATE_TRIGGER = null
 
 		integer level = 1
 		integer exp = 0
@@ -303,19 +301,6 @@ library Artifact requires Item
 			return s
 		endmethod
 
-		static method create takes nothing returns thistype
-			local thistype this = allocate()
-			set .itemtype = ITEMTYPE_ARTIFACT
-			return this
-		endmethod
-
-		static method new takes integer iid returns thistype
-			set LAST_CREATED = 0
-			set CREATE_ID = iid
-			call TriggerEvaluate(thistype.CREATE_TRIGGER)
-			return LAST_CREATED
-		endmethod
-
 		method onDestroy takes nothing returns nothing
 			local integer i = 0
 			loop
@@ -328,7 +313,6 @@ library Artifact requires Item
 		endmethod
 
 		static method onInit takes nothing returns nothing
-			set CREATE_TRIGGER = CreateTrigger()
 			set LEVEL_REQUIRE[0] = 1
 			set LEVEL_REQUIRE[1] = 2
 			set LEVEL_REQUIRE[2] = 3
@@ -352,6 +336,7 @@ endlibrary
 		private constant string NAME = "$name$"
 		private constant string ICON_PATH = "$path$"
 		private constant integer SETNUM = $setnum$
+		private constant trigger CREATE_TRIGGER = CreateTrigger()
 	endglobals
 
 //! endtextmacro
@@ -360,9 +345,6 @@ endlibrary
 
 	private function act takes nothing returns nothing
 		local main a = 0
-		if Artifact.CREATE_ID != ID then
-			return
-		endif
 		set a = main.create()
 		if a > 0 then
 			set a.id = ID
@@ -370,18 +352,12 @@ endlibrary
 			set a.icon = ICON_PATH
 			call a.initialize()
 		endif
-		set Artifact.LAST_CREATED = a
+		set Item.LAST_CREATED = a
 	endfunction
 
 	private function init takes nothing returns nothing
-		call TriggerAddCondition(Artifact.CREATE_TRIGGER,function act)
-		call Item.setTypeIconPath(ID,ICON_PATH)
-		call Item.setTypeSetNum(ID,SETNUM)
-		call Item.setTypeName(ID,NAME)
-		call Item.setItemsetItem(SETNUM,ITEMSET_REGIST_INDEX[SETNUM],ID)
-		set ITEMSET_REGIST_INDEX[SETNUM] = ITEMSET_REGIST_INDEX[SETNUM] + 1
+		call Item.genericConfiguration(ID,CREATE_TRIGGER,function act,ICON_PATH,NAME)
+		call Item.artifactConfiguration(ID,SETNUM)
 	endfunction
 
 //! endtextmacro
-
-//! import "vol1.j"
