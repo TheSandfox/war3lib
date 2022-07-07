@@ -2,6 +2,32 @@ library Material
 
 	struct Material extends Item
 
+		static method setMixResult takes integer iid1, integer iid2, integer res returns nothing
+			if iid1 <= 0 then
+				return
+			endif
+			call SaveInteger(HASH,iid1,iid2,res)
+			if iid1 != iid2 then
+				call SaveInteger(HASH,iid2,iid1,res)
+			endif
+		endmethod
+
+		static method getMixResult takes integer iid1, integer iid2 returns integer
+			if HaveSavedInteger(HASH,iid1,iid2) then
+				return LoadInteger(HASH,iid1,iid2)
+			else
+				return 0
+			endif
+		endmethod
+
+		static method setMixResultCount takes integer iid, integer count returns nothing
+			call SaveInteger(HASH,iid,Item_INDEX_MIX_RESULT_COUNT,count)
+		endmethod
+
+		static method getMixResultCount takes integer iid returns integer
+			return LoadInteger(HASH,iid,Item_INDEX_MIX_RESULT_COUNT)
+		endmethod
+
 		method refreshTooltip takes nothing returns nothing
 
 		endmethod
@@ -24,32 +50,27 @@ endlibrary
 
 //! textmacro materialHeader takes id, name, path, tier
 scope Material$id$ initializer init
-	globals
-		private constant integer ID = '$id$'
-		private constant string NAME = "$name$"
-		private constant string ICON_PATH = "$path$"
-		private constant trigger CREATE_TRIGGER = CreateTrigger()
-		private constant integer TIER = $tier$
-	endglobals
 
-//! endtextmacro
+	public struct main extends Material
 
-//! textmacro materialEnd
+	endstruct
 
 	private function act takes nothing returns nothing
 		local main a = 0
 		set a = main.create()
 		if a > 0 then
-			set a.id = ID
-			set a.name = NAME
-			set a.icon = ICON_PATH
+			set a.id = '$id$'
+			set a.name = "$name$"
+			set a.icon = "$path$"
 		endif
 		set Item.LAST_CREATED = a
 	endfunction
 
 	private function init takes nothing returns nothing
-		call Item.genericConfiguration(ID,CREATE_TRIGGER,function act,ICON_PATH,NAME)
-		call Item.materialConfiguration(ID,TIER)
+		local trigger t = CreateTrigger()
+		call Item.genericConfiguration('$id$',t,function act,"$path$","$name$")
+		call Item.materialConfiguration('$id$',$tier$)
+		set t = null
 	endfunction
 endscope
 //! endtextmacro

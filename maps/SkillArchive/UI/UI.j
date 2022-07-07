@@ -35,6 +35,7 @@ library UI
 		framehandle array FRAME_ARTIFACT_ICON[4]
 		framehandle array FRAME_INVENTORY_CATEGORY_BUTTON[4]
 		framehandle array FRAME_INVENTORY_CATEGORY_TOOLTIP[4]
+		framehandle array FRAME_CRAFT_PAGE
 
 		private constant integer MINIMAP_OFFSET_X = 0
 		private constant integer MINIMAP_OFFSET_Y = 16	/*FROM BOTTOMLEFT*/
@@ -1385,6 +1386,25 @@ library UI
 			set f = BlzCreateFrame("MyTextLarge",FRAME_INVENTORY,0,0)
 			call BlzFrameSetPointPixel(f,FRAMEPOINT_TOP,FRAME_INVENTORY,FRAMEPOINT_TOP,0.,-32)
 			call BlzFrameSetText(f,"|cffffcc00소지품|r")
+				/*카테고리버튼*/
+			//! textmacro inventoryCategoryButton takes typeprime, typecapital, xoffset
+				set FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_$typeprime$] = BlzCreateFrame("InventoryCategory$typecapital$Button",FRAME_INVENTORY,0,0)
+				call BlzFrameSetPointPixel(FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_$typeprime$],FRAMEPOINT_TOPLEFT,FRAME_INVENTORY,FRAMEPOINT_TOPLEFT,32+$xoffset$,-32)
+				call BlzFrameSetSizePixel(FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_$typeprime$],32,32)
+				set FRAME_INVENTORY_CATEGORY_TOOLTIP[ITEMTYPE_$typeprime$] = BlzCreateFrameByType("FRAME","",FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_$typeprime$],"",0)
+					set f = BlzCreateFrame("MyTextBox",FRAME_INVENTORY_CATEGORY_TOOLTIP[ITEMTYPE_$typeprime$],0,0)
+					set bf = f
+					set f = BlzCreateFrame("MyText",FRAME_INVENTORY_CATEGORY_TOOLTIP[ITEMTYPE_$typeprime$],0,0)
+					call BlzFrameSetPointPixel(f,FRAMEPOINT_BOTTOMLEFT,FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_$typeprime$],FRAMEPOINT_TOPLEFT,8,8)
+					call BlzFrameSetText(f,ITEMTYPE_NAME[ITEMTYPE_$typeprime$])
+					call BlzFrameSetPointPixel(bf,FRAMEPOINT_BOTTOMLEFT,f,FRAMEPOINT_BOTTOMLEFT,-8,-8)
+					call BlzFrameSetPointPixel(bf,FRAMEPOINT_TOPRIGHT,f,FRAMEPOINT_TOPRIGHT,8,8)
+					call BlzFrameSetTooltip(FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_$typeprime$],FRAME_INVENTORY_CATEGORY_TOOLTIP[ITEMTYPE_$typeprime$])
+				//! endtextmacro
+				//! runtextmacro inventoryCategoryButton("MATERIAL","Material","0")
+				//! runtextmacro inventoryCategoryButton("ARTIFACT","Artifact","40")
+				//! runtextmacro inventoryCategoryButton("FOOD","Food","80")
+				//! runtextmacro inventoryCategoryButton("GACHA","Gacha","120")
 			/*공방*/
 			set FRAME_CRAFT = BlzCreateFrame("MBEdge",FRAME_GAME_UI,0,0)
 			call BlzFrameSetPoint(FRAME_CRAFT,FRAMEPOINT_BOTTOMRIGHT,FRAME_INVENTORY,FRAMEPOINT_BOTTOMLEFT,0.,0.)
@@ -1395,25 +1415,15 @@ library UI
 			set f = BlzCreateFrame("MyTextLarge",FRAME_CRAFT,0,0)
 			call BlzFrameSetPointPixel(f,FRAMEPOINT_TOP,FRAME_CRAFT,FRAMEPOINT_TOP,0.,-32)
 			call BlzFrameSetText(f,"|cffffcc00공방|r")
-				/*카테고리버튼*/
-			//! textmacro inventoryCategoryButton takes typeprime, typecapital, xoffset
-			set FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_$typeprime$] = BlzCreateFrame("InventoryCategory$typecapital$Button",FRAME_INVENTORY,0,0)
-			call BlzFrameSetPointPixel(FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_$typeprime$],FRAMEPOINT_TOPLEFT,FRAME_INVENTORY,FRAMEPOINT_TOPLEFT,32+$xoffset$,-32)
-			call BlzFrameSetSizePixel(FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_$typeprime$],32,32)
-			set FRAME_INVENTORY_CATEGORY_TOOLTIP[ITEMTYPE_$typeprime$] = BlzCreateFrameByType("FRAME","",FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_$typeprime$],"",0)
-				set f = BlzCreateFrame("MyTextBox",FRAME_INVENTORY_CATEGORY_TOOLTIP[ITEMTYPE_$typeprime$],0,0)
-				set bf = f
-				set f = BlzCreateFrame("MyText",FRAME_INVENTORY_CATEGORY_TOOLTIP[ITEMTYPE_$typeprime$],0,0)
-				call BlzFrameSetPointPixel(f,FRAMEPOINT_BOTTOMLEFT,FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_$typeprime$],FRAMEPOINT_TOPLEFT,8,8)
-				call BlzFrameSetText(f,ITEMTYPE_NAME[ITEMTYPE_$typeprime$])
-				call BlzFrameSetPointPixel(bf,FRAMEPOINT_BOTTOMLEFT,f,FRAMEPOINT_BOTTOMLEFT,-8,-8)
-				call BlzFrameSetPointPixel(bf,FRAMEPOINT_TOPRIGHT,f,FRAMEPOINT_TOPRIGHT,8,8)
-				call BlzFrameSetTooltip(FRAME_INVENTORY_CATEGORY_BUTTON[ITEMTYPE_$typeprime$],FRAME_INVENTORY_CATEGORY_TOOLTIP[ITEMTYPE_$typeprime$])
-			//! endtextmacro
-			//! runtextmacro inventoryCategoryButton("MATERIAL","Material","0")
-			//! runtextmacro inventoryCategoryButton("ARTIFACT","Artifact","40")
-			//! runtextmacro inventoryCategoryButton("FOOD","Food","80")
-			//! runtextmacro inventoryCategoryButton("GACHA","Gacha","120")
+				/*공방페이지*/
+				set FRAME_CRAFT_PAGE[0] = BlzCreateFrameByType("FRAME","",FRAME_CRAFT,"",0)
+				call BlzFrameSetPointPixel(FRAME_CRAFT_PAGE[0],FRAMEPOINT_TOPLEFT,FRAME_CRAFT,FRAMEPOINT_TOPLEFT,32,-72)
+				call BlzFrameSetPointPixel(FRAME_CRAFT_PAGE[0],FRAMEPOINT_BOTTOMRIGHT,FRAME_CRAFT,FRAMEPOINT_BOTTOMRIGHT,-32,32)
+				call BlzFrameSetVisible(FRAME_CRAFT_PAGE[0],false)
+				set FRAME_CRAFT_PAGE[1] = BlzCreateFrameByType("FRAME","",FRAME_CRAFT,"",0)
+				call BlzFrameSetPointPixel(FRAME_CRAFT_PAGE[1],FRAMEPOINT_TOPLEFT,FRAME_CRAFT,FRAMEPOINT_TOPLEFT,32,-72)
+				call BlzFrameSetPointPixel(FRAME_CRAFT_PAGE[1],FRAMEPOINT_BOTTOMRIGHT,FRAME_CRAFT,FRAMEPOINT_BOTTOMRIGHT,-32,32)
+				call BlzFrameSetVisible(FRAME_CRAFT_PAGE[1],false)
 			/*UI버튼*/
 			//! textmacro createUIButton takes prime, const, icon, hangul, shortcut
 				set FRAME_$const$_BUTTON = BlzCreateFrame("$prime$UIButton",FRAME_GAME_UI,0,0)

@@ -12,6 +12,7 @@ library Item requires Frame
 		private constant integer INDEX_ITEMTYPE = 5
 		private constant integer INDEX_STACKABLE = 6
 		private constant integer INDEX_CREATE_TRIGGER = 7
+		public constant integer INDEX_MIX_RESULT_COUNT = 8
 
 		constant integer ITEMSET_ETERNAL_CYCLONE = 0
 		constant integer ITEMSET_CLEANSING_FIRE = 1
@@ -58,6 +59,7 @@ library Item requires Frame
 		static hashtable HASH = InitHashtable()
 		static integer LAST_CREATED = 0
 
+		boolean exist = true
 		integer tier = 0
 		framehandle tooltip_container = null
 		framehandle tooltip_outline = null
@@ -76,6 +78,13 @@ library Item requires Frame
 		integer tooltip_inset_bottom = 0
 
 		string description = ""
+
+		static method exists takes thistype it returns boolean
+			if it <= 0 then
+				return false
+			endif
+			return it.exist
+		endmethod
 
 		static method getItemsetDesc takes integer setnum, integer index returns string
 			if index == 0 then
@@ -110,7 +119,11 @@ library Item requires Frame
 		endmethod
 
 		static method getTypeTier takes integer iid returns integer
-			return LoadInteger(HASH,iid,INDEX_TIER)
+			if HaveSavedInteger(HASH,iid,INDEX_TIER) then
+				return LoadInteger(HASH,iid,INDEX_TIER)
+			else
+				return 0
+			endif
 		endmethod
 
 		static method setTypeTier takes integer iid, integer tier returns nothing
@@ -118,7 +131,11 @@ library Item requires Frame
 		endmethod
 
 		static method getTypeIconPath takes integer iid returns string
-			return LoadStr(HASH,iid,INDEX_ICON)
+			if HaveSavedString(HASH,iid,INDEX_ICON) then
+				return LoadStr(HASH,iid,INDEX_ICON)
+			else
+				return "btnblackicon"
+			endif
 		endmethod
 
 		static method setTypeIconPath takes integer iid, string path returns nothing
@@ -203,9 +220,10 @@ library Item requires Frame
 		endmethod
 
 		method useCount takes integer i returns nothing
-			if i > .count then
-				set i = .count
+			if i <= 0 then
+				return
 			endif
+			set .count = .count - i
 			call onUseCount(i)
 			if .count <= 0 then
 				call destroy()
@@ -254,7 +272,7 @@ library Item requires Frame
 			call BlzFrameSetAllPoints(.tooltip_tier_border,.tooltip_icon)
 			call BlzFrameSetTexture(.tooltip_tier_border,"Textures\\ability_border_tier"+I2S(Item.getTypeTier(.id))+".blp",0,true)
 			set .tooltip_name = BlzCreateFrame("MyTextLarge",.tooltip_container,0,0)
-			call BlzFrameSetText(.tooltip_name,.name)
+			call BlzFrameSetText(.tooltip_name,TIER_STRING_COLOR[getTypeTier(.id)]+.name+"|r")
 			call BlzFrameSetTextAlignment(.tooltip_name,TEXT_JUSTIFY_TOP,TEXT_JUSTIFY_LEFT)
 			set .tooltip_text = BlzCreateFrame("MyText",.tooltip_container,0,0)
 			call BlzFrameSetPoint(.tooltip_backdrop,FRAMEPOINT_BOTTOMRIGHT,.tooltip_text,FRAMEPOINT_BOTTOMRIGHT,.004,-.004+Math.px2Size(-.tooltip_inset_bottom))
@@ -322,6 +340,7 @@ library Item requires Frame
 				//! runtextmacro destroyFrame(".itemtype_text")
 			endif
 			set .pivot = null
+			set .exist = false
 		endmethod
 
 		static method genericConfiguration takes integer iid, trigger trig, code cond, string icon, string name returns nothing  

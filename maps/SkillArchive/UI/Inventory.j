@@ -1,4 +1,4 @@
-library Inventory requires UI
+library Inventory requires UI, User
 
 	globals
 		private constant integer PER_ROW = 16
@@ -7,10 +7,17 @@ library Inventory requires UI
 		private constant integer CATEGORY = 8
 		private constant integer INSET_Y = 40
 		private constant integer SIZE = 48
-		private trigger INVENTORY_RIGHTCLICK = CreateTrigger()
-		private integer INVENTORY_RIGHTCLICK_INDEX = -1
-		private player INVENTORY_RIGHTCLICK_PLAYER = null
+		trigger INVENTORY_RIGHTCLICK_TRIGGER = CreateTrigger()
+		integer INVENTORY_RIGHTCLICK_INDEX = -1
+		player INVENTORY_RIGHTCLICK_PLAYER = null
 		player INVENTORY_ITEM_USE_PLAYER = null
+
+		private trigger INVENTORY_ICON_RESET_FOCUS = CreateTrigger()
+		private framehandle array INVENTORY_ICON_ICON
+		private framehandle array INVENTORY_ICON_TIER_BORDER
+		private framehandle array INVENTORY_ICON_BTN
+		private framehandle array INVENTORY_ICON_EXTRA_BACKDROP
+		private framehandle array INVENTORY_ICON_EXTRA_TEXT
 	endglobals
 
 	struct InventoryIcon extends IconFrame
@@ -19,12 +26,7 @@ library Inventory requires UI
 
 		Item target = -1
 		player owner = null
-		framehandle icon = null
-		framehandle tier_border = null
-		framehandle btn = null
-		framehandle extra_backdrop = null
-		framehandle extra_text = null
-
+		
 		framehandle tooltip = null //EXTERNAL!!!! DO NOT DESTROY. JUST SET NULL
 
 		trigger main_trigger = null
@@ -50,33 +52,43 @@ library Inventory requires UI
 				call .target.resetTooltip()
 			endif
 			set .tooltip = null
-			call BlzFrameSetVisible(.tier_border,false)
-			call BlzFrameSetVisible(.extra_backdrop,false)
-			call BlzFrameSetVisible(.extra_text,false)
+			if LocalScope(.owner) then
+				call BlzFrameSetVisible(INVENTORY_ICON_TIER_BORDER[.index],false)
+				call BlzFrameSetVisible(INVENTORY_ICON_EXTRA_BACKDROP[.index],false)
+				call BlzFrameSetVisible(INVENTORY_ICON_EXTRA_TEXT[.index],false)
+			endif
 			if target <= 0 then
-				call BlzFrameSetTexture(.icon,"replaceabletextures\\commandbuttons\\btnblackicon.blp",0,true)
-				call BlzFrameSetAlpha(.icon,64)
+				if LocalScope(.owner) then
+					call BlzFrameSetTexture(INVENTORY_ICON_ICON[.index],"replaceabletextures\\commandbuttons\\btnblackicon.blp",0,true)
+					call BlzFrameSetAlpha(INVENTORY_ICON_ICON[.index],64)
+				endif
 				/*트리거&프레임 비활성화*/
 				set .in = false
-				call BlzFrameSetVisible(.btn,false)
+				if LocalScope(.owner) then
+					call BlzFrameSetVisible(INVENTORY_ICON_BTN[.index],false)
+				endif
 				call DisableTrigger(.main_trigger)
 			else
-				call BlzFrameSetTexture(.icon,"replaceabletextures\\commandbuttons\\"+target.icon+".blp",0,true)
-				call BlzFrameSetAlpha(.icon,255)
-				call BlzFrameSetVisible(.tier_border,true)
-				call BlzFrameSetTexture(.tier_border,"Textures\\ability_border_tier"+I2S(Item.getTypeTier(target.id))+".blp",0,true)
+				if LocalScope(.owner) then
+					call BlzFrameSetTexture(INVENTORY_ICON_ICON[.index],"replaceabletextures\\commandbuttons\\"+target.icon+".blp",0,true)
+					call BlzFrameSetAlpha(INVENTORY_ICON_ICON[.index],255)
+					call BlzFrameSetVisible(INVENTORY_ICON_TIER_BORDER[.index],true)
+					call BlzFrameSetTexture(INVENTORY_ICON_TIER_BORDER[.index],"Textures\\ability_border_tier"+I2S(Item.getTypeTier(target.id))+".blp",0,true)
+				endif
 				call target.resetTooltip()
 				call target.setTooltipPosition(FRAME_INVENTORY,FRAMEPOINT_TOPLEFT,0.,0.,.owner,0)
 				set .tooltip = target.tooltip_container
 				/*엑스트라텍스트*/
 				set s = target.getExtraText()
-				if s != "" then
-					call BlzFrameSetVisible(.extra_backdrop,true)
-					call BlzFrameSetVisible(.extra_text,true)
-					call BlzFrameSetText(.extra_text,s)
+				if s != "" and LocalScope(.owner) then
+					call BlzFrameSetVisible(INVENTORY_ICON_EXTRA_BACKDROP[.index],true)
+					call BlzFrameSetVisible(INVENTORY_ICON_EXTRA_TEXT[.index],true)
+					call BlzFrameSetText(INVENTORY_ICON_EXTRA_TEXT[.index],s)
 				endif
 				/*트리거&프레임 활성화*/
-				call BlzFrameSetVisible(.btn,true)
+				if LocalScope(.owner) then
+					call BlzFrameSetVisible(INVENTORY_ICON_BTN[.index],true)
+				endif
 				call EnableTrigger(.main_trigger)
 			endif
 			set .target = target
@@ -84,8 +96,9 @@ library Inventory requires UI
 
 		static method cond takes nothing returns nothing
 			local thistype this = Trigger.getData(GetTriggeringTrigger())
-			call BlzFrameSetEnable(BlzGetTriggerFrame(),false)
-			call BlzFrameSetEnable(BlzGetTriggerFrame(),true)
+			if GetTriggerPlayer() != .owner then
+				return
+			endif
 			if BlzGetTriggerFrameEvent() == FRAMEEVENT_MOUSE_ENTER then
 				call showTooltip()
 				set .in = true
@@ -96,49 +109,27 @@ library Inventory requires UI
 				if .target > 0 then
 					set INVENTORY_RIGHTCLICK_INDEX = .index
 					set INVENTORY_RIGHTCLICK_PLAYER = .owner
-					call TriggerEvaluate(INVENTORY_RIGHTCLICK)
+					call TriggerEvaluate(INVENTORY_RIGHTCLICK_TRIGGER)
 				endif
 			endif
 		endmethod
 
-		static method create takes player owner, integer index, framehandle parent returns thistype
+		static method create takes player owner, integer index returns thistype
 			local thistype this = allocate()
 			set .index = index
 			set .owner = owner
 			set .main_trigger = Trigger.new(this)
 			set .main_cond = TriggerAddCondition(.main_trigger,function thistype.cond)
-			set .icon = BlzCreateFrameByType("BACKDROP","",parent,"",0)
-			call BlzFrameSetPointPixel(.icon,FRAMEPOINT_TOPLEFT,FRAME_INVENTORY,FRAMEPOINT_TOPLEFT,32+ModuloInteger(index,PER_ROW)*SIZE,-32-INSET_Y-R2I(index/PER_ROW)*SIZE)
-			call BlzFrameSetSizePixel(.icon,SIZE,SIZE)
-			set .tier_border = BlzCreateFrameByType("BACKDROP","",.icon,"",0)
-			call BlzFrameSetAllPoints(.tier_border,.icon)
-			set .extra_backdrop = BlzCreateFrameByType("BACKDROP","",.icon,"",0)
-			call BlzFrameSetAlpha(.extra_backdrop,128)
-			call BlzFrameSetTexture(.extra_backdrop,"textures\\black32.blp",0,true)
-			set .extra_text = BlzCreateFrame("MyTextSmall",.icon,0,0)
-			call BlzFrameSetPointPixel(.extra_text,FRAMEPOINT_BOTTOMRIGHT,.icon,FRAMEPOINT_BOTTOMRIGHT,-2,2)
-			call BlzFrameSetPointPixel(.extra_backdrop,FRAMEPOINT_BOTTOMRIGHT,.extra_text,FRAMEPOINT_BOTTOMRIGHT,2,-2)
-			call BlzFrameSetPointPixel(.extra_backdrop,FRAMEPOINT_TOPLEFT,.extra_text,FRAMEPOINT_TOPLEFT,-2,2)
-			call BlzFrameSetVisible(.extra_backdrop,false)
-			call BlzFrameSetVisible(.extra_text,false)
-			set .btn = BlzCreateFrameByType("BUTTON","",parent,"",0)
-			call BlzFrameSetAllPoints(.btn,.icon)
-			call BlzTriggerRegisterFrameEvent(.main_trigger,.btn,FRAMEEVENT_MOUSE_ENTER)
-			call BlzTriggerRegisterFrameEvent(.main_trigger,.btn,FRAMEEVENT_MOUSE_LEAVE)
-			call BlzTriggerRegisterFrameEvent(.main_trigger,.btn,FRAMEEVENT_CONTROL_CLICK)
+			
+			call BlzTriggerRegisterFrameEvent(.main_trigger,INVENTORY_ICON_BTN[.index],FRAMEEVENT_MOUSE_ENTER)
+			call BlzTriggerRegisterFrameEvent(.main_trigger,INVENTORY_ICON_BTN[.index],FRAMEEVENT_MOUSE_LEAVE)
 			call TriggerRegisterPlayerEvent(.main_trigger,.owner,EVENT_PLAYER_MOUSE_DOWN)
 			//
 			call setTarget(0)
-			call BlzFrameSetVisible(.icon,GetLocalPlayer()==.owner)
 			return this
 		endmethod
 
 		method onDestroy takes nothing returns nothing
-			//! runtextmacro destroyFrame(".icon")
-			//! runtextmacro destroyFrame(".tier_border")
-			//! runtextmacro destroyFrame(".btn")
-			//! runtextmacro destroyFrame(".extra_backdrop")
-			//! runtextmacro destroyFrame(".extra_text")
 			//! runtextmacro destroyTriggerAndCondition(".main_trigger",".main_cond")
 			set .tooltip = null
 			set .owner = null
@@ -181,6 +172,9 @@ library Inventory requires UI
 		endmethod
 
 		method getItem takes integer category, integer index returns Item
+			if index < 0 then
+				return 0
+			endif
 			if HaveSavedInteger(HASH,this,index+category*SLOT) then
 				return LoadInteger(HASH,this,index+category*SLOT)
 			else
@@ -217,7 +211,9 @@ library Inventory requires UI
 				set iidx = getItemIndexById(it.id)
 				if iidx > -1 then
 					call it.merge(getItem(category,iidx))
-					call getIcon(i).setTarget(getItem(category,iidx))
+					if category == .category then
+						call getIcon(iidx).setTarget(getItem(category,iidx))
+					endif
 					return true
 				endif
 			endif
@@ -234,6 +230,7 @@ library Inventory requires UI
 					set i = i + 1
 				endloop
 			else
+				call it.drop(User.getFocusUnit(.owner).x,User.getFocusUnit(.owner).y)
 				return false
 			endif
 			return false
@@ -275,8 +272,8 @@ library Inventory requires UI
 			set .dialog_index = index
 			call getIcon(index).hideTooltip()
 			call BlzFrameSetText(.dialog_text,getItem(.dialog_category,.dialog_index).getDialogText())
-			call BlzFrameSetVisible(.dialog_backdrop,GetLocalPlayer() == .owner)
-			call BlzFrameSetVisible(.mouseover_above,true)
+			call BlzFrameSetVisible(.dialog_backdrop,LocalScope(.owner))
+			call BlzFrameSetVisible(.mouseover_above,LocalScope(.owner))
 			set .dialog_visible = true
 		endmethod
 
@@ -318,7 +315,35 @@ library Inventory requires UI
 			return LoadInteger(UI.HASH,this,UI.INDEX_INVENTORY_ICON+index)
 		endmethod
 
+		method consume takes integer iid, integer count returns nothing
+			local Item it = 0
+			local integer category = 0
+			local integer index = 0
+			if iid <= 0 or count <= 0 then
+				return
+			endif
+			set category = Item.getTypeItemType(iid)
+			set index = getItemIndexById(iid)
+			set it = getItem(category,index)
+			if it <= 0 then
+				return
+			endif
+			if it.count <= count then
+				call it.useCount(count)
+				call pull(category,index)
+			else
+				call it.useCount(count)
+				if .category == category then
+					call getIcon(index).setTarget(it)
+				endif
+			endif
+		endmethod
+
 		method rightClick takes integer index returns nothing
+			if Craft.THIS[GetPlayerId(.owner)].visible_flag then
+				call Craft.THIS[GetPlayerId(.owner)].regist(getItem(.category,index))
+				return
+			endif
 			if Item.getTypeItemType(getItem(.category,index).id) == ITEMTYPE_ARTIFACT then
 				call showDialog(.category,index)
 			else
@@ -382,18 +407,16 @@ library Inventory requires UI
 			set .keypress = Trigger.new(this)
 			call BlzTriggerRegisterPlayerKeyEvent(.keypress,.owner,OSKEY_B,0,true)
 			set .keypress_cond = TriggerAddCondition(.keypress,function thistype.press)
-			/*컨테이너*/
-			set .container = BlzCreateFrameByType("FRAME","",FRAME_INVENTORY,"",0)
-			call BlzFrameSetVisible(.container,GetLocalPlayer() == .owner)
 			/*아이콘*/
 			loop
 				exitwhen i >= SLOT
-				call setIcon(i,InventoryIcon.create(p,i,.container))
+				call setIcon(i,InventoryIcon.create(p,i))
 				set i = i + 1
 			endloop
 			/*마우스오버*/
-			set .mouseover_above = BlzCreateFrameByType("FRAME","",.container,"",0)
+			set .mouseover_above = BlzCreateFrameByType("FRAME","",FRAME_INVENTORY,"",0)
 			call BlzFrameSetAllPoints(.mouseover_above,FRAME_INVENTORY)
+			call BlzFrameSetVisible(.mouseover_above,false)
 			/*다이얼로그*/
 			set .dialog_backdrop = BlzCreateFrame("MBEdge",FRAME_GAME_UI,0,0)
 			call BlzFrameSetPoint(.dialog_backdrop,FRAMEPOINT_CENTER,FRAME_ORIGIN,FRAMEPOINT_CENTER,0.,0.)
@@ -418,52 +441,64 @@ library Inventory requires UI
 			/*인덱싱*/
 			set THIS[GetPlayerId(p)] = this
 			/*테스트용*/
-			call addItem(Item.new('a000'))
-			call addItem(Item.new('m000'))
-			call addItem(Item.new('m001'))
-			call addItem(Item.new('m002'))
-			call addItem(Item.new('m010'))
-			call addItem(Item.new('m011'))
-			call addItem(Item.new('m012'))
-			call addItem(Item.new('m020'))
-			call addItem(Item.new('m021'))
-			call addItem(Item.new('m022'))
-			call addItem(Item.new('m030'))
-			call addItem(Item.new('m031'))
-			call addItem(Item.new('m032'))
-			call addItem(Item.new('m040'))
-			call addItem(Item.new('m041'))
-			call addItem(Item.new('m042'))
-			call addItem(Item.new('m100'))
-			call addItem(Item.new('m101'))
-			call addItem(Item.new('m102'))
-			call addItem(Item.new('m103'))
-			call addItem(Item.new('m104'))
-			call addItem(Item.new('m110'))
-			call addItem(Item.new('m111'))
-			call addItem(Item.new('m112'))
-			call addItem(Item.new('m113'))
-			call addItem(Item.new('m114'))
-			call addItem(Item.new('m120'))
-			call addItem(Item.new('m121'))
-			call addItem(Item.new('m122'))
-			call addItem(Item.new('m123'))
-			call addItem(Item.new('m124'))
-			call addItem(Item.new('m130'))
-			call addItem(Item.new('m131'))
-			call addItem(Item.new('m132'))
-			call addItem(Item.new('m133'))
-			call addItem(Item.new('m134'))
-			call addItem(Item.new('m140'))
-			call addItem(Item.new('m141'))
-			call addItem(Item.new('m142'))
-			call addItem(Item.new('m143'))
-			call addItem(Item.new('m144'))
+			if .owner == Player(0) then
+				call addItem(Item.new('a000'))
+				call addItem(Item.new('m000'))
+				call addItem(Item.new('m000'))
+				call addItem(Item.new('m000'))
+				call addItem(Item.new('m000'))
+				call addItem(Item.new('m001'))
+				call addItem(Item.new('m001'))
+				call addItem(Item.new('m001'))
+				call addItem(Item.new('m001'))
+				call addItem(Item.new('m001'))
+				call addItem(Item.new('m010'))
+				call addItem(Item.new('m011'))
+				call addItem(Item.new('m020'))
+				call addItem(Item.new('m021'))
+				call addItem(Item.new('m030'))
+				call addItem(Item.new('m031'))
+				call addItem(Item.new('m040'))
+				call addItem(Item.new('m041'))
+				call addItem(Item.new('m100'))
+				call addItem(Item.new('m110'))
+				call addItem(Item.new('m120'))
+				call addItem(Item.new('m130'))
+				call addItem(Item.new('m140'))
+			endif
+			if .owner == Player(1) then
+				call addItem(Item.new('a001'))
+				call addItem(Item.new('m200'))
+				call addItem(Item.new('m201'))
+				call addItem(Item.new('m202'))
+				call addItem(Item.new('m203'))
+				call addItem(Item.new('m204'))
+				call addItem(Item.new('m210'))
+				call addItem(Item.new('m211'))
+				call addItem(Item.new('m212'))
+				call addItem(Item.new('m213'))
+				call addItem(Item.new('m214'))
+				call addItem(Item.new('m220'))
+				call addItem(Item.new('m221'))
+				call addItem(Item.new('m222'))
+				call addItem(Item.new('m223'))
+				call addItem(Item.new('m224'))
+				call addItem(Item.new('m230'))
+				call addItem(Item.new('m231'))
+				call addItem(Item.new('m232'))
+				call addItem(Item.new('m233'))
+				call addItem(Item.new('m234'))
+				call addItem(Item.new('m240'))
+				call addItem(Item.new('m241'))
+				call addItem(Item.new('m242'))
+				call addItem(Item.new('m243'))
+				call addItem(Item.new('m244'))
+			endif
 			/*call Item.new('m000').drop(0,-300)
 			call Item.new('m000').drop(0,-300)
 			call Item.new('m000').drop(0,-300)
 			call Item.new('m000').drop(0,-300)*/
-			call changeCategory(CATEGORY_ARTIFACT)
+			call changeCategory(CATEGORY_MATERIAL)
 			return this
 		endmethod
 
@@ -501,9 +536,37 @@ library Inventory requires UI
 		endmethod
 
 		static method onInit takes nothing returns nothing
-			call TriggerAddCondition(INVENTORY_RIGHTCLICK,function thistype.rightClickRequest)
+			call TriggerAddCondition(INVENTORY_RIGHTCLICK_TRIGGER,function thistype.rightClickRequest)
 			call TriggerAddCondition(ITEM_PICK_TRIGGER,function thistype.itemPick)
 		endmethod
+
+		static method init takes nothing returns nothing
+			local integer i = 0
+			loop
+				exitwhen i >= SLOT
+				set INVENTORY_ICON_ICON[i] = BlzCreateFrameByType("BACKDROP","",FRAME_INVENTORY,"",0)
+				call BlzFrameSetPointPixel(INVENTORY_ICON_ICON[i],FRAMEPOINT_TOPLEFT,FRAME_INVENTORY,FRAMEPOINT_TOPLEFT,32+ModuloInteger(i,PER_ROW)*SIZE,-32-INSET_Y-R2I(i/PER_ROW)*SIZE)
+				call BlzFrameSetSizePixel(INVENTORY_ICON_ICON[i],SIZE,SIZE)
+				set INVENTORY_ICON_TIER_BORDER[i] = BlzCreateFrameByType("BACKDROP","",INVENTORY_ICON_ICON[i],"",0)
+				call BlzFrameSetAllPoints(INVENTORY_ICON_TIER_BORDER[i],INVENTORY_ICON_ICON[i])
+				set INVENTORY_ICON_EXTRA_BACKDROP[i] = BlzCreateFrameByType("BACKDROP","",INVENTORY_ICON_ICON[i],"",0)
+				call BlzFrameSetAlpha(INVENTORY_ICON_EXTRA_BACKDROP[i],128)
+				call BlzFrameSetTexture(INVENTORY_ICON_EXTRA_BACKDROP[i],"textures\\black32.blp",0,true)
+				set INVENTORY_ICON_EXTRA_TEXT[i] = BlzCreateFrame("MyTextSmall",INVENTORY_ICON_ICON[i],0,0)
+				call BlzFrameSetPointPixel(INVENTORY_ICON_EXTRA_TEXT[i],FRAMEPOINT_BOTTOMRIGHT,INVENTORY_ICON_ICON[i],FRAMEPOINT_BOTTOMRIGHT,-2,2)
+				call BlzFrameSetPointPixel(INVENTORY_ICON_EXTRA_BACKDROP[i],FRAMEPOINT_BOTTOMRIGHT,INVENTORY_ICON_EXTRA_TEXT[i],FRAMEPOINT_BOTTOMRIGHT,2,-2)
+				call BlzFrameSetPointPixel(INVENTORY_ICON_EXTRA_BACKDROP[i],FRAMEPOINT_TOPLEFT,INVENTORY_ICON_EXTRA_TEXT[i],FRAMEPOINT_TOPLEFT,-2,2)
+				call BlzFrameSetVisible(INVENTORY_ICON_EXTRA_BACKDROP[i],false)
+				call BlzFrameSetVisible(INVENTORY_ICON_EXTRA_TEXT[i],false)
+				set INVENTORY_ICON_BTN[i] = BlzCreateFrameByType("BUTTON","",FRAME_INVENTORY,"",0)
+				call BlzFrameSetAllPoints(INVENTORY_ICON_BTN[i],INVENTORY_ICON_ICON[i])
+				call BlzTriggerRegisterFrameEvent(INVENTORY_ICON_RESET_FOCUS,INVENTORY_ICON_BTN[i],FRAMEEVENT_MOUSE_ENTER)
+				call BlzTriggerRegisterFrameEvent(INVENTORY_ICON_RESET_FOCUS,INVENTORY_ICON_BTN[i],FRAMEEVENT_MOUSE_LEAVE)
+				call BlzTriggerRegisterFrameEvent(INVENTORY_ICON_RESET_FOCUS,INVENTORY_ICON_BTN[i],FRAMEEVENT_CONTROL_CLICK)
+				set i = i + 1
+			endloop
+			call TriggerAddCondition(INVENTORY_ICON_RESET_FOCUS,function Frame.resetFocus)
+		endmethod	
 
 	endstruct
 

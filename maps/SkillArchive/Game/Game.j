@@ -127,6 +127,8 @@ library Game requires Unit, UI
 			call Tip.init()
 			/*프레임관련*/
 			call UI.init()
+			call Inventory.init()
+			call Craft.init()
 			/*플레이어별 초기화*/
 			loop
 				exitwhen i >= PLAYER_MAX
@@ -157,6 +159,8 @@ library Game requires Unit, UI
 				//call Tip.init()
 				/*프레임관련*/
 				call UI.init()
+				call Inventory.init()
+				call Craft.init()
 				/*플레이어별 초기화*/
 				call initForPlayer(Player(0),'U000','C000')
 				//call initForPlayer(Player(1),'HR09','C000')

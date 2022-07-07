@@ -28,6 +28,17 @@ endmodule
 
 library Frame
 
+	struct Frame
+
+		static method resetFocus takes nothing returns nothing
+			if GetLocalPlayer() == GetTriggerPlayer() then
+				call BlzFrameSetEnable(BlzGetTriggerFrame(),false)
+				call BlzFrameSetEnable(BlzGetTriggerFrame(),true)
+			endif
+		endmethod
+
+	endstruct
+
 function BlzFrameSetPointPixel takes framehandle frame, framepointtype point, framehandle relative, framepointtype pointrelative, real x, real y returns nothing
 	call BlzFrameSetPoint(frame,point,relative,pointrelative,x/1800.,y/1800.)
 endfunction

@@ -239,4 +239,9 @@ struct User extends array
 	endmethod
 
 endstruct
+
+	function LocalScope takes player p returns boolean
+		return GetLocalPlayer() == p
+	endfunction
+
 endlibrary

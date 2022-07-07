@@ -1,32 +1,39 @@
-library test initializer init
+library Class initializer init
 
-	globals
-		item ITEM = null
-		unit UNIT = null
-		trigger TRIG = null
-	endglobals
-	
-	private function cond takes nothing returns nothing
-		call BlzSetItemName(ITEM,"야호크크루삥뽕")
-		call BlzSetItemTooltip(ITEM,"야호크크루삥뽕")
-		call BlzSetItemStringField(ITEM,ConvertItemStringField('unam'),"야호크크루삥뽕")
-		call BlzSetItemStringField(ITEM,ConvertItemStringField('utip'),"야호크크루삥뽕")
+	struct Class
+
+		boolean exist = true
+
+		static method exists takes thistype c returns boolean
+			if c <= 0 then
+				return false
+			endif
+			return c.exist
+		endmethod
+
+		method onDestroy takes nothing returns nothing
+			set .exist = false
+		endmethod
+
+	endstruct
+
+	private function dmsg takes boolean b returns nothing
+		if b then
+			call BJDebugMsg("있어")
+		else
+			call BJDebugMsg("없어")
+		endif
 	endfunction
-	
+
 	private function init takes nothing returns nothing
-		set ITEM = CreateItem('gcel',0,0)
-		call BlzSetItemName(ITEM,"야호크크루삥뽕")
-		call BlzSetItemTooltip(ITEM,"야호크크루삥뽕")
-		call BlzSetItemDescription(ITEM,"야호크크루삥뽕")
-		call BlzSetItemExtendedTooltip(ITEM,"야호크크루삥뽕")
-		call BlzSetItemStringField(ITEM,ConvertItemStringField('unam'),"야호크크루삥뽕")
-		call BlzSetItemStringField(ITEM,ConvertItemStringField('utip'),"야호크크루삥뽕")
-		set UNIT = CreateUnit(Player(0),'Hpal',0,0,270)
-		call UnitAddItem(UNIT,ITEM)
-		call UnitDropItemPoint(UNIT,ITEM,50,50)
-		set TRIG = CreateTrigger()
-		call TriggerRegisterTimerEvent(TRIG,0.1,false)
-		call TriggerAddCondition(TRIG,function cond)
-		
+		local Class c = Class.create()
+		/*제대로 생성된 인스턴스*/
+		call dmsg(Class.exists(c))
+		call c.destroy()
+		/*만들었다가 제거한 인스턴스*/
+		call dmsg(Class.exists(c))
+		/*아직 할당되지 않은 인스턴스*/
+		call dmsg(Class.exists(300))
 	endfunction
+
 endlibrary
