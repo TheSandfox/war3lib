@@ -151,7 +151,7 @@ library Inventory requires UI, User
 		triggercondition keypress_cond = null
 		boolean visible_flag = false
 		player owner = null
-		integer category = 0
+		integer category = -1
 		/*컨테이너*/
 		framehandle container = null
 		/*마우스가리개*/
@@ -290,6 +290,24 @@ library Inventory requires UI, User
 				exitwhen ii <= 0
 				set i = i + 1
 			endloop
+			call setItem(category,SLOT-1,0)
+		endmethod
+
+		method refresh takes integer category returns nothing
+			local integer i = 0
+			local Item it = -1
+			loop
+				exitwhen i >= SLOT
+				set it = getItem(category,i)
+				if it <= 0 then
+					
+				elseif not Item.exists(it) then
+					call pull(category,i)
+				else
+					call getIcon(i).setTarget(it)
+				endif
+				set i = i + 1
+			endloop
 		endmethod
 
 		method changeCategory takes integer category returns nothing
@@ -298,6 +316,14 @@ library Inventory requires UI, User
 				return
 			endif
 			if category != .category then
+				loop
+					exitwhen i >= ITEMTYPE_MAX
+					if LocalScope(.owner) then
+						call BlzFrameSetVisible(FRAME_INVENTORY_CATEGORY_HIGHTLIGHT[i], i == category)
+					endif
+					set i = i + 1
+				endloop
+				set i = 0
 				loop
 					exitwhen i >= SLOT
 					call getIcon(i).setTarget(getItem(category,i))
@@ -315,8 +341,8 @@ library Inventory requires UI, User
 			return LoadInteger(UI.HASH,this,UI.INDEX_INVENTORY_ICON+index)
 		endmethod
 
-		method consume takes integer iid, integer count returns nothing
-			local Item it = 0
+		/*method consume takes integer iid, integer count returns nothing*/
+			/*local Item it = 0
 			local integer category = 0
 			local integer index = 0
 			if iid <= 0 or count <= 0 then
@@ -336,7 +362,17 @@ library Inventory requires UI, User
 				if .category == category then
 					call getIcon(index).setTarget(it)
 				endif
+			endif*/
+		/*endmethod*/
+
+		method consume takes Item it, integer count returns nothing
+			local integer category = -1
+			if not Item.exists(it) then
+				return
 			endif
+			set category = Item.getTypeItemType(it.id)
+			call it.useCount(count)
+			call refresh(category)
 		endmethod
 
 		method rightClick takes integer index returns nothing
@@ -460,6 +496,11 @@ library Inventory requires UI, User
 				call addItem(Item.new('m031'))
 				call addItem(Item.new('m040'))
 				call addItem(Item.new('m041'))
+				call addItem(Item.new('m100'))
+				call addItem(Item.new('m110'))
+				call addItem(Item.new('m120'))
+				call addItem(Item.new('m130'))
+				call addItem(Item.new('m140'))
 				call addItem(Item.new('m100'))
 				call addItem(Item.new('m110'))
 				call addItem(Item.new('m120'))

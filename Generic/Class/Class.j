@@ -1,3 +1,21 @@
+module ClassExist
+
+	boolean exist = true
+
+	static method exists takes thistype c returns boolean
+		if c <= 0 then
+			return false
+		endif
+		return .exist
+	endmethod
+
+	method destroy takes nothing returns nothing
+		set .exist = false
+		call deallocate()
+	endmethod
+
+endmodule
+
 //! import "Effect.j"
 //! import "Ability.j"
 //! import "Item.j"

@@ -4,6 +4,7 @@
 library Item requires Frame
 
 	globals
+		private hashtable HASH = InitHashtable()
 		private constant integer INDEX_NAME = 0
 		private constant integer INDEX_ICON = 1
 		private constant integer INDEX_DESC = 2
@@ -12,7 +13,6 @@ library Item requires Frame
 		private constant integer INDEX_ITEMTYPE = 5
 		private constant integer INDEX_STACKABLE = 6
 		private constant integer INDEX_CREATE_TRIGGER = 7
-		public constant integer INDEX_MIX_RESULT_COUNT = 8
 
 		constant integer ITEMSET_ETERNAL_CYCLONE = 0
 		constant integer ITEMSET_CLEANSING_FIRE = 1
@@ -27,6 +27,7 @@ library Item requires Frame
 		constant integer ITEMTYPE_ARTIFACT = 1
 		constant integer ITEMTYPE_FOOD = 2
 		constant integer ITEMTYPE_GACHA = 3
+		constant integer ITEMTYPE_MAX = 4
 
 		string array ITEMTYPE_ICON
 		string array ITEMTYPE_NAME
@@ -56,7 +57,6 @@ library Item requires Frame
 
 	struct Item extends Item_prototype
 
-		static hashtable HASH = InitHashtable()
 		static integer LAST_CREATED = 0
 
 		boolean exist = true
