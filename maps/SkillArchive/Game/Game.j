@@ -112,6 +112,7 @@ library Game requires Unit, UI
 			call CloseUI.create(p)
 			call Inventory.create(p)
 			call Craft.create(p)
+			call Numberpad.create(p)
 			/*초기소지금*/
 			if TEST then
 				call User.addGold(p,5000)
@@ -129,6 +130,7 @@ library Game requires Unit, UI
 			call UI.init()
 			call Inventory.init()
 			call Craft.init()
+			call Numberpad.init()
 			/*플레이어별 초기화*/
 			loop
 				exitwhen i >= PLAYER_MAX
@@ -161,6 +163,7 @@ library Game requires Unit, UI
 				call UI.init()
 				call Inventory.init()
 				call Craft.init()
+				call Numberpad.init()
 				/*플레이어별 초기화*/
 				call initForPlayer(Player(0),'U000','C000')
 				//call initForPlayer(Player(1),'HR09','C000')

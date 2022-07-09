@@ -13,6 +13,9 @@ library CloseUI requires UI
 				call Inventory.THIS[GetPlayerId(.owner)].close()
 				return 
 			endif
+			if Numberpad.THIS[GetPlayerId(.owner)] > 0 and Numberpad.THIS[GetPlayerId(.owner)].close() then
+				return
+			endif
 			if Craft.THIS[GetPlayerId(.owner)] > 0 and Craft.THIS[GetPlayerId(.owner)].close() then
 				return 
 			endif

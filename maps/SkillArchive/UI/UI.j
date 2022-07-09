@@ -1505,3 +1505,4 @@ endlibrary
 //! import "SlotChanger.j"
 //! import "Inventory.j"
 //! import "Craft.j"
+//! import "Numberpad.j"
