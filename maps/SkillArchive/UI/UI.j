@@ -83,16 +83,16 @@ library UI
 		method setTarget takes integer cid returns nothing
 			set .id = cid
 			if cid > 0 then
-				call BlzFrameSetTexture(.icon1,"ReplaceableTextures\\CommandButtons\\"+Ability.getTypeIconPath(cid)+".blp",0,true)
-				call BlzFrameSetTexture(.icon2,"ReplaceableTextures\\CommandButtons\\"+Ability.getTypeIconPath(cid)+".blp",0,true)
+				call BlzFrameSetTexture(.icon1,Ability.getTypeIconPath(cid),0,true)
+				call BlzFrameSetTexture(.icon2,Ability.getTypeIconPath(cid),0,true)
 				call BlzFrameSetText(.name,Ability.getTypeName(cid))
 			elseif cid < 0 then
 				call BlzFrameSetTexture(.icon1,"ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp",0,true)
 				call BlzFrameSetTexture(.icon2,"ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp",0,true)
 				call BlzFrameSetText(.name,"???")
 			else
-				call BlzFrameSetTexture(.icon1,"ReplaceableTextures\\CommandButtons\\BTNBlackIcon.blp",0,true)
-				call BlzFrameSetTexture(.icon2,"ReplaceableTextures\\CommandButtons\\BTNBlackIcon.blp",0,true)
+				call BlzFrameSetTexture(.icon1,"Icons\\BTNBlackIcon.blp",0,true)
+				call BlzFrameSetTexture(.icon2,"Icons\\BTNBlackIcon.blp",0,true)
 				call BlzFrameSetText(.name,"")
 			endif
 		endmethod
@@ -235,14 +235,14 @@ library UI
 			call BlzFrameSetVisible(.icon_container,.target > 0)
 			if .target > 0 then
 				/*아이콘바꾸기*/
-				call BlzFrameSetTexture(.icon_backdrop,"ReplaceableTextures\\CommandButtons\\"+.target.icon+".blp",0,true)
+				call BlzFrameSetTexture(.icon_backdrop,Ability.getTypeIconPath(.target.id),0,true)
 				if .target.is_active then
 					call BlzFrameSetVisible(.icon_border,false)
 				else
 					call BlzFrameSetVisible(.icon_border,true)
 					call BlzFrameSetTexture(.icon_border,"ReplaceableTextures\\CommandButtons\\bm_pasbtn.blp",0,true)
 				endif
-				call BlzFrameSetTexture(.tooltip_icon,"ReplaceableTextures\\CommandButtons\\"+.target.icon+".blp",0,true)
+				call BlzFrameSetTexture(.tooltip_icon,.target.icon,0,true)
 				call BlzFrameSetTexture(.tooltip_icon_border,"Textures\\ability_border_tier"+I2S(Ability.getTypeTier(.target.id))+".blp",0,true)
 				/*툴팁 스킬이름*/
 				call BlzFrameSetText(.tooltip_name,TIER_STRING_COLOR[Ability.getTypeTier(.target.id)]+"Lv."+I2S(.target.level)+" "+.target.name+"|r")
@@ -632,7 +632,7 @@ library UI
 			set .tooltip = null
 			if at > 0 then
 				call BlzFrameSetVisible(.backdrop,true)
-				call BlzFrameSetTexture(.backdrop,"replaceabletextures\\commandbuttons\\"+at.icon+".blp",0,true)
+				call BlzFrameSetTexture(.backdrop,Item.getTypeIconPath(at.id),0,true)
 				set .set_temp = Item.getTypeSetNum(at.id)
 				call at.resetTooltip()
 				call at.setTooltipPosition(.hover,FRAMEPOINT_BOTTOMLEFT,0.,0.,.owner,1)
@@ -754,6 +754,14 @@ library UI
 	module ThisUI
 
 		static thistype array THIS
+
+		static method operator [] takes player p returns thistype
+			return THIS[GetPlayerId(p)]
+		endmethod
+
+		static method operator []= takes player p, thistype c returns nothing
+			set THIS[GetPlayerId(p)] = c
+		endmethod
 
 	endmodule
 
@@ -1298,7 +1306,7 @@ library UI
 					*/c_inset+(c_padding/2.)+(i*c_cell),/*
 					*/Math.px2Size(-(ABILITY_CONTAINER_HEIGHT-ABILITY_ICON_SIZE)/2))
 				call BlzFrameSetSize(FRAME_ABILITY_ICON[i],Math.px2Size(ABILITY_ICON_SIZE),Math.px2Size(ABILITY_ICON_SIZE))
-				call BlzFrameSetTexture(FRAME_ABILITY_ICON[i],"ReplaceableTextures\\CommandButtons\\BTNBlackIcon.blp",0,true)
+				call BlzFrameSetTexture(FRAME_ABILITY_ICON[i],"Icons\\BTNBlackIcon.blp",0,true)
 				set i = i + 1
 			endloop
 			/*스탯박스1*/

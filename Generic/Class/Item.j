@@ -7,6 +7,7 @@ library ItemPrototype
 		private hashtable HASH = InitHashtable()
 		private constant integer INDEX_ORIGIN_HANDLE = 0
 		private constant integer INDEX_INSTANCE_ID = 1
+		private constant integer INDEX_MODEL_PATH = 2
 		private trigger ITEM_GET_TRIGGER = CreateTrigger()
 
 		player PLAYER_ITEM = null
@@ -18,12 +19,25 @@ library ItemPrototype
 
 	struct Item_prototype
 
+		effect origin_effect = null
 		integer count = 1
 		string icon = ""
 		string name = ""
 		integer id = 0
 		integer index = -1
 		Unit_prototype owner = 0
+
+		static method setTypeModelPath takes integer iid, string path returns nothing
+			call SaveStr(HASH,iid,INDEX_MODEL_PATH,path)
+		endmethod
+
+		static method getTypeModelPath takes integer iid returns string
+			if HaveSavedString(HASH,iid,INDEX_MODEL_PATH) then
+				return LoadStr(HASH,iid,INDEX_MODEL_PATH)
+			else
+				return "Objects\\InventoryItems\\TreasureChest\\treasurechest.mdl"
+			endif
+		endmethod
 
 		method operator origin_item takes nothing returns unit
 			if HaveSavedHandle(HASH,this,INDEX_ORIGIN_HANDLE) then
@@ -94,15 +108,20 @@ library ItemPrototype
 		endmethod
 
 		method drop takes real x, real y returns nothing
-			local unit it = CreateUnit(PLAYER_ITEM,'idum',x,y,270.)
 			call unequip()
-			call BlzSetUnitName(it,getDropName())
-			set .origin_item = it
-			set it = null
+			set .origin_item = CreateUnit(PLAYER_ITEM,'idum',x,y,270.)
+			call BlzSetUnitName(.origin_item,getDropName())
+			call SetUnitVertexColor(.origin_item,0,0,0,0)
+			set .origin_effect = AddSpecialEffect(getTypeModelPath(.id),x,y)
+			call BlzSetSpecialEffectYaw(.origin_effect,Deg2Rad(270.))
 		endmethod
 
 		method pick takes Unit_prototype u returns nothing
 			set .origin_item = null
+			if .origin_effect != null then
+				call DestroyEffect(.origin_effect)
+			endif
+			set .origin_effect = null
 			set ITEM_PICK_UNIT = u
 			set ITEM_PICK_ITEM = this
 			call TriggerEvaluate(ITEM_PICK_TRIGGER)
@@ -110,7 +129,11 @@ library ItemPrototype
 
 		method onDestroy takes nothing returns nothing
 			call unequip()
+			if .origin_effect != null then
+				call DestroyEffect(.origin_effect)
+			endif
 			set .origin_item = null
+			set .origin_effect = null
 		endmethod
 
 		static method itemGet takes nothing returns nothing

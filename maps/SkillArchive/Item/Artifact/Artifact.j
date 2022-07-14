@@ -141,7 +141,7 @@ library Artifact requires Item
 		method refreshStatIcon takes integer index returns nothing
 			local integer st = getStatType(index)
 			if st < 0 then
-				call BlzFrameSetTexture(getBackdrop(index),"replaceabletextures\\commandbuttons\\btnblackicon.blp",0,true)
+				call BlzFrameSetTexture(getBackdrop(index),"Icons\\btnblackicon.blp",0,true)
 				call BlzFrameSetText(getText(index),"|cff999999Lv."+I2S(LEVEL_REQUIRE[index])+" 달성 시 개방")
 			else
 				call BlzFrameSetTexture(getBackdrop(index),STAT_TYPE_ICON[st],0,true)
@@ -197,6 +197,10 @@ library Artifact requires Item
 
 		method getExtraText takes nothing returns string
 			return "+"+I2S(.level)
+		endmethod
+
+		method getDropName takes nothing returns string
+			return TIER_STRING_COLOR[.tier]+.name +"|r"
 		endmethod
 
 		stub method activate takes nothing returns nothing
@@ -329,12 +333,12 @@ library Artifact requires Item
 
 endlibrary
 
-//! textmacro artifactHeader takes id, name, path, setnum
+//! textmacro artifactHeader takes setnum, partnum, name
 
 	globals
-		private constant integer ID = '$id$'
+		private constant integer ID = 'a$setnum$$partnum$'
 		private constant string NAME = "$name$"
-		private constant string ICON_PATH = "$path$"
+		private constant string ICON_PATH = "Icons\\Items\\Artifacts\\Artifact_$setnum$_$partnum$.blp"
 		private constant integer SETNUM = $setnum$
 		private constant trigger CREATE_TRIGGER = CreateTrigger()
 	endglobals
@@ -350,14 +354,13 @@ endlibrary
 			set a.id = ID
 			set a.name = NAME
 			set a.icon = ICON_PATH
-			call a.initialize()
 		endif
 		set Item.LAST_CREATED = a
 	endfunction
 
 	private function init takes nothing returns nothing
-		call Item.genericConfiguration(ID,CREATE_TRIGGER,function act,ICON_PATH,NAME)
-		call Item.artifactConfiguration(ID,SETNUM)
+		call Item.genericConfiguration(ID,CREATE_TRIGGER,function act,NAME)
+		call Item.artifactConfiguration(ID,SETNUM,ICON_PATH)
 	endfunction
 
 //! endtextmacro

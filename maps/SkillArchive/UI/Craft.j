@@ -59,7 +59,7 @@ library Craft requires Frame, User
 		method setMixResult takes integer iid returns nothing
 			if iid <= 0 then
 				if LocalScope(.owner) then
-					call BlzFrameSetTexture(CRAFT_MIX_RESULT_BACKDROP,"replaceabletextures\\commandbuttons\\btnblackicon.blp",0,true)
+					call BlzFrameSetTexture(CRAFT_MIX_RESULT_BACKDROP,"icons\\btnblackicon.blp",0,true)
 					call BlzFrameSetVisible(CRAFT_MIX_RESULT_TIER_BORDER,false)
 					call BlzFrameSetText(CRAFT_MIX_PLUS,"|cff999999+|r")
 					call BlzFrameSetText(CRAFT_MIX_EQUAL,"|cff999999->|r")
@@ -67,7 +67,7 @@ library Craft requires Frame, User
 				endif
 			else
 				if LocalScope(.owner) then
-					call BlzFrameSetTexture(CRAFT_MIX_RESULT_BACKDROP,"replaceabletextures\\commandbuttons\\"+Item.getTypeIconPath(iid)+".blp",0,true)
+					call BlzFrameSetTexture(CRAFT_MIX_RESULT_BACKDROP,Item.getTypeIconPath(iid),0,true)
 					call BlzFrameSetVisible(CRAFT_MIX_RESULT_TIER_BORDER,true)
 					call BlzFrameSetTexture(CRAFT_MIX_RESULT_TIER_BORDER,"textures\\ability_border_tier"+I2S(Item.getTypeTier(iid))+".blp",0,true)
 					call BlzFrameSetText(CRAFT_MIX_PLUS,"|cffffcc00+|r")
@@ -80,7 +80,7 @@ library Craft requires Frame, User
 		method setMixTarget takes integer index, integer iid returns nothing
 			if index == 0 then
 				if LocalScope(.owner) then
-					call BlzFrameSetTexture(CRAFT_MIX_BACKDROP1,"replaceabletextures\\commandbuttons\\"+Item.getTypeIconPath(iid)+".blp",0,true)
+					call BlzFrameSetTexture(CRAFT_MIX_BACKDROP1,Item.getTypeIconPath(iid),0,true)
 					call BlzFrameSetTexture(CRAFT_MIX_TIER_BORDER1,"textures\\ability_border_tier"+I2S(Item.getTypeTier(iid))+".blp",0,true)
 					call BlzFrameSetVisible(CRAFT_MIX_TIER_BORDER1,iid > 0)
 					call BlzFrameSetVisible(CRAFT_MIX_BTN1,iid > 0)
@@ -88,7 +88,7 @@ library Craft requires Frame, User
 				set .mix_target1 = iid
 			elseif index == 1 then
 				if LocalScope(.owner) then
-					call BlzFrameSetTexture(CRAFT_MIX_BACKDROP2,"replaceabletextures\\commandbuttons\\"+Item.getTypeIconPath(iid)+".blp",0,true)
+					call BlzFrameSetTexture(CRAFT_MIX_BACKDROP2,Item.getTypeIconPath(iid),0,true)
 					call BlzFrameSetTexture(CRAFT_MIX_TIER_BORDER2,"textures\\ability_border_tier"+I2S(Item.getTypeTier(iid))+".blp",0,true)
 					call BlzFrameSetVisible(CRAFT_MIX_TIER_BORDER2,iid > 0)
 					call BlzFrameSetVisible(CRAFT_MIX_BTN2,iid > 0)
@@ -258,12 +258,13 @@ library Craft requires Frame, User
 			call BlzTriggerRegisterFrameEvent(.keypress,CRAFT_CATEGORY_BUTTON[CRAFT_CATEGORY_UPGRADE],FRAMEEVENT_CONTROL_CLICK)
 			call BlzTriggerRegisterFrameEvent(.keypress,CRAFT_CATEGORY_BUTTON[CRAFT_CATEGORY_COOK],FRAMEEVENT_CONTROL_CLICK)
 			/**/
-			set THIS[GetPlayerId(.owner)] = this
+			set thistype[.owner] = this
 			return this
 		endmethod
 
 		method onDestroy takes nothing returns nothing
-
+			set thistype[.owner] = 0
+			set .owner = null
 		endmethod
 
 		static method init takes nothing returns nothing

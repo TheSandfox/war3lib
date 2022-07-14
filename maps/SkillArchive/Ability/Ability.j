@@ -278,7 +278,7 @@ endlibrary
 
 	private function init takes nothing returns nothing
 		call TriggerAddCondition(ABILITY_CREATE_TRIGGER,function act)
-		call Ability.setTypeIconPath(ID,ICON_PATH)
+		call Ability.setTypeIconPath(ID,"replaceabletextures\\commandbuttons\\"+ICON_PATH+".blp")
 		call Ability.setTypeName(ID,NAME)
 		call Ability.setTypeTier(ID,TIER)
 		call Ability.setTypeCost(ID,COST)

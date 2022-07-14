@@ -12,6 +12,8 @@ library Inventory requires UI, User
 		player INVENTORY_RIGHTCLICK_PLAYER = null
 		player INVENTORY_ITEM_USE_PLAYER = null
 
+		private boolean INVENTORY_ITEM_MERGE = true
+
 		private trigger INVENTORY_ICON_RESET_FOCUS = CreateTrigger()
 		private framehandle array INVENTORY_ICON_ICON
 		private framehandle array INVENTORY_ICON_TIER_BORDER
@@ -59,7 +61,7 @@ library Inventory requires UI, User
 			endif
 			if target <= 0 then
 				if LocalScope(.owner) then
-					call BlzFrameSetTexture(INVENTORY_ICON_ICON[.index],"replaceabletextures\\commandbuttons\\btnblackicon.blp",0,true)
+					call BlzFrameSetTexture(INVENTORY_ICON_ICON[.index],"icons\\btnblackicon.blp",0,true)
 					call BlzFrameSetAlpha(INVENTORY_ICON_ICON[.index],64)
 				endif
 				/*트리거&프레임 비활성화*/
@@ -70,7 +72,7 @@ library Inventory requires UI, User
 				call DisableTrigger(.main_trigger)
 			else
 				if LocalScope(.owner) then
-					call BlzFrameSetTexture(INVENTORY_ICON_ICON[.index],"replaceabletextures\\commandbuttons\\"+target.icon+".blp",0,true)
+					call BlzFrameSetTexture(INVENTORY_ICON_ICON[.index],Item.getTypeIconPath(target.id),0,true)
 					call BlzFrameSetAlpha(INVENTORY_ICON_ICON[.index],255)
 					call BlzFrameSetVisible(INVENTORY_ICON_TIER_BORDER[.index],true)
 					call BlzFrameSetTexture(INVENTORY_ICON_TIER_BORDER[.index],"Textures\\ability_border_tier"+I2S(Item.getTypeTier(target.id))+".blp",0,true)
@@ -102,14 +104,45 @@ library Inventory requires UI, User
 			if BlzGetTriggerFrameEvent() == FRAMEEVENT_MOUSE_ENTER then
 				call showTooltip()
 				set .in = true
+				return
 			elseif BlzGetTriggerFrameEvent() == FRAMEEVENT_MOUSE_LEAVE then
 				call hideTooltip()
 				set .in = false
+				return
 			elseif .in and BlzGetTriggerPlayerMouseButton() == MOUSE_BUTTON_TYPE_RIGHT then
 				if .target > 0 then
-					set INVENTORY_RIGHTCLICK_INDEX = .index
-					set INVENTORY_RIGHTCLICK_PLAYER = .owner
-					call TriggerEvaluate(INVENTORY_RIGHTCLICK_TRIGGER)
+					if not Craft[.owner].visible_flag then
+						/*ALT우클릭 : 한개만떨구기*/
+						/*if User.getKeyState(.owner,OSKEY_LALT) and User.getKeyState(.owner,OSKEY_LALT) then
+							call Numberpad.customSummit(.owner,"INV_DIVDROP#"+I2S(.target),"")
+							return
+						
+						else*/
+						/*SHIFT우클릭 : 나누기*/
+						if User.getKeyState(.owner,OSKEY_LSHIFT) then
+							if Item.getTypeItemType(.target.id) != ITEMTYPE_ARTIFACT and .target.count > 1 then
+								call Numberpad[.owner].open("INV_DIV#"+I2S(.target))
+								call Numberpad[.owner].setPoint(FRAMEPOINT_RIGHT,INVENTORY_ICON_ICON[.index],FRAMEPOINT_RIGHT,0.,0.)
+								call Numberpad[.owner].setInitialValue("1")
+							endif
+							return
+						/*CONTROL우클릭 : 떨구기*/
+						elseif User.getKeyState(.owner,OSKEY_LCONTROL) then
+							call Numberpad.customSummit(.owner,"INV_DROP",I2S(.index))
+							return
+						else
+							set INVENTORY_RIGHTCLICK_INDEX = .index
+							set INVENTORY_RIGHTCLICK_PLAYER = .owner
+							call TriggerEvaluate(INVENTORY_RIGHTCLICK_TRIGGER)
+							return
+						endif
+					else
+						set INVENTORY_RIGHTCLICK_INDEX = .index
+						set INVENTORY_RIGHTCLICK_PLAYER = .owner
+						call TriggerEvaluate(INVENTORY_RIGHTCLICK_TRIGGER)
+						return
+					endif
+					return
 				endif
 			endif
 		endmethod
@@ -207,7 +240,7 @@ library Inventory requires UI, User
 			local integer i = 0
 			local integer iidx = 0
 			local integer category = Item.getTypeItemType(it.id)
-			if Item.getTypeStackable(it.id) then
+			if Item.getTypeStackable(it.id) and INVENTORY_ITEM_MERGE then
 				set iidx = getItemIndexById(it.id)
 				if iidx > -1 then
 					call it.merge(getItem(category,iidx))
@@ -224,6 +257,12 @@ library Inventory requires UI, User
 						call setItem(category,i,it)
 						if category == .category then
 							call getIcon(i).setTarget(it)
+						endif
+						if i < SLOT-1 then
+							call setItem(category,i+1,-1)
+							if category == .category then
+								call getIcon(i+1).setTarget(-1)
+							endif
 						endif
 						return true
 					endif
@@ -287,10 +326,13 @@ library Inventory requires UI, User
 				if category == .category then
 					call getIcon(i).setTarget(ii)
 				endif
-				exitwhen ii <= 0
+				exitwhen ii == -1
 				set i = i + 1
 			endloop
 			call setItem(category,SLOT-1,0)
+			if category == .category then
+				call getIcon(SLOT-1).setTarget(0)
+			endif
 		endmethod
 
 		method refresh takes integer category returns nothing
@@ -299,15 +341,50 @@ library Inventory requires UI, User
 			loop
 				exitwhen i >= SLOT
 				set it = getItem(category,i)
-				if it <= 0 then
-					
+				if it == -1 then
+					call getIcon(i).setTarget(it)
 				elseif not Item.exists(it) then
 					call pull(category,i)
-				else
+				elseif .category == category then
 					call getIcon(i).setTarget(it)
 				endif
 				set i = i + 1
 			endloop
+		endmethod
+
+		method drop takes integer index returns nothing
+			local Item it = getItem(.category,index)
+			if it > 0 then
+				call it.drop(User.getFocusUnit(.owner).x,User.getFocusUnit(.owner).y)
+				call setItem(.category,index,0)
+				call pull(.category,index)
+			else
+			endif
+		endmethod
+
+		method divide takes Item it, integer count returns boolean
+			local Item nit = 0
+			local integer cat = 0
+			if it <= 0 then
+				return true
+			endif
+			if it.count <= 1 then
+				return true
+			endif
+			set cat = Item.getTypeItemType(it.id)
+			if getItemIndexById(it.id) > -1 then
+				set nit = it.divide(count)
+				if nit > 0 then
+					set INVENTORY_ITEM_MERGE = false
+					call addItem(nit)
+					set INVENTORY_ITEM_MERGE = true
+					call refresh(cat)
+					return true
+				else
+					return false
+				endif
+			endif
+			return true
 		endmethod
 
 		method changeCategory takes integer category returns nothing
@@ -474,66 +551,52 @@ library Inventory requires UI, User
 			call BlzTriggerRegisterFrameEvent(.keypress,.dialog_btn_cancle,FRAMEEVENT_CONTROL_CLICK)
 			call BlzTriggerRegisterFrameEvent(.keypress,.dialog_btn_cancle,FRAMEEVENT_MOUSE_ENTER)
 			call BlzTriggerRegisterFrameEvent(.keypress,.dialog_btn_cancle,FRAMEEVENT_MOUSE_LEAVE)
+			/*첫번째칸 엔드인덱스*/
+			set i = 0
+			loop
+				exitwhen i >= CATEGORY
+				call setItem(i,0,-1)
+				set i = i + 1
+			endloop
 			/*인덱싱*/
 			set THIS[GetPlayerId(p)] = this
 			/*테스트용*/
 			if .owner == Player(0) then
 				call addItem(Item.new('a000'))
-				call addItem(Item.new('m000'))
-				call addItem(Item.new('m000'))
-				call addItem(Item.new('m000'))
-				call addItem(Item.new('m000'))
-				call addItem(Item.new('m001'))
-				call addItem(Item.new('m001'))
-				call addItem(Item.new('m001'))
-				call addItem(Item.new('m001'))
-				call addItem(Item.new('m001'))
-				call addItem(Item.new('m010'))
-				call addItem(Item.new('m011'))
-				call addItem(Item.new('m020'))
-				call addItem(Item.new('m021'))
-				call addItem(Item.new('m030'))
-				call addItem(Item.new('m031'))
-				call addItem(Item.new('m040'))
-				call addItem(Item.new('m041'))
-				call addItem(Item.new('m100'))
-				call addItem(Item.new('m110'))
-				call addItem(Item.new('m120'))
-				call addItem(Item.new('m130'))
-				call addItem(Item.new('m140'))
-				call addItem(Item.new('m100'))
-				call addItem(Item.new('m110'))
-				call addItem(Item.new('m120'))
-				call addItem(Item.new('m130'))
-				call addItem(Item.new('m140'))
+				call addItem(Item.new('a001'))
+				call addItem(Item.new('a002'))
+				call addItem(Item.new('a003'))
+				call addItem(Item.new('a010'))
+				call addItem(Item.new('a011'))
+				call addItem(Item.new('a012'))
+				call addItem(Item.new('a013'))
+				call addItem(Item.new('a020'))
+				call addItem(Item.new('a021'))
+				call addItem(Item.new('a022'))
+				call addItem(Item.new('a023'))
+				call addItem(Item.new('a030'))
+				call addItem(Item.new('a031'))
+				call addItem(Item.new('a032'))
+				call addItem(Item.new('a033'))
+				call addItem(Item.new('a040'))
+				call addItem(Item.new('a041'))
+				call addItem(Item.new('a042'))
+				call addItem(Item.new('a043'))
+				call addItem(Item.new('a050'))
+				call addItem(Item.new('a051'))
+				call addItem(Item.new('a052'))
+				call addItem(Item.new('a053'))
+				call addItem(Item.new('a060'))
+				call addItem(Item.new('a061'))
+				call addItem(Item.new('a062'))
+				call addItem(Item.new('a063'))
+				call addItem(Item.new('a070'))
+				call addItem(Item.new('a071'))
+				call addItem(Item.new('a072'))
+				call addItem(Item.new('a073'))
 			endif
 			if .owner == Player(1) then
-				call addItem(Item.new('a001'))
-				call addItem(Item.new('m200'))
-				call addItem(Item.new('m201'))
-				call addItem(Item.new('m202'))
-				call addItem(Item.new('m203'))
-				call addItem(Item.new('m204'))
-				call addItem(Item.new('m210'))
-				call addItem(Item.new('m211'))
-				call addItem(Item.new('m212'))
-				call addItem(Item.new('m213'))
-				call addItem(Item.new('m214'))
-				call addItem(Item.new('m220'))
-				call addItem(Item.new('m221'))
-				call addItem(Item.new('m222'))
-				call addItem(Item.new('m223'))
-				call addItem(Item.new('m224'))
-				call addItem(Item.new('m230'))
-				call addItem(Item.new('m231'))
-				call addItem(Item.new('m232'))
-				call addItem(Item.new('m233'))
-				call addItem(Item.new('m234'))
-				call addItem(Item.new('m240'))
-				call addItem(Item.new('m241'))
-				call addItem(Item.new('m242'))
-				call addItem(Item.new('m243'))
-				call addItem(Item.new('m244'))
+
 			endif
 			/*call Item.new('m000').drop(0,-300)
 			call Item.new('m000').drop(0,-300)
@@ -576,9 +639,25 @@ library Inventory requires UI, User
 			endif
 		endmethod
 
+		static method numberpadSummit takes nothing returns nothing
+			if NUMBERPAD_REFINED_PREFIX == "INV_DIV" then
+				set NUMBERPAD_SUMMIT_RESULT = thistype[NUMBERPAD_SUMMIT_PLAYER].divide(Item(S2I(NUMBERPAD_REFINED_SUBFIX)),S2I(NUMBERPAD_SUMMIT_VALUE))
+				return
+			endif
+			if NUMBERPAD_SUMMIT_PREFIX == "INV_DROP" then
+				call thistype[NUMBERPAD_SUMMIT_PLAYER].drop(S2I(NUMBERPAD_SUMMIT_VALUE))
+				return
+			endif
+			if NUMBERPAD_REFINED_PREFIX == "INV_DIVDROP" then
+				call thistype[NUMBERPAD_SUMMIT_PLAYER].divide(Item(S2I(NUMBERPAD_REFINED_SUBFIX)),1)
+				return
+			endif
+		endmethod
+
 		static method onInit takes nothing returns nothing
 			call TriggerAddCondition(INVENTORY_RIGHTCLICK_TRIGGER,function thistype.rightClickRequest)
 			call TriggerAddCondition(ITEM_PICK_TRIGGER,function thistype.itemPick)
+			call TriggerAddCondition(NUMBERPAD_SUMMIT_TRIGGER,function thistype.numberpadSummit)
 		endmethod
 
 		static method init takes nothing returns nothing

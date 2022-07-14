@@ -40,6 +40,12 @@ struct User extends array
 			return 8
 		elseif 	os == OSKEY_V then
 			return 9
+		elseif	os == OSKEY_LCONTROL then
+			return 10
+		elseif	os == OSKEY_LSHIFT then
+			return 11
+		elseif	os == OSKEY_LALT then
+			return 12
 		else
 			return 0
 		endif
@@ -50,11 +56,11 @@ struct User extends array
 	endmethod
 
 	static method setKeyState takes player p, oskeytype ok, boolean val returns nothing
-		call SaveBoolean(HASH,GetPlayerId(p),oskey2Index(ok),val)
+		call SaveBoolean(HASH,GetPlayerId(p),GetHandleId(ok),val)
 	endmethod
 
 	static method getKeyState takes player p, oskeytype ok returns boolean
-		return LoadBoolean(HASH,GetPlayerId(p),oskey2Index(ok))
+		return LoadBoolean(HASH,GetPlayerId(p),GetHandleId(ok))
 	endmethod
 
 	static method getGold takes player p returns integer
@@ -139,7 +145,9 @@ struct User extends array
 				endif
 			endif
 		endif
-		call setKeyState(GetTriggerPlayer(),BlzGetTriggerPlayerKey(),BlzGetTriggerPlayerIsKeyDown())
+		if BlzGetTriggerPlayerIsKeyDown() != getKeyState(GetTriggerPlayer(),BlzGetTriggerPlayerKey()) then
+			call setKeyState(GetTriggerPlayer(),BlzGetTriggerPlayerKey(),BlzGetTriggerPlayerIsKeyDown())
+		endif
 	endmethod
 
 	static method new takes player p returns nothing
@@ -186,6 +194,16 @@ struct User extends array
 		call BlzTriggerRegisterPlayerKeyEvent(KEYPRESS[i],p,OSKEY_X,1,false)
 		call BlzTriggerRegisterPlayerKeyEvent(KEYPRESS[i],p,OSKEY_C,1,false)
 		call BlzTriggerRegisterPlayerKeyEvent(KEYPRESS[i],p,OSKEY_V,1,false)
+		//metakey
+		/*call BlzTriggerRegisterPlayerKeyEvent(KEYPRESS[i],p,OSKEY_LALT,4,true)
+		call BlzTriggerRegisterPlayerKeyEvent(KEYPRESS[i],p,OSKEY_LALT,0,false)*/
+		call BlzTriggerRegisterPlayerKeyEvent(KEYPRESS[i],p,OSKEY_LCONTROL,2,true)
+		call BlzTriggerRegisterPlayerKeyEvent(KEYPRESS[i],p,OSKEY_LCONTROL,0,false)
+		call BlzTriggerRegisterPlayerKeyEvent(KEYPRESS[i],p,OSKEY_LCONTROL,1,false)
+		call BlzTriggerRegisterPlayerKeyEvent(KEYPRESS[i],p,OSKEY_LSHIFT,1,true)
+		call BlzTriggerRegisterPlayerKeyEvent(KEYPRESS[i],p,OSKEY_LSHIFT,0,false)
+		call BlzTriggerRegisterPlayerKeyEvent(KEYPRESS[i],p,OSKEY_LSHIFT,2,false)
+		//
 		call setKeyState(p,OSKEY_Q,false)
 		call setKeyState(p,OSKEY_W,false)
 		call setKeyState(p,OSKEY_E,false)
@@ -196,6 +214,7 @@ struct User extends array
 		call setKeyState(p,OSKEY_X,false)
 		call setKeyState(p,OSKEY_C,false)
 		call setKeyState(p,OSKEY_V,false)
+		call setKeyState(p,OSKEY_LCONTROL,false)
 		call TriggerAddCondition(KEYPRESS[i],function thistype.keyPress)
 	endmethod
 

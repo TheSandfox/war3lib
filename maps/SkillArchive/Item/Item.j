@@ -14,8 +14,14 @@ library Item requires Frame
 		private constant integer INDEX_STACKABLE = 6
 		private constant integer INDEX_CREATE_TRIGGER = 7
 
-		constant integer ITEMSET_ETERNAL_CYCLONE = 0
-		constant integer ITEMSET_CLEANSING_FIRE = 1
+		constant integer ITEMSET_VENOMANCER = 0
+		constant integer ITEMSET_VOLCANIC_CAVALIER = 1
+		constant integer ITEMSET_VENGEANCE = 2
+		constant integer ITEMSET_DESOLATOR = 3
+		constant integer ITEMSET_GLADIATOR = 4
+		constant integer ITEMSET_ENGINEER = 5
+		constant integer ITEMSET_CAPTAIN = 6
+		constant integer ITEMSET_MIDAS = 7
 
 		string array ITEMSET_NAME
 		integer array ITEMSET_ITEM
@@ -31,6 +37,9 @@ library Item requires Frame
 
 		string array ITEMTYPE_ICON
 		string array ITEMTYPE_NAME
+
+		private texttag ITEM_NAME_INDICATOR = null
+		private trigger ITEM_NAME_INDICATOR_TRIGGER = null
 	endglobals
 
 	struct Shuffle extends Shuffle_prototype
@@ -134,7 +143,7 @@ library Item requires Frame
 			if HaveSavedString(HASH,iid,INDEX_ICON) then
 				return LoadStr(HASH,iid,INDEX_ICON)
 			else
-				return "btnblackicon"
+				return "icons\\btnblackicon.blp"
 			endif
 		endmethod
 
@@ -190,9 +199,9 @@ library Item requires Frame
 			call SaveTriggerHandle(HASH,iid,INDEX_CREATE_TRIGGER,tr)
 		endmethod
 
-		method devide takes integer i returns thistype
+		method divide takes integer i returns thistype
 			local Item nit = 0
-			if .count <= 1 then
+			if .count <= 1 or i <= 0 then
 				return 0
 			endif
 			set nit = new(.id)
@@ -246,11 +255,21 @@ library Item requires Frame
 			return true
 		endmethod
 
+		stub method getDropName takes nothing returns string
+			return TIER_STRING_COLOR[getTypeTier(.id)]+.name +" x"+I2S(.count)
+		endmethod
+
 		stub method refreshTooltip takes nothing returns nothing
+			if .tooltip_container == null then
+				return
+			endif
 			call BlzFrameSetText(.tooltip_text,relativeTooltip())
 		endmethod
 
 		method resetTooltip takes nothing returns nothing
+			if .tooltip_container == null then
+				return
+			endif
 			set .pivot = null
 			call BlzFrameSetVisible(.tooltip_container,false)
 		endmethod
@@ -267,7 +286,7 @@ library Item requires Frame
 			set .tooltip_icon = BlzCreateFrameByType("BACKDROP","",.tooltip_container,"",0)
 			call BlzFrameSetPointPixel(.tooltip_icon,FRAMEPOINT_TOPLEFT,.tooltip_outline,FRAMEPOINT_TOPLEFT,8,-8)
 			call BlzFrameSetSizePixel(.tooltip_icon,48,48)
-			call BlzFrameSetTexture(.tooltip_icon,"replaceabletextures\\commandbuttons\\"+getTypeIconPath(.id)+".blp",0,true)
+			call BlzFrameSetTexture(.tooltip_icon,getTypeIconPath(.id),0,true)
 			set .tooltip_tier_border = BlzCreateFrameByType("BACKDROP","",.tooltip_icon,"",0)
 			call BlzFrameSetAllPoints(.tooltip_tier_border,.tooltip_icon)
 			call BlzFrameSetTexture(.tooltip_tier_border,"Textures\\ability_border_tier"+I2S(Item.getTypeTier(.id))+".blp",0,true)
@@ -320,9 +339,16 @@ library Item requires Frame
 			//call BlzFrameSetVisible(.tooltip_container,GetLocalPlayer()==visible)
 		endmethod
 
+		stub method initialize takes nothing returns nothing
+
+		endmethod
+
 		static method new takes integer iid returns thistype
 			set LAST_CREATED = 0
 			call TriggerEvaluate(getTypeCreateTrigger(iid))
+			if LAST_CREATED > 0 then
+				call thistype(LAST_CREATED).initialize()
+			endif
 			return LAST_CREATED
 		endmethod
 
@@ -343,14 +369,15 @@ library Item requires Frame
 			set .exist = false
 		endmethod
 
-		static method genericConfiguration takes integer iid, trigger trig, code cond, string icon, string name returns nothing  
+		static method genericConfiguration takes integer iid, trigger trig, code cond, string name returns nothing  
 			call setTypeCreateTrigger(iid,trig)
 			call TriggerAddCondition(trig,Condition(cond))
-			call setTypeIconPath(iid,icon)
+			
 			call setTypeName(iid,name)
 		endmethod
 
-		static method artifactConfiguration takes integer iid, integer setnum returns nothing
+		static method artifactConfiguration takes integer iid, integer setnum, string icon returns nothing
+			call setTypeIconPath(iid,icon)
 			call setTypeSetNum(iid,setnum)
 			call setTypeItemType(iid,ITEMTYPE_ARTIFACT)
 			call setTypeStackable(iid,false)
@@ -359,19 +386,60 @@ library Item requires Frame
 			set ITEMSET_REGIST_INDEX[setnum] = ITEMSET_REGIST_INDEX[setnum] + 1
 		endmethod
 
-		static method materialConfiguration takes integer iid, integer tier returns nothing
+		static method materialConfiguration takes integer iid, integer tier, string icon returns nothing
+			call setTypeIconPath(iid,"Icons\\Items\\Materials\\"+icon+".blp")
 			call setTypeSetNum(iid,-1)
 			call setTypeTier(iid,tier)
 			call setTypeItemType(iid,ITEMTYPE_MATERIAL)
 			call setTypeStackable(iid,true)
 		endmethod
 
+		static method refreshItemNameIndicator takes player p returns nothing
+			if GetLocalPlayer() == p then
+				if BlzGetMouseFocusUnit() == null then
+					call SetTextTagVisibility(ITEM_NAME_INDICATOR,false)
+					return
+				endif
+				if GetUnitTypeId(BlzGetMouseFocusUnit()) != 'idum' then
+					call SetTextTagVisibility(ITEM_NAME_INDICATOR,false)
+					return
+				endif
+				call SetTextTagText(ITEM_NAME_INDICATOR,GetUnitName(BlzGetMouseFocusUnit()),0.02)
+				call SetTextTagVisibility(ITEM_NAME_INDICATOR,true)
+				call SetTextTagPos(ITEM_NAME_INDICATOR,GetUnitX(BlzGetMouseFocusUnit()),GetUnitY(BlzGetMouseFocusUnit()),65.)
+			endif
+		endmethod
+
+		static method refreshItemNameCallback takes nothing returns nothing
+			local integer i = 0
+			if GetTriggerEventId() == EVENT_PLAYER_MOUSE_MOVE then
+				call refreshItemNameIndicator(GetTriggerPlayer())
+			elseif GetTriggerEventId() == EVENT_GAME_TIMER_EXPIRED then
+				loop
+					exitwhen i >= bj_MAX_PLAYERS
+					call refreshItemNameIndicator(Player(i))
+					set i = i + 1
+				endloop
+			endif
+		endmethod
+
 		static method onInit takes nothing returns nothing
+			local integer i = 0
 			set ItemPrototype_SIZE = 4
-			set ITEMSET_NAME[ITEMSET_ETERNAL_CYCLONE] = "영구순환의 소용돌이"
-			set ITEMSET_NAME[ITEMSET_CLEANSING_FIRE] = "정화의 불길"
-			set ITEMSET_REGIST_INDEX[ITEMSET_ETERNAL_CYCLONE] = 0
-			set ITEMSET_REGIST_INDEX[ITEMSET_CLEANSING_FIRE] = 0
+			//! textmacro initItemsetIndex takes prime, name
+			set ITEMSET_NAME[ITEMSET_$prime$] = "$name$"
+			set ITEMSET_REGIST_INDEX[ITEMSET_$prime$] = 0
+			set ITEMSET_DESC1[ITEMSET_$prime$] = "2세트 효과 (작성중)"
+			set ITEMSET_DESC2[ITEMSET_$prime$] = "4세트 효과 (작성중)"
+			//! endtextmacro
+			//! runtextmacro initItemsetIndex("VENOMANCER","맹독술사")
+			//! runtextmacro initItemsetIndex("VOLCANIC_CAVALIER","용암 기병대")
+			//! runtextmacro initItemsetIndex("VENGEANCE","응징왕")
+			//! runtextmacro initItemsetIndex("DESOLATOR","잔악한 고문")
+			//! runtextmacro initItemsetIndex("GLADIATOR","검투사")
+			//! runtextmacro initItemsetIndex("ENGINEER","기계공의 유산")
+			//! runtextmacro initItemsetIndex("CAPTAIN","쿨한 지휘관")
+			//! runtextmacro initItemsetIndex("MIDAS","황금의 왕")
 			//
 			set ITEMTYPE_NAME[ITEMTYPE_MATERIAL] = "소재"
 			set ITEMTYPE_NAME[ITEMTYPE_ARTIFACT] = "아티팩트"
@@ -382,10 +450,24 @@ library Item requires Frame
 			set ITEMTYPE_ICON[ITEMTYPE_FOOD] = "ui\\widgets\\tooltips\\human\\tooltipfoodicon.blp"
 			set ITEMTYPE_ICON[ITEMTYPE_GACHA] = "ui\\widgets\\tooltips\\human\\tooltipgachaicon.blp"
 			//
-			set ITEMSET_DESC1[ITEMSET_ETERNAL_CYCLONE] = "영구순환의 소용돌이 2세트효과(작성중)"
-			set ITEMSET_DESC2[ITEMSET_ETERNAL_CYCLONE] = "영구순환의 소용돌이 4세트효과(작성중)"
-			set ITEMSET_DESC1[ITEMSET_CLEANSING_FIRE] = "정화의 불길 2세트효과(작성중)"
-			set ITEMSET_DESC2[ITEMSET_CLEANSING_FIRE] = "정화의 불길 4세트효과(작성중)"
+			/*set ITEMSET_DESC1[ITEMSET_VENOMANCER] = "영구순환의 소용돌이 2세트효과(작성중)"
+			set ITEMSET_DESC2[ITEMSET_VENOMANCER] = "영구순환의 소용돌이 4세트효과(작성중)"
+			set ITEMSET_DESC1[ITEMSET_VOLCANIC_CAVALIER] = "정화의 불길 2세트효과(작성중)"
+			set ITEMSET_DESC2[ITEMSET_VOLCANIC_CAVALIER] = "정화의 불길 4세트효과(작성중)"
+			set ITEMSET_DESC1[ITEMSET_VENGEANCE] = "영구순환의 소용돌이 2세트효과(작성중)"
+			set ITEMSET_DESC2[ITEMSET_VENGEANCE] = "영구순환의 소용돌이 4세트효과(작성중)"*/
+			/*INIT ITEM NAME INDICATOR*/
+			set ITEM_NAME_INDICATOR = CreateTextTag()
+			call SetTextTagPermanent(ITEM_NAME_INDICATOR,true)
+			call SetTextTagVisibility(ITEM_NAME_INDICATOR,false)
+			set ITEM_NAME_INDICATOR_TRIGGER = CreateTrigger()
+			loop
+				exitwhen i >= bj_MAX_PLAYERS
+				call TriggerRegisterPlayerEvent(ITEM_NAME_INDICATOR_TRIGGER,Player(i),EVENT_PLAYER_MOUSE_MOVE)
+				set i = i + 1
+			endloop
+			call TriggerRegisterTimerEvent(ITEM_NAME_INDICATOR_TRIGGER,0.05,true)
+			call TriggerAddCondition(ITEM_NAME_INDICATOR_TRIGGER,function thistype.refreshItemNameCallback)
 		endmethod
 
 	endstruct

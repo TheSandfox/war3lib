@@ -64,7 +64,7 @@ library SkillShop requires UI
 				call BlzFrameSetVisible(.info_lucky_backdrop,.lucky)
 				call BlzFrameSetVisible(.info_lucky_model,.lucky)
 				/*어빌리티 아이콘*/
-				call BlzFrameSetTexture(.icon,"ReplaceableTextures\\CommandButtons\\"+Ability.getTypeIconPath(id)+".blp",0,true)
+				call BlzFrameSetTexture(.icon,Ability.getTypeIconPath(id),0,true)
 				call BlzFrameSetTexture(.tier_border,"Textures\\ability_border_tier"+I2S(Ability.getTypeTier(id))+".blp",0,true)
 				call BlzFrameSetVisible(.tier_border,true)
 				/*무기변형이면*/
